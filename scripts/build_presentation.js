@@ -225,7 +225,7 @@ pres.addSection({ title: "Modelling" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
   s.addText("Measure of success: the two mistakes do not cost the same", { placeholder: "title" });
   const colW = 4.4;
-  [["Missed defaulter", "The model says 'will repay', the customer defaults.", "Bank loses most of the principal plus collection cost: about $9,000 on a typical $18,600 loan.", C.accent2],
+  [["Missed defaulter", "The model says 'will repay', the customer defaults.", "Bank loses most of the principal plus collection cost: about $9,000 on a typical $16,900 defaulted loan.", C.accent2],
    ["Wrongly declined", "The model says 'will default', the customer would have repaid.", "Bank forgoes the interest margin on one good customer: about $2,000.", C.accent3]].forEach(([t, d, c, col], i) => {
     const x = 0.5 + i * (colW + 0.2);
     card(s, x, 1.3, colW, 2.2, { name: `error card ${i + 1}` });
@@ -265,7 +265,7 @@ pres.addSection({ title: "Modelling" });
 // 10. Proposed solution
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
-  s.addText("Proposed solution: a Random Forest scorer with a Decision Tree explanation layer", { placeholder: "title" });
+  s.addText("Proposed solution: a Random Forest scorer explained by a surrogate decision tree", { placeholder: "title" });
   card(s, 0.5, 1.25, 5.3, 3.85, { name: "spec card" });
   s.addText("Model specification", { x: 0.7, y: 1.35, w: 4.9, h: 0.4, fontSize: 14, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "spec title" });
   s.addText(bullets([
@@ -278,7 +278,7 @@ pres.addSection({ title: "Modelling" });
   stat(s, 6.1, 1.3, 1.65, "93%", "of defaulters caught", C.accent5, 34);
   stat(s, 7.85, 1.3, 1.65, "67%", "of flagged applicants truly default", C.accent1, 34);
   stat(s, 6.1, 2.75, 1.65, "0.96", "ROC-AUC: risk ranking quality", C.accent1, 34);
-  stat(s, 7.85, 2.75, 1.65, "90%", "overall accuracy", C.accent1, 34);
+  stat(s, 7.85, 2.75, 1.65, "89%", "overall accuracy", C.accent1, 34);
   s.addText("Per 1,000 applicants: about 185 of 200 defaulters flagged in advance, 15 missed, 92 good customers referred or declined.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
   notes(s, "The proposal. A Random Forest does the scoring; a surrogate decision tree fitted to the forest's own decisions, which reproduces ninety percent of them, provides the plain-language reasons for every decline. On unseen applicants the forest catches 93 percent of defaulters and two out of three flagged applicants really would have defaulted.");
 }
@@ -429,12 +429,12 @@ pres.addSection({ title: "Appendix" });
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.8, h: 3.9, barDir: "bar", chartColors: [H.accent1], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.0",
        valAxisMaxVal: 24, valAxisLabelFormatCode: "0", catAxisOrientation: "maxMin", title: "Impurity-based importance (%), final Random Forest", objectName: "feature importance chart" });
   s.addText(bullets([
-    "The debt-to-income ratio and its missing flag carry more than a third (36%) of the final forest's decision power; with delinquent lines and credit-history length, about half.",
-    "Permutation importance (drop in ranking quality when a column is shuffled) ranks the same four at the top, with delinquent credit lines first.",
-    "Loan, property and mortgage amounts matter in combination but are weak on their own.",
-    "Occupation, loan-purpose and minor missing flags matter little individually, yet dropping them raised out-of-fold expected cost by about a sixth, so they stay subject to the fair-lending review.",
-    "Logistic-regression coefficients, the decision-tree rules and the surrogate tree point to the same drivers, so the signal is stable across techniques.",
-  ], 12), { x: 6.4, y: 1.25, w: 3.2, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "importance bullets" });
+    "The debt-to-income ratio and its missing flag carry 36% of the final forest's decision power; with delinquent lines and credit-history length, about half.",
+    "Permutation importance (drop in ranking quality when a column is shuffled) ranks the same four at the top, delinquent credit lines first.",
+    "Loan, property and mortgage amounts matter in combination, little on their own.",
+    "Occupation, loan purpose and minor flags matter little individually, yet dropping them raised out-of-fold expected cost by about a sixth, so they stay subject to the fair-lending review.",
+    "Logistic-regression coefficients, tree rules and the surrogate tree all point to the same drivers.",
+  ], 11), { x: 6.4, y: 1.25, w: 3.2, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "importance bullets" });
 }
 
 // A3. Decision rules
