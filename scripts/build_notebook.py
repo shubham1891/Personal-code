@@ -37,14 +37,20 @@ A large share of a retail bank's profit comes from the interest it earns on home
 
 Today the approval decision is made through a manual study of the application by an underwriter. That process is slow, expensive, inconsistent from one underwriter to another, and vulnerable to human error and bias. Earlier attempts to automate the process used hand-written heuristics. With the data the bank now has on past loans and their outcomes, it is possible to **learn** the approval decision from evidence instead of opinion, while making sure the new model does not simply replicate the biases of the old manual process.
 
+**Some facts that size the problem.** In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**, all of them approved by the current process. Those defaulted loans averaged about \$16,900 each, so roughly \$20 million of principal was put at risk, and if the bank recovers about half through the collateral, roughly \$10 million was lost on this book alone. Every ten defaulters avoided saves, at that rate, about \$85,000; every good customer wrongly turned away costs only the interest margin on one loan, a few thousand dollars at most.
+
+**Advantages of solving it.** A reliable, explainable scoring model (1) cuts credit losses by stopping likely defaulters at the door, (2) protects revenue by not declining good customers unnecessarily, (3) speeds up and standardises decisions so underwriters spend their time on the genuinely uncertain cases, and (4) gives the bank documented, consistent reasons for every decision, which is both a regulatory requirement and a fairness safeguard.
+
 ### **The objective:**
 
 Build a classification model that predicts, at the time of application, whether a client is likely to default on a home equity loan, and use that model to give the bank clear recommendations on which applicant attributes matter most when approving a loan.
 
-The model must satisfy two constraints at once:
+The project has several goals, in priority order:
 
-1. **Predictive power** - catch as many future defaulters as possible before the money leaves the bank.
-2. **Interpretability** - under the Equal Credit Opportunity Act (ECOA) the bank must be able to give an applicant a specific, defensible reason for an adverse decision. A black box that cannot explain a rejection is not usable in production.
+1. **Catch defaulters early** - maximise the share of future defaulters identified at application time (recall on the default class), because a missed defaulter is the costliest error.
+2. **Protect good business** - keep the share of wrongly declined good customers acceptable (precision), so that risk reduction does not come at the price of lost revenue.
+3. **Stay interpretable** - under the Equal Credit Opportunity Act (ECOA) the bank must be able to give an applicant a specific, defensible reason for an adverse decision. A black box that cannot explain a rejection is not usable in production.
+4. **Guide policy** - identify the applicant attributes that matter most, so the bank can tighten its approval rules and data collection even before a model is deployed.
 
 ### **The key questions:**
 
