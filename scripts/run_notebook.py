@@ -1,6 +1,7 @@
-"""Executes the capstone notebook in place and exports it to HTML (the submission format).
+"""Executes a notebook in place and exports it to HTML (the submission format).
 
-Run from the repository root:  python3 scripts/run_notebook.py
+Run from the repository root:  python3 scripts/run_notebook.py [path/to/notebook.ipynb]
+(default: notebooks/Loan_Default_Prediction_Capstone.ipynb)
 """
 import sys
 import time
@@ -11,7 +12,7 @@ from nbclient import NotebookClient
 from nbconvert import HTMLExporter
 
 ROOT = Path(__file__).resolve().parents[1]
-NB_PATH = ROOT / "notebooks" / "Loan_Default_Prediction_Capstone.ipynb"
+NB_PATH = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "notebooks" / "Loan_Default_Prediction_Capstone.ipynb"
 HTML_PATH = NB_PATH.with_suffix(".html")
 
 nb = nbformat.read(NB_PATH, as_version=4)

@@ -1,0 +1,1164 @@
+"""Completes the Low-Code learner notebook template for the Loan Default Prediction capstone.
+
+The official template (Capstone_Project - Reference_Notebook_Loan_Default_Prediction_Low_Code.ipynb) is kept
+cell for cell; every "Remove ___ and complete the code" blank is filled, every "Insights ____" cell is written,
+the "as done above, analyze the other variables" notes get the extra cells they ask for, and the few template
+cells that no longer run on current seaborn are repaired. Pre-processing, seeds and grids match the full-code
+notebook, so both notebooks report the same numbers.
+
+Run from the repository root:  python3 scripts/build_lowcode_notebook.py
+Then:                          python3 scripts/run_notebook.py notebooks/Loan_Default_Prediction_Low_Code.ipynb
+"""
+import copy
+from pathlib import Path
+
+import nbformat as nbf
+
+ROOT = Path(__file__).resolve().parents[1]
+TEMPLATE = Path("/root/.claude/uploads/3d960908-7bd5-5726-97b7-6518804689b8/16ab844c-Capstone_Project_-_Reference_Notebook_Loan_Default_Prediction_Low_Code.ipynb")
+OUT = ROOT / "notebooks" / "Loan_Default_Prediction_Low_Code.ipynb"
+
+nb = nbf.read(TEMPLATE, as_version=4)
+cells = nb.cells
+assert len(cells) == 171, len(cells)
+
+replace = {}   # original index -> new source (same cell type)
+after = {}     # original index -> list of (type, source) cells to insert after it
+
+
+def md(i, text):
+    replace[i] = ("markdown", text.strip("\n"))
+
+
+def code(i, text):
+    replace[i] = ("code", text.strip("\n"))
+
+
+def add_after(i, kind, text):
+    after.setdefault(i, []).append((kind, text.strip("\n")))
+
+
+# ----------------------------------------------------------------------------- problem definition
+md(1, r"""
+## **Problem Definition**
+
+### **The Context:**
+
+ - Why is this problem important to solve?
+
+A large share of a retail bank's profit comes from the interest it earns on home loans and home equity lines of credit, and the single biggest threat to that profit is the borrower who does not pay back: every loan that turns into a non-performing asset wipes out the interest earned on many good loans. Today the approval decision is made by an underwriter's manual study of each application, which is slow, expensive, inconsistent between underwriters and open to human error and bias. Earlier attempts to automate it used hand-written heuristics.
+
+In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**, all of them approved by the current process. Those loans averaged about \$16,900, so roughly \$20 million of principal was put at risk and, with about half recovered through collateral, roughly \$10 million was lost on this book alone. A reliable, explainable scoring model cuts those losses, protects revenue by not declining good customers unnecessarily, speeds up and standardises decisions, and gives the bank documented reasons for every decision, which the Equal Credit Opportunity Act (ECOA) requires.
+
+### **The objective:**
+
+ - What is the intended goal?
+
+Build a classification model that predicts, at application time, whether a client is likely to default on a home equity loan, and give the bank recommendations on which applicant attributes matter most when approving a loan. In priority order the goals are: (1) catch as many future defaulters as possible (recall on the default class), (2) keep the share of wrongly declined good customers acceptable (precision), (3) stay interpretable enough to justify every rejection, and (4) identify the attributes that should drive approval policy.
+
+### **The key questions:**
+
+- What are the key questions that need to be answered?
+
+1. What share of past applicants defaulted, and how imbalanced is the problem?
+2. Which applicant attributes (debt burden, credit history, loan size, job, loan purpose, property value) separate defaulters from repayers?
+3. How should missing information be treated? Is the absence of information itself a risk signal?
+4. Which technique (linear vs tree-based vs ensemble) gives the best trade-off between catching defaulters and wrongly rejecting good customers?
+5. What is the right measure of success for this business problem?
+6. Which model should the bank adopt, with what settings, and what rules can it communicate to applicants and regulators?
+
+### **The problem formulation**:
+
+- What is it that we are trying to solve using data science?
+
+This is a **supervised binary classification** problem. Each row is a past loan with 12 attributes known at application time and a target `BAD` (1 = defaulted or seriously delinquent, 0 = repaid). We explore and clean the data, train a linear model (Logistic Regression) and non-linear models (Decision Tree, Random Forest), tune them with cross-validated grid search, compare them on a business-driven metric (recall on defaulters, with precision as the guard-rail) and propose a final solution with the business rules that follow from it.
+""")
+
+# ----------------------------------------------------------------------------- data overview
+code(7, r"""
+hm=pd.read_csv("../data/hmeq.csv")
+""")
+add_after(8, "markdown", r"""
+**Hold out the test set before fitting any statistic.** Every statistic used to prepare the data (outlier fences, imputation medians and modes, scaling) is computed on the training rows only and then applied to all rows, so no information about the test applicants leaks into the models. The split is 70/30, stratified on `BAD`, with a fixed seed.
+""")
+add_after(8, "code", r"""
+train_idx, test_idx = train_test_split(data.index, test_size=0.3, random_state=1, stratify=data['BAD'])
+print(f"Training rows: {len(train_idx):,} | Test rows: {len(test_idx):,}")
+""")
+code(10, r"""
+# Display first five rows
+data.head()
+""")
+code(11, r"""
+# Display last 5 rows
+data.tail()
+""")
+code(13, r"""
+# Check the shape of the data
+print(f"The dataset has {data.shape[0]:,} rows and {data.shape[1]} columns")
+""")
+md(14, r"""
+**Insights:** The dataset has 5,960 loans (rows) and 13 columns: the target `BAD` and 12 input attributes. Every row is one home equity loan that the bank approved under its current process.
+""")
+code(16, r"""
+# Check info of the data
+data.info()
+""")
+md(17, r"""
+**Insights:**
+- `BAD` and `LOAN` are integers with no gaps; `REASON` and `JOB` are text (categorical); the other nine inputs are floats.
+- `DEROG`, `DELINQ`, `NINQ` and `CLNO` are stored as floats but are really whole-number counts.
+- Every input except `LOAN` has fewer than 5,960 non-null values, so missing values are widespread and must be treated before modelling.
+""")
+code(19, r"""
+# Analyse missing values - Hint: use isnull() function
+data.isnull().sum()
+""")
+code(20, r"""
+# Check the percentage of missing values in the each column.
+(data.isnull().sum() / len(data) * 100).round(2).sort_values(ascending=False)
+""")
+md(21, r"""
+**Insights:**
+- `DEBTINC` (debt-to-income ratio) is missing in 21.3% of applications, by far the most; it is the single most important affordability measure a lender has, so its absence is suspicious in itself.
+- `DEROG` (11.9%), `DELINQ` (9.7%), `MORTDUE` (8.7%), `YOJ` (8.6%) and `NINQ` (8.6%) have moderate gaps; `JOB`, `REASON`, `CLAGE`, `CLNO` and `VALUE` are missing in under 5.2% of rows.
+- No column is missing enough to drop it, and 44% of rows have at least one blank, so dropping rows is not an option either. We will impute values and keep a flag for every imputed cell.
+""")
+md(22, r"""
+### **Think about it:**
+- We found the total number of missing values and the percentage of missing values, which is better to consider?
+- What can be the limit for % missing values in a column in order to avoid it and what are the challenges associated with filling them and avoiding them?
+
+*The percentage is the better guide because it is independent of the dataset size: 1,267 missing values sounds large, but 21% tells us the column is still mostly populated. A common rule of thumb is to drop a column only when well over half of it is missing (say 60-70%) and the gap carries no information; below that, imputation is preferable. Filling values risks inventing patterns (every imputed row gets the same median), while dropping rows or columns throws away real applicants and, here, would throw away the most predictive signal of all: whether the applicant supplied the information at all.*
+""")
+code(27, r"""
+# Changing the data type of object type column to category
+for i in cols:
+    data[i] = data[i].astype('category')
+""")
+code(28, r"""
+# Checking the info again and the datatype of different variable
+data.info()
+""")
+code(30, r"""
+# Analyze the summary statistics for numerical variables
+data.describe().T
+""")
+md(31, r"""
+**Insights:**
+- `LOAN` ranges from \$1,100 to \$89,900 (median \$16,300, mean \$18,608): right-skewed with a tail of large loans. `MORTDUE` (median \$65,019) and `VALUE` (median \$89,236) are also right-skewed; `VALUE` has an extreme maximum of \$855,909.
+- `YOJ`: median 7 years at the current job, a quarter of applicants at 3 years or less.
+- `DEROG` and `DELINQ` are zero for at least 75% of applicants; their means (0.25 and 0.45) come from a small group with many derogatory reports or delinquent lines.
+- `CLAGE`: median 173 months (about 14.5 years); the maximum of 1,168 months (97 years) is not plausible.
+- `NINQ`: median 1 recent inquiry, maximum 17. `CLNO`: median 20 credit lines, maximum 71.
+- `DEBTINC`: tightly concentrated (25th-75th percentile 29% to 39%); the maximum of 203% is impossible and a data error.
+""")
+code(32, r"""
+# Check summary for categorical data
+data.describe(include=['category']).T
+""")
+md(33, r"""
+**Insights:** `BAD` has 2 levels and the majority level (0, repaid) covers 4,771 of 5,960 loans. `REASON` has 2 levels with debt consolidation the most common (3,928 of 5,708 recorded). `JOB` has 6 levels and "Other" is the most common (2,388 of 5,681 recorded).
+""")
+code(35, r"""
+# Checking the count of unique values in each categorical column
+cols_cat= data.select_dtypes(['category'])
+
+for i in cols_cat.columns:
+    print('Unique values in',i, 'are :')
+    print(data[i].value_counts())
+    print('*'*40)
+""")
+md(36, r"""
+**Insights:** 1,189 loans defaulted against 4,771 repaid, an imbalance of roughly 1:4. Debt consolidation (3,928) is more than twice as common as home improvement (1,780). Among occupations "Other" (2,388), ProfExe (1,276) and Office (948) dominate; Sales (109) and Self-employed (193) are small groups whose default rates should be read with care.
+""")
+md(37, r"""
+### **Think about it**
+- The results above gave the absolute count of unique values in each categorical column. Are absolute values a good measure?
+- If not, what else can be used? Try implementing that.
+
+*Absolute counts depend on the sample size and make groups hard to compare; shares (percentages) are easier to interpret. The cell below shows the same information as percentages.*
+""")
+add_after(37, "code", r"""
+# Share of each category (percentage of non-missing values)
+for i in cols_cat.columns:
+    print('Percentage share of values in', i, ':')
+    print((data[i].value_counts(normalize=True) * 100).round(2))
+    print('*'*40)
+""")
+
+# ----------------------------------------------------------------------------- univariate
+code(41, r"""
+# While doing uni-variate analysis of numerical variables we want to study their central tendency and dispersion.
+# Let us write a function that will help us create boxplot and histogram for any input numerical variable.
+# This function takes the numerical column as the input and return the boxplots and histograms for the variable.
+# Let us see if this help us write faster and cleaner code.
+def histogram_boxplot(feature, figsize=(12,6), bins = None):
+    ''' Boxplot and histogram combined
+    feature: 1-d feature array
+    figsize: size of fig (default (12,6))
+    bins: number of bins (default None / auto)
+    '''
+    f2, (ax_box2, ax_hist2) = plt.subplots(nrows = 2, # Number of rows of the subplot grid= 2
+                                           sharex = True, # x-axis will be shared among all subplots
+                                           gridspec_kw = {"height_ratios": (.25, .75)},
+                                           figsize = figsize
+                                           ) # creating the 2 subplots
+    sns.boxplot(x=feature, ax=ax_box2, showmeans=True, color='violet') # boxplot will be created and a star will indicate the mean value of the column
+    sns.histplot(x=feature, kde=False, ax=ax_hist2, bins=bins if bins else 'auto') # For histogram
+    ax_hist2.axvline(np.nanmean(feature), color='green', linestyle='--') # Add mean to the histogram
+    ax_hist2.axvline(np.nanmedian(feature), color='black', linestyle='-') # Add median to the histogram
+    ax_box2.set(xlabel='')
+    f2.suptitle(feature.name)
+    plt.show()
+""")
+md(44, r"""
+**Insights:** Loan amounts range from \$1,100 to \$89,900. Half of all loans are below \$16,300 and 75% are below \$23,300. The distribution is right-skewed with a long tail; loans above about \$41,000 show as outliers on the boxplot. They are genuine large loans rather than data errors, so they are kept for the tree models and only capped for the linear model.
+""")
+add_after(45, "code", r"""
+# Histogram and boxplot for the remaining numerical variables
+for col in ['MORTDUE', 'VALUE', 'YOJ', 'CLAGE', 'CLNO', 'DEBTINC']:
+    histogram_boxplot(data[col])
+""")
+md(46, r"""
+**Insights:**
+- `MORTDUE` and `VALUE` are right-skewed with most properties between \$50,000 and \$150,000 and a few very expensive ones (VALUE up to \$855,909). Because both describe the same asset they move together (correlation 0.88, see the heatmap below), which matters for the logistic regression.
+- `YOJ` is right-skewed: the most common values are 0 to 5 years, the median is 7, and a long tail reaches 41 years.
+- `CLAGE` is roughly bell-shaped around 170-180 months with a right tail; a few values above 600 months and a maximum of 1,168 months are not credible.
+- `CLNO` is approximately normal around 20 lines.
+- `DEBTINC` is concentrated between 25% and 42%; very few applicants have a recorded ratio above 45% and the maximum of 203% is impossible. Note that only the 79% of applicants with a recorded ratio appear here.
+""")
+code(48, r"""
+# Function to create barplots that indicate percentage for each category.
+
+def perc_on_bar(plot, feature):
+    '''
+    plot: the axes returned by sns.countplot
+    feature: categorical feature
+    the function won't work if a column is passed in hue parameter
+    '''
+
+    total = len(feature.dropna()) # length of the column (non-missing values)
+    for p in plot.patches:
+        percentage = '{:.1f}%'.format(100 * p.get_height()/total) # percentage of each class of the category
+        x = p.get_x() + p.get_width() / 2 - 0.05 # width of the plot
+        y = p.get_y() + p.get_height()           # height of the plot
+        plot.annotate(percentage, (x, y), size = 12) # annotate the percentage
+
+    plt.show() # show the plot
+""")
+code(50, r"""
+#Build barplot for DELINQ
+
+plt.figure(figsize=(15,5))
+ax = sns.countplot(x=data["DELINQ"].dropna().astype(int), color='#4C72B0')
+perc_on_bar(ax,data["DELINQ"])
+""")
+md(51, r"""
+**Insights:** 78% of applicants with a recorded value have no delinquent credit line, 12% have one, 5% have two and a small tail have three or more (up to 15). The minority with delinquencies is exactly the group a lender worries about, and the bivariate analysis will show how sharply their default rate rises.
+""")
+add_after(52, "code", r"""
+# Bar plots for the other categorical and count variables
+for col in ['BAD', 'REASON', 'JOB', 'DEROG', 'NINQ']:
+    plt.figure(figsize=(15,5))
+    s = data[col].dropna()
+    if str(s.dtype) != 'category':
+        s = s.astype(int)
+    ax = sns.countplot(x=s, color='#4C72B0')
+    plt.title(col)
+    perc_on_bar(ax, data[col])
+""")
+md(53, r"""
+**Insights:**
+- `BAD`: 80% of loans were repaid and 20% defaulted. The imbalance is moderate, which is why class weights are used in the models and recall rather than accuracy is the measure of success.
+- `REASON`: debt consolidation (69%) is far more common than home improvement (31%).
+- `JOB`: "Other" (42%) is the most common occupation, then ProfExe (22%) and Office (17%); Sales (2%) and Self (3%) are small.
+- `DEROG`: 86% have no major derogatory report; `NINQ`: 46% have no recent inquiry, 25% have one, and a tail have five or more.
+""")
+
+# ----------------------------------------------------------------------------- bivariate
+code(57, r"""
+sns.boxplot(x=data["BAD"],y=data['LOAN'],palette="PuBu")
+plt.title('LOAN by BAD')
+plt.show()
+""")
+md(58, r"""
+**Insights:** Defaulters borrowed less on average (median \$14,900) than repayers (median \$16,900). The difference is real but modest, so loan size alone is not a strong separator. The default rate by loan band (added below) shows that loans under \$5,000 default 57% of the time, almost three times the average: a small requested amount is not a sign of low risk.
+""")
+add_after(59, "code", r"""
+# Boxplots of every numerical variable by BAD, plus mean and median by class
+num_cols = ['LOAN', 'MORTDUE', 'VALUE', 'YOJ', 'DEROG', 'DELINQ', 'CLAGE', 'NINQ', 'CLNO', 'DEBTINC']
+fig, axes = plt.subplots(2, 5, figsize=(22, 9))
+for ax, col in zip(axes.flatten(), num_cols):
+    sns.boxplot(x=data["BAD"], y=data[col], ax=ax, palette="PuBu", showmeans=True)
+    ax.set_title(f"{col} by BAD")
+plt.tight_layout()
+plt.show()
+
+data.groupby("BAD", observed=True)[num_cols].agg(["mean", "median"]).T
+""")
+add_after(59, "code", r"""
+# Default rate by band of the three most informative continuous variables
+def default_rate_by_band(col, bins):
+    banded = pd.cut(data[col], bins=bins, include_lowest=True)
+    return data.groupby(banded, observed=True)["BAD"].agg(
+        default_rate=lambda s: (s.astype(int).mean() * 100).round(1), applicants="count")
+
+print("Default rate (%) by DEBTINC band")
+print(default_rate_by_band("DEBTINC", [0, 20, 30, 35, 40, 45, 50, 210]))
+print("\nDefault rate (%) by CLAGE band (months)")
+print(default_rate_by_band("CLAGE", [0, 60, 120, 180, 240, 300, 1200]))
+print("\nDefault rate (%) by LOAN band ($)")
+print(default_rate_by_band("LOAN", [0, 5000, 10000, 15000, 20000, 30000, 90000]))
+""")
+add_after(59, "code", r"""
+# Are the differences statistically significant? Mann-Whitney U tests for the amounts, chi-square tests for the categories
+rows = []
+for col in ['LOAN', 'MORTDUE', 'VALUE', 'DEBTINC', 'CLAGE']:
+    a = data.loc[data['BAD'] == 1, col].dropna(); b = data.loc[data['BAD'] == 0, col].dropna()
+    rows.append({'variable': col, 'median_defaulters': a.median(), 'median_repayers': b.median(), 'test': 'Mann-Whitney U', 'p_value': stats.mannwhitneyu(a, b).pvalue})
+for col in ['REASON', 'JOB']:
+    chi2, p, dof, _ = stats.chi2_contingency(pd.crosstab(data[col], data['BAD']))
+    rows.append({'variable': col, 'median_defaulters': np.nan, 'median_repayers': np.nan, 'test': 'Chi-square', 'p_value': p})
+pd.DataFrame(rows)
+""")
+add_after(59, "markdown", r"""
+**Insights (numerical variables vs BAD):**
+- `DEROG` and `DELINQ` separate the classes most: defaulters average 0.71 derogatory reports vs 0.13, and 1.23 delinquent lines vs 0.25, about five times higher.
+- `CLAGE`: defaulters have a much shorter credit history (median 133 months vs 180). Under 5 years of history the default rate is 44%; above 20 years it is about 10%.
+- `DEBTINC` is a cliff, not a slope: between 20% and 40% the default rate is only 4-7% (11% in the small group below 20%), between 40% and 45% it is 11%, above 45% it is 87% and above 50% it is 100%. A 45% cut-off is a natural policy rule.
+- `NINQ`: defaulters made more recent inquiries (mean 1.78 vs 1.03).
+- `VALUE` and `MORTDUE` are only slightly lower for defaulters (medians \$82,000 vs \$90,659 and \$60,279 vs \$66,839); `YOJ` and `CLNO` barely differ.
+- The differences in `LOAN`, `MORTDUE` and `VALUE` are statistically significant (Mann-Whitney p < 0.001) but small in practice; `REASON` is related to default (chi-square p = 0.005) but weakly, `JOB` strongly (p < 0.001). Significance says the pattern is real; the band tables say where it is large enough to act on.
+""")
+code(61, r"""
+sns.scatterplot(x=data["VALUE"], y=data['MORTDUE'], hue=data['BAD'], alpha=0.5, palette=["#4C72B0", "#C44E52"])
+plt.title('MORTDUE vs VALUE')
+plt.show()
+""")
+md(62, r"""
+**Insights:** Mortgage balance and property value lie close to a straight line (the balance is typically 60-80% of the value), so the two carry much the same information. Defaulters are scattered throughout rather than clustered, confirming that these two amounts alone do not separate the classes.
+""")
+add_after(63, "code", r"""
+# Other pairs of continuous variables
+fig, axes = plt.subplots(1, 2, figsize=(16, 5.5))
+sns.scatterplot(data=data, x="DEBTINC", y="CLAGE", hue="BAD", alpha=0.5, ax=axes[0], palette=["#4C72B0", "#C44E52"])
+axes[0].axvline(45, color="black", linestyle="--", linewidth=1)
+axes[0].set_title("CLAGE vs DEBTINC")
+sns.scatterplot(data=data, x="LOAN", y="VALUE", hue="BAD", alpha=0.5, ax=axes[1], palette=["#4C72B0", "#C44E52"])
+axes[1].set_title("VALUE vs LOAN")
+plt.tight_layout()
+plt.show()
+""")
+md(64, r"""
+**Insights:** Almost every applicant to the right of the 45% debt-to-income line is a defaulter regardless of credit-history length; to the left, defaulters concentrate among short credit histories, so the two variables complement each other. Loan amount rises loosely with property value (correlation 0.34) and defaulters appear across the whole range, with a visible concentration among the smallest loans.
+""")
+code(67, r"""
+### Function to plot stacked bar charts for categorical columns
+
+def stacked_plot(x):
+    sns.set(palette='nipy_spectral')
+    tab1 = pd.crosstab(x,data['BAD'],margins=True)
+    print(tab1)
+    print('-'*120)
+    tab = pd.crosstab(x,data['BAD'],normalize='index')
+    tab.plot(kind='bar',stacked=True,figsize=(10,5))
+    plt.legend(loc='lower left', frameon=False)
+    plt.legend(loc="upper left", bbox_to_anchor=(1,1))
+    plt.show()
+    sns.set_theme()
+""")
+md(70, r"""
+**Insights:** Home-improvement loans default slightly more often (22.2%) than debt-consolidation loans (19.0%). The relationship is weak, a 3-point difference around a 20% base rate, so loan purpose alone should not drive approval decisions.
+""")
+add_after(71, "code", r"""
+# Stacked bar plots for JOB and the count variables (capped so the chart stays readable)
+stacked_plot(data['JOB'])
+stacked_plot(data['DEROG'].clip(upper=5))
+stacked_plot(data['DELINQ'].clip(upper=6))
+stacked_plot(data['NINQ'].clip(upper=8))
+""")
+add_after(71, "code", r"""
+# Is missing information itself a signal? Default rate when a field is missing vs present
+rows = []
+for col in data.columns.drop("BAD"):
+    if data[col].isnull().any():
+        is_na = data[col].isnull()
+        rows.append({"column": col, "missing_rows": int(is_na.sum()),
+                     "default_rate_when_missing_%": round(data.loc[is_na, "BAD"].astype(int).mean() * 100, 1),
+                     "default_rate_when_present_%": round(data.loc[~is_na, "BAD"].astype(int).mean() * 100, 1)})
+pd.DataFrame(rows).sort_values("default_rate_when_missing_%", ascending=False)
+""")
+md(72, r"""
+**Insights:**
+- `JOB`: Sales (34.9%) and Self-employed (30.1%) default at 1.5 to 1.75 times the average; Office workers (13.2%) and ProfExe (16.6%) are the safest; Mgr and Other sit slightly above average. Sales and Self are small groups, so occupation should be a supporting signal only, and it must be monitored for fair-lending proxy effects.
+- `DEROG`: 17% default with no report, 39% with one, 51% with two, about 73-78% with three or more. `DELINQ`: 14% at zero, 34% at one, 45% at two, 100% at six or more. `NINQ` rises from 16% at zero to about 45-50% at five or more. These rising patterns are easy to explain to an applicant.
+- **Missing information is itself a strong signal:** when `DEBTINC` is missing 62% of applicants defaulted (vs 8.6% when present), and when `VALUE` is missing 94% defaulted. For `DEROG`, `DELINQ`, `YOJ`, `NINQ` and `JOB` the opposite holds (8-15% default when missing), probably reflecting how the data was recorded. Missing-value flags must therefore be kept as features.
+""")
+code(75, r"""
+# Separating numerical variables
+numerical_col = data.select_dtypes(include=np.number).columns.tolist()
+
+# Build correlation matrix for numerical columns
+corr = data[numerical_col].corr()
+
+# plot the heatmap
+plt.figure(figsize=(16,12))
+sns.heatmap(corr, annot=True, cmap='coolwarm',vmax=1,vmin=-1,
+        fmt=".2f",
+        xticklabels=corr.columns,
+        yticklabels=corr.columns);
+""")
+code(76, r"""
+# Build pairplot for the data with hue = 'BAD' (the six most informative numerical variables, to keep the chart readable)
+sns.pairplot(data[['LOAN', 'DEBTINC', 'CLAGE', 'DELINQ', 'DEROG', 'NINQ', 'BAD']].dropna(),
+             hue='BAD', palette=["#4C72B0", "#C44E52"], diag_kind='kde', corner=True, plot_kws={"alpha": 0.4, "s": 15})
+plt.show()
+""")
+add_after(76, "markdown", r"""
+**Insights (multivariate):**
+- The only strong correlation between inputs is `MORTDUE` vs `VALUE` (0.88): multicollinearity for the logistic regression (their coefficients share the same information), harmless for tree models. Moderate links: `CLNO` with `MORTDUE`/`VALUE` (0.27-0.32) and `LOAN` with `VALUE` (0.34).
+- Correlations with the target are weak to moderate: `DELINQ` (0.35), `DEROG` (0.28), `DEBTINC` (0.20), `NINQ` (0.17), `CLAGE` (-0.17). The count variables are close to linear in the default rate, but `DEBTINC`, `CLAGE` and `LOAN` act through thresholds that a correlation coefficient understates, an early hint that tree-based models should outperform a purely linear one on the raw inputs.
+- In the pairplot, defaulters (red) have visibly shorter `CLAGE`, higher `DEBTINC` and heavier tails on `DELINQ`, `DEROG` and `NINQ`; no single pair separates the classes cleanly, so the separation comes from combinations.
+""")
+md(77, r"""
+### **Think about it**
+- Are there missing values and outliers in the dataset? If yes, how can you treat them?
+- Can you think of different ways in which this can be done and when to treat these outliers or not?
+- Can we create new features based on Missing values?
+
+*Yes to all three. Missing values are imputed with the median (numerical) or mode (categorical) after creating a 0/1 flag per column, because the EDA showed that missingness of `DEBTINC` and `VALUE` is the strongest default signal in the data. Outliers are capped at the IQR whiskers for the logistic regression, which is sensitive to extreme values, but left untouched for the tree models, which split on rank order and would otherwise lose information such as "a debt-to-income ratio above 50% always defaults". `DEROG` and `DELINQ` are counts with an inter-quartile range of zero, so the IQR rule would erase them; they are capped at the 99th percentile instead.*
+""")
+code(79, r"""
+def treat_outliers(df,col,fit_rows=None):
+    '''
+    treats outliers in a varaible
+    col: str, name of the numerical varaible
+    df: data frame
+    col: name of the column
+    fit_rows: rows used to compute the fences (the training rows); default all rows
+    '''
+    fit = df.loc[fit_rows, col] if fit_rows is not None else df[col]
+    Q1=fit.quantile(0.25) # 25th quantile
+    Q3=fit.quantile(0.75)  # 75th quantile
+    IQR=Q3 - Q1   # IQR Range
+    Lower_Whisker = Q1 - 1.5 * IQR  #define lower whisker
+    Upper_Whisker = Q3 + 1.5 * IQR  # define upper Whisker
+    df[col] = np.clip(df[col], Lower_Whisker, Upper_Whisker) # all the values samller than Lower_Whisker will be assigned value of Lower_whisker
+                                                            # and all the values above upper_whishker will be assigned value of upper_Whisker
+    return df
+
+def treat_outliers_all(df, col_list, fit_rows=None):
+    '''
+    treat outlier in all numerical varaibles
+    col_list: list of numerical varaibles
+    df: data frame
+    fit_rows: rows used to compute the fences (the training rows)
+    '''
+    for c in col_list:
+        df = treat_outliers(df,c,fit_rows)
+
+    return df
+""")
+code(80, r"""
+df_raw = data.copy()
+
+numerical_col = df_raw.select_dtypes(include=np.number).columns.tolist()# getting list of numerical columns
+
+# DEROG and DELINQ have Q1 = Q3 = 0, so the IQR whiskers collapse to zero and the rule would erase them.
+# They are capped at the 99th percentile instead; the other numerical columns use the IQR rule.
+iqr_cols = [c for c in numerical_col if c not in ('DEROG', 'DELINQ')]
+df = treat_outliers_all(df_raw, iqr_cols, fit_rows=train_idx)
+for c in ['DEROG', 'DELINQ']:
+    df[c] = df[c].clip(upper=df.loc[train_idx, c].quantile(0.99))
+
+# Maximum of each column before and after the treatment
+pd.DataFrame({'max_before': data[numerical_col].max(), 'max_after': df[numerical_col].max()})
+""")
+code(85, r"""
+#  Treat Missing values in numerical columns with median and mode in categorical variables
+# Select numeric columns.
+num_data = df.select_dtypes('number')
+
+# Select string and object columns.
+cat_data = df.select_dtypes('category').columns.tolist()#df.select_dtypes('object')
+
+# Fill numeric columns with the median of the training rows.
+df[num_data.columns] = num_data.fillna(num_data.loc[train_idx].median())
+
+# Fill object columns with the mode of the training rows.
+for column in cat_data:
+    mode = df.loc[train_idx, column].mode()[0]
+    df[column] = df[column].fillna(mode)
+
+print("Remaining missing values:", df.isnull().sum().sum())
+""")
+md(86, r"""
+## **Important Insights from EDA**
+
+What are the the most important observations and insights from the data based on the EDA performed?
+
+1. **One in five loans goes bad (19.9%).** The classes are imbalanced, so accuracy is the wrong yardstick and class weights are needed during training.
+2. **Missing information is the strongest single risk signal.** Applicants with no recorded debt-to-income ratio default 62% of the time (vs 8.6% when recorded) and applicants with no property valuation default 94% of the time. Unverifiable income or valuation is a red flag, not a neutral gap.
+3. **Debt-to-income ratio has a hard threshold.** Between 20% and 40% the default rate is 4-7% (11% below 20%); between 40% and 45% it is 11%; above 45% it is 87-100%. A 45% cut-off is a simple, defensible policy rule.
+4. **Past credit behaviour predicts future behaviour.** Each additional derogatory report or delinquent credit line raises the default rate sharply (0 reports: 17%; 1: 39%; 2: 51%; 3 or more: about 73%), and recent inquiries show the same rising pattern.
+5. **A long credit history protects.** Under 5 years of history: 44% default; above 20 years: about 10%.
+6. **Small loans are not safe loans.** Loans under \$5,000 default 57% of the time.
+7. **Occupation matters moderately** (Sales 35%, Self 30%, Office 13%); loan purpose makes only a 3-point difference, although it is statistically significant.
+8. **Property value and mortgage balance are highly correlated (0.88)** and individually weak predictors.
+9. **Relationships with the target are non-linear** (cliffs and thresholds), so tree-based models are expected to beat logistic regression, which remains the most transparent benchmark.
+10. **Pre-processing decisions:** no rows dropped and no duplicates found; the test set held out before any statistic was fitted; a missing-value flag for every column with gaps; median/mode imputation learned on the training rows; IQR capping only for the linear model (99th-percentile cap for the two count variables); one-hot encoding of `REASON` and `JOB`; standard scaling of the continuous inputs for the linear model only.
+""")
+
+# ----------------------------------------------------------------------------- data preparation (linear model)
+code(90, r"""
+#@title
+# Drop the dependent variable from the dataframe and create the X(independent variable) matrix
+X = df.drop(['BAD'], axis=1)
+
+# Create dummy variables for the categorical variables
+X = pd.get_dummies(X, columns=['REASON', 'JOB'], drop_first=True, dtype=int)
+
+# Create y(dependent varibale)
+y = df['BAD'].astype(int)
+
+print(X.shape, y.shape)
+""")
+code(92, r"""
+#@title
+# Split the data into training and test set, using the stratified 70/30 split held out at the start
+X_train, X_test = X.loc[train_idx], X.loc[test_idx]
+y_train, y_test = y.loc[train_idx], y.loc[test_idx]
+
+print("Train shape:", X_train.shape, "Test shape:", X_test.shape)
+print(f"Default rate - train: {y_train.mean():.3f}, test: {y_test.mean():.3f}")
+
+# Standardise the continuous inputs for the linear model (fit on train only); the 0/1 flags and dummies stay as they are,
+# so their coefficients read as the effect of the flag switching on. Tree models use the unscaled data.
+from sklearn.preprocessing import StandardScaler
+continuous = ['LOAN', 'MORTDUE', 'VALUE', 'YOJ', 'DEROG', 'DELINQ', 'CLAGE', 'NINQ', 'CLNO', 'DEBTINC']
+scaler = StandardScaler().fit(X_train[continuous])
+X_train_lr, X_test_lr = X_train.copy(), X_test.copy()
+X_train_lr[continuous] = scaler.transform(X_train[continuous])
+X_test_lr[continuous] = scaler.transform(X_test[continuous])
+""")
+md(93, r"""
+### **Think about it**
+- You can try different splits like 70:30 or 80:20 as per your choice. Does this change in split affect the performance?
+- If the data is imbalanced, can you make the split more balanced and if yes, how?
+
+*A 70:30 split leaves 1,788 applicants (357 defaulters) for an honest test; an 80:20 split would train on slightly more data but test on fewer defaulters, making the test scores noisier. The scores move by a point or two between splits, the ranking of the models does not. The split itself should not be "balanced" by removing applicants: stratifying on `BAD` keeps the true 20% default rate in both sets, and the imbalance is then handled inside the models with class weights (or by resampling the training set only).*
+""")
+md(94, r"""
+## **Model Evaluation Criterion**
+
+#### After understanding the problem statement, think about which evaluation metrics to consider and why.
+
+The model can make two kinds of mistakes and they do not cost the same:
+
+| Model says | Reality | Name | Business consequence |
+|---|---|---|---|
+| Will repay (approve) | Defaults | **False Negative** | The bank loses most of the principal plus collection costs: about \$9,000 on a typical \$18,600 loan after recovering collateral. |
+| Will default (reject) | Would have repaid | **False Positive** | The bank forgoes the interest margin on one good customer: about \$2,000. |
+
+A missed defaulter costs roughly 4.5 times a wrongly rejected good customer, so the **primary metric is Recall on the defaulter class (BAD = 1)**: of all applicants who went on to default, what share did the model flag? Recall alone can be gamed (rejecting everyone gives 100% recall), so **Precision** (how many flagged applicants really default) and **F1** are tracked as guard-rails, with **Accuracy** for completeness. Grid search optimises recall with cross-validation on the training set; the final choice weighs recall against precision.
+""")
+code(95, r"""
+#@title
+#creating metric function
+def metrics_score(actual, predicted):
+    print(classification_report(actual, predicted, digits=3))
+    cm = confusion_matrix(actual, predicted)
+    plt.figure(figsize=(8,5))
+    sns.heatmap(cm, annot=True,  fmt='d', cmap='Blues', xticklabels=['Repaid (0)', 'Default (1)'], yticklabels=['Repaid (0)', 'Default (1)'])
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    plt.show()
+""")
+code(97, r"""
+#@title
+# Defining the Logistic regression model
+lg = LogisticRegression(max_iter=2000, random_state=1)
+
+# Fitting the model on the training data
+lg.fit(X_train_lr, y_train)
+""")
+code(99, r"""
+#@title
+#Predict for train set
+y_pred_train = lg.predict(X_train_lr)
+
+#checking the performance on the train dataset
+metrics_score(y_train, y_pred_train)
+""")
+code(101, r"""
+#@title
+#Predict for test set
+y_pred_test = lg.predict(X_test_lr)
+
+#checking the performance on the test dataset
+metrics_score(y_test, y_pred_test)
+""")
+add_after(101, "code", r"""
+#@title
+# Logistic regression with balanced class weights, to counter the 1:4 imbalance
+lg_bal = LogisticRegression(max_iter=2000, class_weight='balanced', random_state=1)
+lg_bal.fit(X_train_lr, y_train)
+
+print("Train performance - Logistic Regression (balanced)")
+metrics_score(y_train, lg_bal.predict(X_train_lr))
+print("Test performance - Logistic Regression (balanced)")
+metrics_score(y_test, lg_bal.predict(X_test_lr))
+""")
+md(102, r"""
+**Observations:**
+- The plain logistic regression is accurate overall (88% on test) but catches only **57% of defaulters**: it leans towards the majority "repaid" class.
+- Balancing the class weights raises test recall to **80%** while precision falls to 61% and accuracy to 86%: about 23 more defaulters caught out of every 100, at the cost of rejecting more good customers.
+- Train and test scores are close, so the linear model is not over-fitting; its limit is that a straight line cannot capture the threshold effects seen in the EDA.
+""")
+code(104, r"""
+#@title
+# Printing the coefficients of logistic regression (balanced model). Continuous inputs are standardised, so their
+# coefficients are per standard deviation; flags and dummies are 0/1, so theirs are the effect of switching the flag on.
+coef = pd.DataFrame({'feature': X_train_lr.columns, 'coefficient': lg_bal.coef_[0]})
+coef['odds_ratio'] = np.exp(coef['coefficient'])
+coef['unit'] = ['per 1 standard deviation' if f in continuous else 'flag 0 -> 1' for f in coef['feature']]
+coef = coef.sort_values('coefficient', ascending=False).reset_index(drop=True)
+
+plt.figure(figsize=(9, 7))
+sns.barplot(data=coef, x='coefficient', y='feature', palette=['#C44E52' if c > 0 else '#4C72B0' for c in coef['coefficient']])
+plt.axvline(0, color='black', linewidth=1)
+plt.title('Logistic Regression (balanced) - standardised coefficients (red raises default risk, blue lowers it)')
+plt.show()
+coef
+""")
+md(105, r"""
+**Insights:**
+- **Risk-increasing:** the missing-value flags dominate. An application with no property valuation has odds of default about 45 times higher and one with no debt-to-income ratio about 13 times higher, all else equal (the flags are 0/1, so these odds ratios are the full effect of the flag). Among the continuous inputs `DELINQ` (odds ratio about 2.4 per standard deviation) and `DEBTINC` (about 1.8) matter most, followed by `DEROG` and `NINQ`; the `JOB_Sales` indicator roughly triples the odds relative to a manager.
+- **Risk-decreasing:** `CLAGE` (longer credit history, odds ratio about 0.6 per standard deviation), `YOJ`, `JOB_Office` and the `DEROG`/`JOB`/`YOJ`/`DELINQ` missing flags (the groups for which these fields were blank defaulted less often in the EDA).
+- `LOAN` has almost no linear effect once the other variables are included: its relationship with default is non-linear (small loans are riskier, large ones are not).
+- `MORTDUE` and `VALUE` have opposite signs of similar size, the classic symptom of their 0.88 correlation; individually these two coefficients should not be over-interpreted.
+- The signs agree with the EDA and with lending common sense, which gives confidence that the model learns real risk rather than noise.
+""")
+md(106, r"""
+### **Think about it:**
+- The above Logistic regression model was build on the threshold of 0.5, can we use different threshold?
+- How to get an optimal threshold and which curve will help you achieve?
+- How does, accuracy, precision and recall change on the threshold?
+
+*Yes. The model outputs a probability and 0.5 is only a convention. The precision-recall curve (or the ROC curve) plotted against the threshold shows the trade-off: lowering the threshold raises recall and lowers precision and accuracy, raising it does the reverse. The optimal threshold is the one that minimises the business cost of the two errors; the cell below shows the trade-off for the balanced model.*
+""")
+add_after(106, "code", r"""
+#@title
+# Precision and recall of the balanced logistic regression at different thresholds (test set)
+from sklearn.metrics import precision_recall_curve
+proba_lr = lg_bal.predict_proba(X_test_lr)[:, 1]
+prec, rec, thr = precision_recall_curve(y_test, proba_lr)
+plt.figure(figsize=(8, 4.5))
+plt.plot(thr, prec[:-1], label='Precision (default class)')
+plt.plot(thr, rec[:-1], label='Recall (default class)')
+plt.axvline(0.5, color='grey', linestyle='--', linewidth=1)
+plt.xlabel('Probability threshold'); plt.ylabel('score'); plt.legend(); plt.show()
+
+rows = []
+for t in [0.3, 0.4, 0.5, 0.6]:
+    p = (proba_lr >= t).astype(int)
+    rows.append({'threshold': t, 'recall': recall_score(y_test, p), 'precision': precision_score(y_test, p),
+                 'f1': f1_score(y_test, p), 'accuracy': accuracy_score(y_test, p)})
+pd.DataFrame(rows).round(3)
+""")
+
+# ----------------------------------------------------------------------------- tree models
+md(108, r"""
+### **Think about it:**
+- In Logistic regression we treated the outliers and built the model, should we do the same for tree based models or not? If not, why?
+
+*No. A tree splits on the rank order of a variable ("is DEBTINC above 43.7?"), so an extreme value simply falls into the top bucket and does not pull the split the way it pulls a regression line. Capping would also throw away real information, such as "a debt-to-income ratio above 50% always defaults". The tree models are therefore built on the untreated data (`data`), with the same missing-value flags and imputation.*
+""")
+code(111, r"""
+#@title
+#  Treat Missing values in numerical columns with median and mode in categorical variables
+# Select numeric columns.
+num_data = data.select_dtypes('number')
+
+# Select string and object columns.
+cat_data = data.select_dtypes('category').columns.tolist()#df.select_dtypes('object')
+
+# Fill numeric columns with the median of the training rows.
+data[num_data.columns] = num_data.fillna(num_data.loc[train_idx].median())
+
+# Fill object columns with the mode of the training rows.
+for column in cat_data:
+    mode = data.loc[train_idx, column].mode()[0]
+    data[column] = data[column].fillna(mode)
+
+print("Remaining missing values:", data.isnull().sum().sum())
+""")
+code(113, r"""
+#@title
+# Drop dependent variable from dataframe and create the X(independent variable) matrix
+X = data.drop(['BAD'], axis=1)
+
+# Create dummy variables for the categorical variables
+X = pd.get_dummies(X, columns=['REASON', 'JOB'], drop_first=True, dtype=int)
+
+# Create y(dependent varibale)
+y = data['BAD'].astype(int)
+
+print("Feature columns:", list(X.columns))
+""")
+code(115, r"""
+#@title
+# Split the data into training and test set (the same held-out applicants as for the linear model)
+X_train, X_test = X.loc[train_idx], X.loc[test_idx]
+y_train, y_test = y.loc[train_idx], y.loc[test_idx]
+print("Train shape:", X_train.shape, "Test shape:", X_test.shape)
+""")
+code(116, r"""
+#@title
+#Defining Decision tree model with class weights class_weight={0: 0.2, 1: 0.8}
+dt = DecisionTreeClassifier(class_weight={0: 0.2, 1: 0.8}, random_state=1)
+""")
+code(117, r"""
+#@title
+#fitting Decision tree model
+dt.fit(X_train, y_train)
+""")
+code(119, r"""
+#@title
+# Checking performance on the training data
+metrics_score(y_train, dt.predict(X_train))
+""")
+code(121, r"""
+#@title
+# Checking performance on the testing data
+metrics_score(y_test, dt.predict(X_test))
+print("Tree depth:", dt.get_depth(), "| number of leaves:", dt.get_n_leaves())
+""")
+md(122, r"""
+**Insights:**
+- The fully grown tree is a textbook case of **over-fitting**: 100% recall, precision and accuracy on the training data but only about **62% recall** and 73% precision on the test set. It has memorised the training applicants (dozens of levels deep, hundreds of leaves) instead of learning general rules.
+- The class weights do not help an un-pruned tree: they change which splits are chosen (this is a different tree) but cannot change the fact that a fully grown tree fits every training applicant perfectly, so its test predictions remain those of an over-fitted tree. Class weights only pay off once the tree is constrained (pruned), which the grid search does next.
+""")
+md(123, r"""
+### **Think about it:**
+- Can we improve this model?
+- How to get optimal parameters in order to get the best possible results?
+
+*Yes: by pruning. Limiting the depth and the minimum number of applicants per leaf stops the tree from memorising, and combining that with class weights lets it favour the defaulter class. There is no formula for the best settings, so they are found by grid search with cross-validation on the training data, scoring on recall.*
+""")
+code(126, r"""
+#@title
+# Choose the type of classifier.
+dtree_estimator = DecisionTreeClassifier(random_state=1)
+
+# Grid of parameters to choose from
+parameters = {'max_depth': [3, 4, 5, 6, 8, 10, None],
+              'min_samples_leaf': [1, 5, 10, 20, 50],
+              'criterion': ['gini', 'entropy'],
+              'class_weight': [None, 'balanced', {0: 0.2, 1: 0.8}]}
+
+# Type of scoring used to compare parameter combinations
+scorer = metrics.make_scorer(metrics.recall_score)
+
+# Run the grid search
+from sklearn.model_selection import StratifiedKFold
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
+grid_obj = GridSearchCV(dtree_estimator, parameters, scoring=scorer, cv=cv, n_jobs=-1)
+
+# Fit the GridSearch on train dataset
+grid_obj = grid_obj.fit(X_train, y_train)
+
+# Set the clf to the best combination of parameters
+dtree_estimator = grid_obj.best_estimator_
+
+# Fit the best algorithm to the data.
+dtree_estimator.fit(X_train, y_train)
+print("Best parameters:", grid_obj.best_params_)
+print(f"Best cross-validated recall: {grid_obj.best_score_:.3f}")
+""")
+code(128, r"""
+#@title
+# Checking performance on the training data based on the tuned model
+metrics_score(y_train, dtree_estimator.predict(X_train))
+""")
+code(130, r"""
+#@title
+# Checking performance on the testing data based on the tuned model
+metrics_score(y_test, dtree_estimator.predict(X_test))
+print("Tree depth:", dtree_estimator.get_depth(), "| number of leaves:", dtree_estimator.get_n_leaves())
+""")
+md(131, r"""
+**Insights:**
+- Pruning (a minimum of 20 applicants per leaf, cutting the tree from several hundred leaves to about 100) with balanced class weights lifts **test recall to about 82%**, the highest of the single-model approaches, and the train-test gap narrows to about 10 points (92% vs 82%).
+- The price is precision: only about 53% of the applicants the tree rejects would actually have defaulted, and accuracy falls to about 82%. The tree is deliberately cautious. Whether that is acceptable depends on how much good business the bank is willing to turn away; the Random Forest below improves this balance.
+""")
+code(133, r"""
+#@title
+# Plot the decision  tree (first three levels; the full tree is deeper) and print the rules of the first four levels
+from sklearn.tree import plot_tree, export_text
+plt.figure(figsize=(26, 10))
+plot_tree(dtree_estimator, feature_names=list(X_train.columns), class_names=['Repaid', 'Default'],
+          filled=True, rounded=True, max_depth=3, fontsize=9, proportion=True)
+plt.show()
+
+print(export_text(dtree_estimator, feature_names=list(X_train.columns), max_depth=4, show_weights=False))
+""")
+add_after(133, "code", r"""
+#@title
+# The tree was fitted with balanced class weights, so a leaf labelled 'class: 1' means a raw default rate above roughly 20%,
+# not a near-certain default. Observed default rates (training rows) of the groups defined by the first splits:
+tr = data.loc[train_idx]
+root_split = dtree_estimator.tree_.threshold[dtree_estimator.tree_.children_left[0]]
+groups = {
+    'Debt-to-income ratio missing': tr['DEBTINC_missing_values_flag'] == 1,
+    f'Ratio recorded and above {root_split:.1f}%': (tr['DEBTINC_missing_values_flag'] == 0) & (tr['DEBTINC'] > root_split),
+    f'Ratio recorded, at most {root_split:.1f}%, 1+ delinquent lines': (tr['DEBTINC_missing_values_flag'] == 0) & (tr['DEBTINC'] <= root_split) & (tr['DELINQ'] >= 1),
+    f'Ratio recorded, at most {root_split:.1f}%, no delinquent lines': (tr['DEBTINC_missing_values_flag'] == 0) & (tr['DEBTINC'] <= root_split) & (tr['DELINQ'] == 0),
+}
+pd.DataFrame({'applicants': {k: int(v.sum()) for k, v in groups.items()},
+              'default_rate_%': {k: round(tr.loc[v, 'BAD'].astype(int).mean() * 100, 1) for k, v in groups.items()}})
+""")
+md(134, r"""
+#### Deduce the business rules apparent from the Decision Tree and write them down:
+
+1. **Is the debt-to-income ratio missing?** If yes, the applicant is in a high-risk group (about 62% of these applicants defaulted): unverified income should trigger a rejection or a mandatory income-verification step.
+2. **If the ratio is recorded, is it above about 44%?** If yes, roughly three out of four defaulted (and above 45% the EDA showed 87-100%): decline.
+3. **Below that ratio, how many delinquent credit lines does the applicant have?** With none only about 4-5% default, the safest group in the book; one or more pushes the applicant back into the risky branch.
+4. **Among the remaining applicants, how long is the credit history (CLAGE) and are there derogatory reports (DEROG)?** Short histories (under about 15 years) with any derogatory report are risky; long clean histories are safe.
+5. **In the "ratio missing" branch the same questions are asked again** (delinquencies, derogatory reports, credit-history length, loan size), and almost every path that combines a missing ratio with a delinquency or derogatory report ends in "default".
+
+These rules match the EDA findings, which is reassuring: the model formalises the patterns in the data rather than inventing new ones, and each rule can be quoted to an applicant as the reason for a decision.
+""")
+add_after(134, "markdown", r"""
+### **Bagging (Bootstrap Aggregating): the step between one tree and a Random Forest**
+
+A single tree has high variance: small changes in the training data produce a different tree. Bagging trains many trees, each on a bootstrap sample of the training applicants, and combines their votes, which lowers variance without raising bias. A Random Forest is bagging plus a random subset of features at every split. Building a plain bagged ensemble first shows how much of the improvement comes from bagging alone.
+""")
+add_after(134, "code", r"""
+#@title
+# Bagging of 200 fully grown decision trees
+bagging = BaggingClassifier(estimator=DecisionTreeClassifier(random_state=1), n_estimators=200, random_state=1, n_jobs=-1)
+bagging.fit(X_train, y_train)
+
+print("Train performance - Bagging")
+metrics_score(y_train, bagging.predict(X_train))
+print("Test performance - Bagging")
+metrics_score(y_test, bagging.predict(X_test))
+""")
+add_after(134, "markdown", r"""
+**Insights:** Averaging 200 trees lifts test precision from about 71-72% (single tree) to 83% at about 68% recall, and overall accuracy to 91%: the ensemble is right far more often when it flags a defaulter. Train recall is still 100%, so bagging limits the damage of over-fitting on unseen data rather than removing it. The bagged ensemble still misses about a third of defaulters; the Random Forest adds feature sub-sampling and class weights to improve recall.
+""")
+code(136, r"""
+#@title
+# Defining Random forest CLassifier
+rf_estimator = RandomForestClassifier(n_estimators=200, random_state=1, n_jobs=-1)
+rf_estimator.fit(X_train, y_train)
+""")
+code(138, r"""
+#@title
+#Checking performance on the training data
+metrics_score(y_train, rf_estimator.predict(X_train))
+""")
+code(140, r"""
+#@title
+# Checking performance on the test data
+metrics_score(y_test, rf_estimator.predict(X_test))
+""")
+md(141, r"""
+**Observations:**
+- Like the single tree, the forest fits the training data perfectly, but on the test set it is much stronger: about **69% recall with 84% precision** and 91% accuracy.
+- The forest is conservative about calling someone a defaulter: when it does it is right 84% of the time, but it still misses about a third of the defaulters. Class weights should shift that balance towards recall.
+""")
+code(143, r"""
+#@title
+# Defining Random Forest model with class weights class_weight={0: 0.2, 1: 0.8}
+rf_estimator_weighted = RandomForestClassifier(n_estimators=200, class_weight={0: 0.2, 1: 0.8}, random_state=1, n_jobs=-1)
+
+# Fitting Random Forest model
+rf_estimator_weighted.fit(X_train, y_train)
+""")
+code(145, r"""
+#@title
+# Checking performance on the train data
+metrics_score(y_train, rf_estimator_weighted.predict(X_train))
+""")
+code(147, r"""
+#@title
+# Checking performance on the test data
+metrics_score(y_test, rf_estimator_weighted.predict(X_test))
+""")
+add_after(147, "markdown", r"""
+**Observations:** Class weights lift **test recall to about 77%** while precision stays near 77% and accuracy near 91%. Unlike the single tree, the forest benefits from class weights because each bootstrap tree is different and the weights change how the ensemble votes. This is the best balance of recall and precision so far: it catches almost as many defaulters as the balanced logistic regression (77% vs 80%) with far higher precision (77% vs 61%).
+""")
+md(148, r"""
+### **Think about it:**
+- Can we try different weights?
+- If yes, should we increase or decrease class weights for different classes?
+
+*Yes. Raising the weight of the defaulter class pushes the forest towards flagging more applicants (higher recall, lower precision); lowering it does the reverse. The grid search below tries 0.2/0.8 and `balanced` (which weights classes inversely to their frequency, about 0.62/2.5) and the threshold analysis later shows that moving the decision cut-off is an even finer dial for the same trade-off.*
+""")
+code(152, r"""
+#@title
+# Choose the type of classifier.
+rf_estimator_tuned = RandomForestClassifier(random_state=1, n_jobs=-1)
+
+# Grid of parameters to choose from
+parameters = {'n_estimators': [150, 300],
+              'max_depth': [6, 10, None],
+              'min_samples_leaf': [1, 5, 10],
+              'max_features': ['sqrt', 0.5],
+              'class_weight': ['balanced', {0: 0.2, 1: 0.8}]}
+
+# Type of scoring used to compare parameter combinations
+scorer = metrics.make_scorer(metrics.recall_score)
+
+# Run the grid search (3 folds keep the run time reasonable for the larger forest grid)
+cv3 = StratifiedKFold(n_splits=3, shuffle=True, random_state=1)
+grid_obj = GridSearchCV(rf_estimator_tuned, parameters, scoring=scorer, cv=cv3, n_jobs=-1)
+
+#fit the GridSearch on train dataset
+grid_obj = grid_obj.fit(X_train, y_train)
+
+# Set the clf to the best combination of parameters
+rf_estimator_tuned = grid_obj.best_estimator_
+
+# Fit the best algorithm to the data.
+rf_estimator_tuned.fit(X_train, y_train)
+print("Best parameters:", grid_obj.best_params_)
+print(f"Best cross-validated recall: {grid_obj.best_score_:.3f}")
+""")
+code(154, r"""
+#@title
+# Checking performance on the training data
+metrics_score(y_train, rf_estimator_tuned.predict(X_train))
+""")
+code(156, r"""
+#@title
+# Checking performace on test dataset
+metrics_score(y_test, rf_estimator_tuned.predict(X_test))
+""")
+md(157, r"""
+**Insights:**
+- Optimising purely for recall pushes the grid towards larger leaves (10 applicants minimum) and balanced weights. Test recall lands at about **79%**, close to the weighted forest, but precision drops to about 66% because the forest becomes more willing to flag borderline applicants.
+- The train-test gap shrinks (train recall is no longer 100%), so the tuned forest generalises better even though its headline test numbers are similar.
+- Recall-only tuning shows the limit of a single-metric search on an imbalanced problem: beyond a point, extra recall is bought with a lot of precision. The comparison below weighs the two together.
+""")
+code(159, r"""
+#@title
+# importance of features in the tree building ( The importance of a feature is computed as the
+#(normalized) total reduction of the criterion brought by that feature. It is also known as the Gini importance )
+importances = rf_estimator_tuned.feature_importances_
+indices = np.argsort(importances)
+feature_names = list(X_train.columns)
+
+plt.figure(figsize=(10, 8))
+plt.title('Feature Importances - tuned Random Forest')
+plt.barh(range(len(indices)), importances[indices], color='#4C72B0', align='center')
+plt.yticks(range(len(indices)), [feature_names[i] for i in indices])
+plt.xlabel('Relative Importance')
+plt.show()
+
+pd.Series(importances, index=feature_names).sort_values(ascending=False).round(4).head(12)
+""")
+add_after(159, "markdown", r"""
+**Insights (feature importance):** The two debt-to-income features dominate: the `DEBTINC` missing flag and `DEBTINC` together carry more than half (about 53%) of the forest's split power, confirming that affordability, and whether it could be verified, is the heart of the decision. Next come `DELINQ`, `CLAGE` and `DEROG` (repayment behaviour and depth of credit history), then `LOAN`, `VALUE`, `MORTDUE` and `CLNO`. The `JOB` and `REASON` dummies rank at the bottom: once financial behaviour is known, occupation and loan purpose add little, which is also good news from a fair-lending perspective.
+""")
+md(160, r"""
+### **Think about it:**
+- We have only built 3 models so far, Logistic Regression, Decision Tree and Random Forest
+- We can build other Machine Learning classification models like kNN, LDA, QDA or even Support Vector Machines (SVM).
+- Can we also perform feature engineering and create model features and build a more robust and accurate model for this problem statement?
+
+*Both are worthwhile next steps. A bagged ensemble was added above as the bridge between one tree and a forest. Gradient boosting would be the natural next model; kNN and SVM are less attractive here because they are harder to explain to an applicant, which the ECOA requires. On features, a loan-to-value ratio ((LOAN + MORTDUE) / VALUE) and a payment-to-income measure would give the trees directly what they currently approximate through splits on the raw amounts. Time-series techniques from the course do not apply: each row is one application with no date or ordering.*
+""")
+
+# ----------------------------------------------------------------------------- comparison
+code(165, r"""
+#@title
+# Make the list of all the models built (each with the input matrix it was trained on, because the
+# logistic regression uses the standardised, outlier-capped data while the tree models use the untreated data)
+models = [(lg, X_train_lr, X_test_lr), (lg_bal, X_train_lr, X_test_lr),
+          (dt, X_train, X_test), (dtree_estimator, X_train, X_test), (bagging, X_train, X_test),
+          (rf_estimator, X_train, X_test), (rf_estimator_weighted, X_train, X_test), (rf_estimator_tuned, X_train, X_test)]
+
+# defining empty lists to add train and test results
+acc_train = []
+acc_test = []
+recall_train = []
+recall_test = []
+precision_train = []
+precision_test = []
+
+# looping through all the models to get the accuracy,recall and precision scores
+for model, Xtr, Xte in models:
+     # accuracy score
+    j = get_accuracy_score(model,False, X_train=Xtr, X_test=Xte)
+    acc_train.append(j[0])
+    acc_test.append(j[1])
+
+    # recall score
+    k = get_recall_score(model,False, X_train=Xtr, X_test=Xte)
+    recall_train.append(k[0])
+    recall_test.append(k[1])
+
+    # precision score
+    l = get_precision_score(model,False, X_train=Xtr, X_test=Xte)
+    precision_train.append(l[0])
+    precision_test.append(l[1])
+""")
+code(166, r"""
+#@title
+comparison_frame = pd.DataFrame({'Model':['Logistic Regression (plain)', 'Logistic Regression (balanced)', 'Decision Tree (class weights)',
+                                          'Tuned Decision Tree', 'Bagging (200 trees)', 'Random Forest', 'Random Forest (class weights)', 'Tuned Random Forest'],
+                                          'Train_Accuracy': acc_train,
+                                          'Test_Accuracy': acc_test,
+                                          'Train_Recall': recall_train,
+                                          'Test_Recall': recall_test,
+                                          'Train_Precision': precision_train,
+                                          'Test_Precision': precision_test})
+comparison_frame.round(3)
+""")
+add_after(166, "code", r"""
+#@title
+# Visual comparison on the test set
+plot_df = comparison_frame.melt(id_vars='Model', value_vars=['Test_Recall', 'Test_Precision', 'Test_Accuracy'], var_name='metric', value_name='score')
+plt.figure(figsize=(13, 5))
+sns.barplot(data=plot_df, x='Model', y='score', hue='metric')
+plt.xticks(rotation=25, ha='right'); plt.ylim(0, 1.05); plt.title('Test-set performance by model'); plt.legend(loc='lower right')
+plt.show()
+""")
+add_after(166, "markdown", r"""
+### **Choosing the final model and its decision threshold on training data only**
+
+The comparison above uses the conventional 0.5 cut-off. The bank's real question is which model, at its best cut-off, gives the lowest expected cost of credit errors. To answer that without touching the test set, each candidate forest is scored with **5-fold out-of-fold predictions on the training rows**; the threshold that minimises the indicative expected cost (a missed defaulter about \$9,000, a wrongly declined good customer about \$2,000) is found on those predictions, and the candidate with the lowest cost wins. Only then is the winner refitted on all training rows and scored once on the test set.
+""")
+add_after(166, "code", r"""
+#@title
+from sklearn.model_selection import cross_val_predict
+COST_FN, COST_FP = 9000, 2000
+THRESHOLDS = np.round(np.arange(0.10, 0.71, 0.05), 2)
+
+def cost_table(y_true, proba, thresholds=THRESHOLDS):
+    rows = []
+    for t in thresholds:
+        pred = (proba > t).astype(int)
+        tn, fp, fn, tp = confusion_matrix(y_true, pred).ravel(); n = len(y_true)
+        rows.append({'threshold': float(t), 'recall': tp / (tp + fn), 'precision': tp / (tp + fp) if tp + fp else 0.0, 'accuracy': (tp + tn) / n,
+                     'missed_defaulters_per_1000': 1000 * fn / n, 'good_customers_declined_per_1000': 1000 * fp / n,
+                     'expected_cost_per_1000_$': 1000 * (fn * COST_FN + fp * COST_FP) / n})
+    return pd.DataFrame(rows)
+
+# 12 most important features of the tuned forest, as a leaner candidate feature set
+keep = pd.Series(rf_estimator_tuned.feature_importances_, index=X_train.columns).sort_values(ascending=False)
+keep = keep[keep > 0.01].index.tolist()
+
+candidates = {
+    'RF class weights 0.2/0.8, 27 inputs': (RandomForestClassifier(n_estimators=200, class_weight={0: 0.2, 1: 0.8}, random_state=1, n_jobs=-1), list(X_train.columns)),
+    'RF recall-tuned, 27 inputs': (RandomForestClassifier(**grid_obj.best_params_, random_state=1, n_jobs=-1), list(X_train.columns)),
+    'RF class weights 0.2/0.8, 12 inputs': (RandomForestClassifier(n_estimators=200, class_weight={0: 0.2, 1: 0.8}, random_state=1, n_jobs=-1), keep),
+    'RF recall-tuned, 12 inputs': (RandomForestClassifier(**grid_obj.best_params_, random_state=1, n_jobs=-1), keep),
+}
+cv5 = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
+oof, summary_rows = {}, []
+for name, (model, cols) in candidates.items():
+    proba_oof = cross_val_predict(model, X_train[cols], y_train, cv=cv5, method='predict_proba')[:, 1]
+    tbl = cost_table(y_train, proba_oof); best = tbl.loc[tbl['expected_cost_per_1000_$'].idxmin()]
+    oof[name] = (proba_oof, tbl)
+    summary_rows.append({'Candidate': name, 'OOF ROC-AUC': metrics.roc_auc_score(y_train, proba_oof), 'Best threshold': best['threshold'],
+                         'OOF recall at best': best['recall'], 'OOF precision at best': best['precision'], 'OOF expected cost per 1,000 ($)': best['expected_cost_per_1000_$']})
+selection = pd.DataFrame(summary_rows).set_index('Candidate')
+winner = selection['OOF expected cost per 1,000 ($)'].idxmin()
+FINAL_THRESHOLD = float(selection.loc[winner, 'Best threshold'])
+print('Selected model:', winner, '| selected threshold:', FINAL_THRESHOLD)
+selection.round(3)
+""")
+add_after(166, "code", r"""
+#@title
+# Fit the winner on all training rows and score the test set once, at the selected threshold and at 0.5 for reference
+final_model, final_cols = candidates[winner]
+final_model.fit(X_train[final_cols], y_train)
+proba_test = final_model.predict_proba(X_test[final_cols])[:, 1]
+final_pred = (proba_test > FINAL_THRESHOLD).astype(int)
+print(f'Final model: {winner} at threshold {FINAL_THRESHOLD:.2f} - TEST SET')
+metrics_score(y_test, final_pred)
+print('Test ROC-AUC:', round(metrics.roc_auc_score(y_test, proba_test), 3))
+cost_table(y_test, proba_test, thresholds=np.array([FINAL_THRESHOLD, 0.5])).round(3)
+""")
+add_after(166, "code", r"""
+#@title
+# Explanation layer: a surrogate decision tree fitted to the forest's own decisions, and its agreement (fidelity) with the forest on the test applicants
+forest_decision_train = (final_model.predict_proba(X_train[final_cols])[:, 1] > FINAL_THRESHOLD).astype(int)
+surrogate = DecisionTreeClassifier(max_depth=4, min_samples_leaf=20, random_state=1).fit(X_train[final_cols], forest_decision_train)
+fidelity = (surrogate.predict(X_test[final_cols]) == final_pred).mean()
+print(f'The depth-4 surrogate tree reproduces {fidelity:.1%} of the forest decisions on unseen applicants.\n')
+print(export_text(surrogate, feature_names=final_cols, max_depth=3, show_weights=False))
+""")
+md(167, r"""
+**Insights:**
+- Every un-pruned tree model (the single tree, bagging and the default and class-weighted forests) scores 100% on the training data; only the test columns tell the models apart.
+- On the test set at the 0.5 cut-off the tuned decision tree has the highest recall (82%) but the lowest precision (53%); the class-weighted Random Forest has the best balance (77% recall, 77% precision, 91% accuracy); the balanced logistic regression reaches 80% recall at 61% precision.
+- The out-of-fold selection picks the class-weighted forest on all 27 inputs with a 0.25 threshold: it has the lowest expected cost, well ahead of the recall-tuned grid winner (whose recall is bought with too much precision) and of the 12-input variants. On the test set, scored once, it catches 93% of defaulters at 67% precision: missed defaulters drop from about 45 to 15 per 1,000 applicants compared with the 0.5 cut-off, wrongly declined customers rise from about 46 to 92, and the indicative expected cost falls by more than a third.
+- The depth-4 surrogate tree reproduces about 90% of the forest's decisions, so its rules (debt-to-income missing or above about 44%, delinquent lines, credit-history length, loan size, job tenure) are a faithful plain-language summary of the scoring engine.
+""")
+md(168, r"""
+**1. Comparison of various techniques and their relative performance based on chosen Metric (Measure of success):**
+- How do different techniques perform? Which one is performing relatively better? Is there scope to improve the performance further?
+
+*Measure of success.* Recall on the defaulter class is the primary metric because a missed defaulter costs the bank about 4.5 times a wrongly declined good customer; precision and F1 are the guard-rails, accuracy is reported for completeness.
+
+*Linear vs non-linear.* The balanced logistic regression reaches 80% recall but only 61% precision: the data is made of thresholds (debt-to-income above 45%, any delinquency), which trees capture and a straight line cannot. The linear model remains the most transparent benchmark.
+
+*Single tree vs bagging vs forest.* The tuned decision tree catches the most defaulters at the 0.5 cut-off (82%) but declines almost one good customer for every defaulter it catches (53% precision). Bagging 200 trees shows the value of averaging: at the same recall as a fully grown tree, precision rises to 83%. The class-weighted Random Forest adds feature sub-sampling and class weights and reaches 77% recall at 77% precision, the best balance, while the recall-tuned forest reaches 79% recall with lower precision (66%) and, once precision is priced in, a clearly higher expected cost.
+
+*Pros and cons.* Logistic regression: fully transparent, trivial to run, but under-fits threshold effects on the raw inputs. Decision tree: a readable rule list, but unstable between re-trainings and the lowest precision. Bagging / Random Forest: the strongest and most robust, explained through feature importances, a surrogate tree and per-applicant reason codes rather than a rule list, and they need model-risk documentation and drift monitoring like any credit model.
+
+*Scope to improve.* Yes: (1) choosing the decision threshold on expected cost (done above, on training data only) lifts recall above 90% at a controlled precision cost (0.25 threshold: 93% recall, 67% precision on the test set); (2) engineered features such as loan-to-value and payment-to-income; (3) gradient boosting and probability calibration; (4) reject inference, because the data only covers loans the bank approved.
+""")
+md(169, r"""
+**2. Refined insights:**
+- What are the most meaningful insights relevant to the problem?
+
+1. **Affordability, and whether it can be verified, decides most outcomes.** The debt-to-income ratio and its missing flag are the top two features in every model; an applicant with no verifiable ratio defaulted 62% of the time, one with a ratio above 45% defaulted 87-100% of the time.
+2. **Past repayment behaviour is the next strongest predictor.** Delinquent lines, derogatory reports and recent inquiries all raise default risk monotonically, and the tree's top splits and the forest's importances agree.
+3. **Credit-history length protects:** about 10% default with 20+ years of history versus 43% with under 5 years.
+4. **Loan size, property value and mortgage balance are secondary:** they matter in combination (small loans are riskier, missing valuations are almost always bad) but are weak on their own.
+5. **Occupation and loan purpose add little once financial behaviour is known,** which simplifies fair-lending compliance.
+6. **Handling imbalance and missingness mattered more than the choice of algorithm:** class weights improved recall by about 23 points for the logistic regression and 9 for the forest; averaging trees mainly bought precision.
+7. **The decision threshold is a business dial, and it should be set on training data:** with the forest's strong ranking ability the bank can move recall between about 70% and 94% by changing the cut-off. The cost-minimising cut-off of 0.25, chosen on out-of-fold predictions, catches about 93% of defaulters with 67% precision on unseen applicants.
+8. **Occupation and loan purpose add little on their own but are not worthless:** dropping them and nine minor flags raised the out-of-fold expected cost by about a sixth, so their use should be cleared by the fair-lending review, with the 12-input model as the fallback.
+""")
+md(170, r"""
+**3. Proposal for the final solution design:**
+- What model do you propose to be adopted? Why is this the best solution to adopt?
+
+**Proposal: a class-weighted Random Forest as the scoring engine, explained by a surrogate decision tree.**
+
+- *Specification:* Random Forest with 200 trees, class weights {repaid: 0.2, default: 0.8}, trained on the untreated data with all 27 inputs (ten financial attributes, eleven missing-value flags, occupation and loan-purpose indicators), median/mode imputation learned on the training rows; decision threshold 0.25, chosen by minimising expected cost on out-of-fold predictions (stable for cost ratios between 3:1 and 6:1, to be re-derived with the bank's own loss and margin figures) with approve / refer / decline bands so an underwriter stays in the loop near the threshold. Fallback: the same forest on 12 inputs without occupation and loan purpose, about a sixth more expensive in credit errors, if the fair-lending review requires it.
+- *Why it is the best solution:* it had the lowest out-of-fold expected cost of all candidates without any use of the test set, and on the held-out applicants it then caught 93% of defaulters at 67% precision and 89% accuracy (ROC-AUC 0.96), far better than the single tree (82% recall at 53% precision) and the logistic regression (80% at 61%) and well ahead of the recall-tuned forest once precision is priced in; it is robust because it averages hundreds of trees and its out-of-fold and test results agree.
+- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's decisions reproduces about 90% of them on unseen applicants and gives the plain-language rules (ratio missing or above about 44%, delinquent lines, credit-history length, loan size, job tenure) that the ECOA adverse-action notice needs; global importances and per-applicant reason codes document the score itself.
+- *How it solves the problem:* per 1,000 applicants it flags about 185 of 200 defaulters before the money leaves the bank, declines or refers about 92 good customers, and cuts the indicative default-related cost from roughly \$1.8 million to about \$0.3 million; it also gives the bank explicit policy rules (verify income and valuation, cap debt-to-income at 45%, escalate two or more delinquencies or derogatory reports) that can be adopted immediately.
+- *Guard-rails:* shadow period on all applications (the training data covers only loans the old process approved), fair-lending review before launch, monthly monitoring of recall, precision and approval rate, yearly re-training.
+""")
+
+# ----------------------------------------------------------------------------- assemble
+new_cells = []
+for i, c in enumerate(cells):
+    c = copy.deepcopy(c)
+    if i in replace:
+        kind, src = replace[i]
+        assert c.cell_type == kind, (i, c.cell_type, kind)
+        c.source = src
+    if c.cell_type == "code":
+        c.outputs = []
+        c.execution_count = None
+    new_cells.append(c)
+    for kind, src in after.get(i, []):
+        new_cells.append(nbf.v4.new_markdown_cell(src) if kind == "markdown" else nbf.v4.new_code_cell(src))
+
+unfilled = [i for i, c in enumerate(new_cells) if "___" in "".join(c.source)]
+assert not unfilled, f"blanks left in cells {unfilled}"
+nb.cells = new_cells
+nb.metadata["kernelspec"] = {"display_name": "Python 3", "language": "python", "name": "python3"}
+nbf.write(nb, OUT)
+print(f"Wrote {OUT} with {len(new_cells)} cells ({len(replace)} replaced, {sum(len(v) for v in after.values())} added)")

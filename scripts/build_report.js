@@ -99,12 +99,12 @@ children.push(p([
 children.push(h2("Most important findings from the analysis"));
 children.push(
   bullet([bold("Missing information is the strongest single risk signal. "), txt("Applicants with no recorded debt-to-income ratio defaulted 62% of the time versus 8.6% when the ratio was recorded. Applicants with no property valuation defaulted 94% of the time. Unverifiable income or collateral should be treated as a red flag, not a neutral gap.")]),
-  bullet([bold("Debt-to-income has a hard threshold. "), txt("Below a 40% ratio only 4% to 7% of applicants default; between 40% and 45% the rate is 11%; above 45% it is 87% to 100%. A 45% cut-off is a simple, defensible policy rule.")]),
+  bullet([bold("Debt-to-income has a hard threshold. "), txt("Between a 20% and a 40% ratio only 4% to 7% of applicants default; between 40% and 45% the rate is 11%; above 45% it is 87% to 100%. A 45% cut-off is a simple, defensible policy rule.")]),
   bullet([bold("Past repayment behaviour predicts future behaviour. "), txt("The default rate rises from 17% with no major derogatory report to 39% with one, 51% with two and over 70% with three or more. Delinquent credit lines show the same pattern (14% at zero, 34% at one, 100% at six or more), as do recent credit inquiries.")]),
-  bullet([bold("A long credit history protects. "), txt("Applicants whose oldest credit line is under five years old default 43% of the time; above twenty years the rate is about 10%.")]),
+  bullet([bold("A long credit history protects. "), txt("Applicants whose oldest credit line is under five years old default 44% of the time; above twenty years the rate is about 10%.")]),
   bullet([bold("Small loans are not safe loans. "), txt("Loans under $5,000 default 57% of the time, almost three times the average.")]),
-  bullet([bold("Occupation and loan purpose matter little once financial behaviour is known. "), txt("Sales and self-employed applicants default more often (35% and 30%) and office workers least (13%), but removing occupation and loan purpose from the final model changed its performance by at most one point. The production model can run without them, which simplifies fair-lending compliance.")]),
-  bullet([bold("Tree-based models beat the linear model. "), txt("The relationships in this data are thresholds and cliffs rather than straight lines. A class-weighted Random Forest scored 0.96 on risk-ranking quality (ROC-AUC, where 1.0 means every defaulter is ranked above every repayer) against 0.91 for logistic regression, and at a similar share of defaulters caught it declined far fewer good customers.")]),
+  bullet([bold("Occupation and loan purpose matter little on their own. "), txt("Sales and self-employed applicants default more often (35% and 30%) and office workers least (13%). At the conventional decision threshold, removing occupation and loan purpose from the forest changes its performance by about a point; at the cost-optimal threshold they add a measurable gain, so they are kept subject to the fair-lending review, with a 12-input model without them as the fallback.")]),
+  bullet([bold("Tree-based models beat the linear model. "), txt("The relationships in this data are thresholds and cliffs rather than straight lines. A class-weighted Random Forest scored 0.96 on risk-ranking quality (ROC-AUC, where 1.0 means every defaulter is ranked above every repayer) against 0.91 for logistic regression, and at a similar share of defaulters caught it declined far fewer good customers. The final model and its decision threshold were chosen on the training data alone (out-of-fold expected cost) and confirmed once on the held-out applicants.")]),
 );
 
 children.push(h2("Final proposed model specification"));
@@ -112,13 +112,13 @@ children.push(table(
   ["Element", "Specification"],
   [
     ["Scoring engine", "Random Forest classifier, 200 trees, class weights {repaid: 0.2, default: 0.8}, scikit-learn defaults otherwise"],
-    ["Inputs", "The 10 financial attributes (LOAN, MORTDUE, VALUE, YOJ, DEROG, DELINQ, CLAGE, NINQ, CLNO, DEBTINC) plus two indicator flags: debt-to-income ratio missing and property value missing. Occupation and loan purpose are not required."],
-    ["Pre-processing", "Median imputation for numerical gaps, mode for categorical gaps, a missing-value flag for every imputed field; no outlier capping for the tree model"],
-    ["Decision threshold", "Flag as likely default when predicted probability > 0.25 (cost-minimising value under the stated loss assumptions), instead of the default 0.5"],
-    ["Explanation layer", "A pruned Decision Tree (balanced class weights, minimum 20 applicants per leaf) trained on the same data; its rules on debt-to-income, delinquencies, derogatory reports and credit-history length supply the adverse-action reasons required under the Equal Credit Opportunity Act"],
+    ["Inputs", "All 27 model inputs: the 10 financial attributes (LOAN, MORTDUE, VALUE, YOJ, DEROG, DELINQ, CLAGE, NINQ, CLNO, DEBTINC), a missing-value flag for each of the 11 fields with gaps, and the occupation and loan-purpose indicators. Fallback if the fair-lending review requires it: the same forest on 12 inputs without occupation and loan purpose (about a sixth more expected credit-error cost)."],
+    ["Pre-processing", "Median imputation for numerical gaps and mode for categorical gaps, both learned on the training rows; a missing-value flag for every imputed field; no outlier capping for the tree model"],
+    ["Decision threshold", "Flag as likely default when predicted probability > 0.25. The threshold minimises the indicative expected cost of credit errors on out-of-fold predictions of the training rows; it is unchanged for cost ratios between 3:1 and 6:1."],
+    ["Explanation layer", "A depth-4 surrogate decision tree fitted to the forest's own decisions, which reproduces 90% of them on unseen applicants; its rules on debt-to-income (missing or above about 44%), delinquent credit lines, credit-history length, loan size and job tenure supply the adverse-action reasons required under the Equal Credit Opportunity Act, complemented by per-applicant top risk drivers"],
     ["Measure of success", "Recall on the defaulter class (share of future defaulters caught), with precision and F1 as guard-rails against declining too many good customers"],
-    ["Performance on unseen applicants", "93.3% of defaulters caught (recall), 67.0% precision, 89.5% accuracy, risk-ranking quality (ROC-AUC) 0.96. At the default 0.5 threshold: 78.4% recall, 77.3% precision, 91.1% accuracy."],
-    ["Validation", "70/30 stratified train/test split; hyper-parameters chosen by 3- and 5-fold stratified cross-validation on the training set only"],
+    ["Performance on unseen applicants", "92.7% of defaulters caught (recall), 66.9% precision, 89.4% accuracy, risk-ranking quality (ROC-AUC) 0.96. At the default 0.5 threshold the same model gives 77.3% recall, 76.9% precision and 90.8% accuracy."],
+    ["Validation", "70/30 stratified split held out before any pre-processing statistic was fitted; grid searches by 3- and 5-fold stratified cross-validation; the final model and its threshold selected by 5-fold out-of-fold expected cost on the training rows; the test set scored once"],
   ],
   [2300, 7060],
 ));
@@ -132,7 +132,7 @@ children.push(
   bullet([bold("Improve it: "), txt("add reject inference, loan-to-value and payment-to-income features, probability calibration and time-based validation in the next iteration.")]),
 );
 children.push(p([
-  txt("Per 1,000 applicants the proposed model is expected to catch about 187 of the 200 defaulters, miss about 13, and decline about 92 customers who would have repaid. Under indicative cost assumptions (a missed defaulter costs about $9,000, a wrongly declined good customer about $2,000) this cuts default-related cost from roughly "),
+  txt("Per 1,000 applicants the proposed model is expected to catch about 185 of the 200 defaulters, miss about 15, and decline about 92 customers who would have repaid. Under indicative cost assumptions (a missed defaulter costs about $9,000, a wrongly declined good customer about $2,000) this cuts default-related cost from roughly "),
   bold("$1.8 million per 1,000 applicants"), txt(" today to about "), bold("$0.3 million"), txt(", a reduction of more than 80%."),
 ]));
 
@@ -155,32 +155,32 @@ children.push(table(
     ["Decision Tree (fully grown)", "69%", "71%", "88%", "0.81"],
     ["Decision Tree (tuned, pruned, balanced)", "82%", "53%", "82%", "0.88"],
     ["Bagged trees (200 trees)", "68%", "83%", "91%", "0.95"],
-    ["Random Forest (default)", "69%", "85%", "91%", "0.96"],
-    ["Random Forest (class weights 0.2/0.8)", "78%", "77%", "91%", "0.96"],
-    ["Random Forest (tuned for recall)", "78%", "65%", "87%", "0.93"],
+    ["Random Forest (default)", "69%", "84%", "91%", "0.96"],
+    ["Random Forest (class weights 0.2/0.8)", "77%", "77%", "91%", "0.96"],
+    ["Random Forest (tuned for recall)", "79%", "66%", "88%", "0.93"],
     ["Random Forest (tuned, 12 features only)", "78%", "66%", "88%", "0.93"],
-    ["Proposed: RF (class weights), threshold 0.25", "93%", "67%", "90%", "0.96"],
+    ["Proposed: RF (class weights), threshold 0.25", "93%", "67%", "89%", "0.96"],
   ],
   [3860, 1400, 1200, 1200, 1700],
 ));
-children.push(caption("Table 1. Performance of the techniques explored on the held-out test set."));
+children.push(caption("Table 1. Performance of the techniques explored on the held-out test set (1,788 applicants), at the conventional 0.5 threshold except for the proposed model."));
 
 children.push(figure("report_model_comparison.png", 6.4, 2.71));
 children.push(caption("Figure 1. Share of defaulters caught, precision and risk-ranking quality of each technique on the held-out applicants."));
 
-children.push(p([bold("The Random Forest was chosen as the scoring engine "), txt("because it offers the best balance on the chosen metric. The tuned decision tree catches slightly more defaulters at the 0.5 threshold (82%) but declines almost one good customer for every defaulter it catches (53% precision). The balanced logistic regression catches 80% but with 61% precision, because a straight line cannot represent the threshold effects in the data. Bagging 200 trees shows the value of averaging: at the same recall as a single fully grown tree, precision rises from 71% to 83% and ROC-AUC from 0.81 to 0.95. The class-weighted forest adds feature sub-sampling and class weights, catches 78% at 77% precision and ranks applicants by risk most accurately (ROC-AUC 0.96), which is what makes the next step possible.")]));
-children.push(p([bold("The decision threshold was set from business cost, not convention. "), txt("Because the forest ranks risk so well, lowering its decision threshold from 0.5 to 0.25 raises the share of defaulters caught from 78% to 93% while precision falls only from 77% to 67%. Under the indicative cost assumptions this is the cost-minimising operating point, and every threshold between 0.20 and 0.30 is within 12% of it, so the choice is robust.")]));
+children.push(p([bold("The Random Forest was chosen as the scoring engine "), txt("because it offers the best balance on the chosen metric. The tuned decision tree catches slightly more defaulters at the 0.5 threshold (82%) but declines almost one good customer for every defaulter it catches (53% precision). The balanced logistic regression catches 80% but with 61% precision, because a straight line cannot represent the threshold effects in the data. Bagging 200 trees shows the value of averaging: at the same recall as a single fully grown tree, precision rises from 71% to 83% and ROC-AUC from 0.81 to 0.95. The class-weighted forest adds feature sub-sampling and class weights, catches 77% at 77% precision and ranks applicants by risk among the most accurately of all models (ROC-AUC 0.96), which is what makes the next step possible.")]));
+children.push(p([bold("The final model and its threshold were chosen on the training data, from business cost rather than convention. "), txt("Four forest candidates (the class-weighted and the recall-tuned forest, each on all 27 inputs and on a 12-input subset) were compared on the expected cost of credit errors, estimated with out-of-fold predictions on the training rows, each at its own cost-minimising threshold. The class-weighted forest on all 27 inputs had the lowest cost, the recall-tuned grid winner about 50% more once precision is priced in. Its cost-minimising threshold is 0.25, unchanged for any cost ratio between 3:1 and 6:1. Scored once on the held-out applicants at that threshold, it catches 93% of defaulters at 67% precision, against 77% and 77% at the conventional 0.5; out-of-fold and test results agree within two points, so the selection did not over-fit.")]));
 children.push(figure("report_threshold.png", 6.4, 2.71));
-children.push(caption("Figure 2. Recall, precision and indicative expected cost per 1,000 applicants as the forest's decision threshold moves."));
+children.push(caption("Figure 2. Recall, precision and indicative expected cost per 1,000 applicants as the forest's decision threshold moves, measured on out-of-fold predictions of the training rows (the test set played no part in the choice)."));
 
-children.push(p([bold("Interpretability is provided by a companion decision tree. "), txt("A forest of 200 trees cannot be read as a rule list, but the pruned decision tree trained on the same data can, and it uses the same drivers in the same order: is the debt-to-income ratio missing; is it above about 44%; how many delinquent credit lines; how many derogatory reports; how long is the credit history. Those rules supply the adverse-action reasons, while the forest's feature importances (Figure 3) and per-applicant reason codes document the score itself.")]));
+children.push(p([bold("Interpretability is provided by a surrogate decision tree that follows the forest. "), txt("A forest of 200 trees cannot be read as a rule list, so a four-level decision tree was fitted to the forest's own decisions (flag or clear at the 0.25 threshold) rather than to the original labels. It reproduces 90% of the forest's decisions on unseen applicants, and its rules are the same drivers the analysis found throughout: is the debt-to-income ratio missing; if recorded, is it above about 44%; how many delinquent credit lines; how long is the credit history; what is the loan size and job tenure. Those rules supply the adverse-action reasons; the forest's feature importances (Figure 3) and per-applicant top risk drivers document the score itself.")]));
 children.push(figure("report_feature_importance.png", 5.9, 2.99));
-children.push(caption("Figure 3. The twelve inputs the Random Forest relies on most. The debt-to-income ratio and its missing-value flag together carry more than half (52.6%) of the model's decision power."));
+children.push(caption("Figure 3. The twelve inputs the final Random Forest relies on most (impurity-based importance). The debt-to-income ratio, its missing-value flag, the number of delinquent credit lines and the age of the credit history together carry about half of the model's decision power; permutation importance ranks the same four at the top."));
 
 children.push(h2("How the solution affects the business"));
 children.push(
-  bullet([bold("Fewer bad loans. "), txt("Of every 200 defaulters in 1,000 applications the model flags about 187 before the money leaves the bank, against none today.")]),
-  bullet([bold("Protected good business. "), txt("About 92 of every 1,000 applicants would be declined or referred although they would have repaid. This is the price of catching defaulters; it is far lower than the single decision tree's 143 and can be reduced further by routing borderline cases to a human underwriter instead of declining them outright.")]),
+  bullet([bold("Fewer bad loans. "), txt("Of every 200 defaulters in 1,000 applications the model flags about 185 before the money leaves the bank, against none today.")]),
+  bullet([bold("Protected good business. "), txt("About 92 of every 1,000 applicants would be declined or referred although they would have repaid. This is the price of catching defaulters; it is far lower than the single decision tree's 145 and can be reduced further by routing borderline cases to a human underwriter instead of declining them outright.")]),
   bullet([bold("Faster, more consistent decisions. "), txt("Clear approvals and clear declines can be automated; underwriters focus on the uncertain band around the threshold.")]),
   bullet([bold("Defensible decisions. "), txt("Every rejection maps to a small set of plain-language reasons (debt burden, unverified income, delinquencies, derogatory reports, short credit history) that match both the data and lending common sense.")]),
 );
@@ -192,9 +192,9 @@ children.push(
   numbered([bold("Deploy the class-weighted Random Forest as a decision-support score, "), txt("integrated into the existing underwriting workflow, with the probability threshold of 0.25 as the initial setting and a three-band outcome: approve (probability below about 0.15), refer to an underwriter (0.15 to 0.40) and decline (above 0.40). The bands keep a human in the loop where the model is least certain.")], "recs"),
   numbered([bold("Make income and collateral verification mandatory before scoring. "), txt("A missing debt-to-income ratio or property valuation is the strongest default signal in the data. Requiring these fields removes the ambiguity, improves the data for the model and is itself a prudent lending control.")], "recs"),
   numbered([bold("Adopt the explicit policy rules the analysis surfaced. "), txt("Decline or escalate applications with a debt-to-income ratio above 45%, with two or more delinquent credit lines, or with two or more major derogatory reports. These rules are transparent, easy to communicate and consistent with the model.")], "recs"),
-  numbered([bold("Use the pruned decision tree for adverse-action reasons. "), txt("Generate the reason codes for every decline from the tree's rules and the applicant's top risk drivers, and store them with the application record for audit and for responses to applicants and regulators.")], "recs"),
-  numbered([bold("Calibrate the threshold with real cost figures. "), txt("Replace the indicative $9,000 and $2,000 assumptions with the bank's actual loss-given-default and customer lifetime margin, and re-run the cost table before go-live. The analysis shows the optimum is stable across a range of thresholds, so this step refines rather than changes the design.")], "recs"),
-  numbered([bold("Run a shadow period and a fairness review before switching on. "), txt("Score every application alongside the manual decision for one to two months, compare outcomes, and test approval and error rates across protected groups. Occupation should stay out of the model unless the review clears it.")], "recs"),
+  numbered([bold("Use the surrogate decision tree for adverse-action reasons. "), txt("Generate the reason codes for every decline from the surrogate tree's rules (which reproduce 90% of the forest's decisions) and the applicant's top risk drivers from the forest, and store them with the application record for audit and for responses to applicants and regulators.")], "recs"),
+  numbered([bold("Calibrate the threshold with real cost figures. "), txt("Replace the indicative $9,000 and $2,000 assumptions with the bank's actual loss-given-default and customer lifetime margin, and re-derive the threshold on out-of-fold predictions before go-live. The analysis shows the optimum stays at 0.25 for any cost ratio between 3:1 and 6:1, so this step refines rather than changes the design.")], "recs"),
+  numbered([bold("Run a shadow period and a fairness review before switching on. "), txt("Score every application alongside the manual decision for one to two months, including applications the current process declines (the training data contains only approved loans), compare outcomes, and test approval and error rates across protected groups. If the review requires occupation to be excluded, switch to the 12-input fallback model.")], "recs"),
   numbered([bold("Monitor and re-train. "), txt("Track recall, precision, approval rate and the share of applications with missing fields monthly; re-train at least yearly or when the default rate or input distributions drift.")], "recs"),
 );
 
@@ -206,7 +206,7 @@ children.push(table(
     ["Credit risk and finance", "Supply actual loss-given-default and margin figures to calibrate the threshold; validate the cost-benefit case; define the monitoring thresholds that trigger re-training."],
     ["Underwriting operations", "Make income and valuation verification mandatory fields; redesign the workflow around approve / refer / decline bands; train underwriters on reading reason codes and handling referred cases."],
     ["Data and technology", "Build the scoring pipeline (imputation, missing flags, model, threshold, reason codes); integrate with the loan-origination system; set up logging, monitoring dashboards and a yearly re-training job."],
-    ["Compliance and legal", "Review adverse-action reason codes against ECOA requirements; run the disparate-impact analysis; approve model-risk documentation."],
+    ["Compliance and legal", "Review adverse-action reason codes against ECOA requirements; run the disparate-impact analysis and decide whether occupation may stay in the model; approve model-risk documentation."],
     ["Data science", "Maintain the model, run the shadow comparison, extend the analysis (see further analysis below) and report monthly performance."],
   ],
   [2600, 6760],
@@ -214,15 +214,15 @@ children.push(table(
 
 children.push(h2("Expected benefits and costs"));
 children.push(p("The figures below are indicative and rest on the stated assumptions; they are meant to size the opportunity and to be refined with the bank's own numbers."));
-children.push(p([bold("Assumptions. "), txt("Application volume of 6,000 per year (the size of the dataset). Average loan of $18,600 (the dataset mean). Loss given default of about 50% of the loan, so a missed defaulter costs about $9,000 after recovery of collateral. A wrongly declined good customer costs about $2,000 in forgone net interest margin and acquisition spend. Model performance in production equals test-set performance (93% of defaulters caught, 67% precision at threshold 0.25).")]));
+children.push(p([bold("Assumptions. "), txt("Application volume of 6,000 per year (the size of the dataset). Defaulted loans averaged $16,900 in the data; with about half recovered through the collateral, a missed defaulter costs about $9,000. A wrongly declined good customer costs about $2,000 in forgone net interest margin and acquisition spend. Model performance in production equals test-set performance (93% of defaulters caught, 67% precision at threshold 0.25), on an applicant population like the one the current process approves.")]));
 children.push(table(
   ["Item (per year, 6,000 applications)", "Current process", "With the proposed model"],
   [
-    ["Loans that default", "about 1,200 (20%)", "about 80 slip through (13 per 1,000)"],
-    ["Default-related losses", "about $10.8 million", "about $0.7 million"],
+    ["Loans that default", "about 1,200 (20%)", "about 90 slip through (15 per 1,000)"],
+    ["Default-related losses", "about $10.8 million", "about $0.8 million"],
     ["Good customers declined or referred", "none attributable to a model", "about 550 (92 per 1,000), margin forgone about $1.1 million"],
-    ["Total indicative cost of credit errors", "about $10.8 million", "about $1.8 million"],
-    ["Indicative annual benefit", "", "about $9 million gross; about $8.5 million after running costs"],
+    ["Total indicative cost of credit errors", "about $10.8 million", "about $1.9 million"],
+    ["Indicative annual benefit", "", "about $8.9 million gross; about $8.8 million after running costs; about $8.5 million in the first year after the one-off implementation cost"],
   ],
   [3760, 2500, 3100], true,
 ));
@@ -268,13 +268,13 @@ children.push(caption("Figure A3. Default rate by number of derogatory reports, 
 children.push(table(
   ["Proposed model on the 1,788 held-out applicants", "Model flags as likely default", "Model clears as likely to repay", "Total"],
   [
-    ["Actually defaulted", "333 (caught)", "24 (missed)", "357"],
+    ["Actually defaulted", "331 (caught)", "26 (missed)", "357"],
     ["Actually repaid", "164 (wrongly flagged)", "1,267 (correctly cleared)", "1,431"],
-    ["Total", "497", "1,291", "1,788"],
+    ["Total", "495", "1,293", "1,788"],
   ],
   [3460, 2000, 2300, 1600], true,
 ));
-children.push(caption("Table A1. Decisions of the proposed model (class-weighted Random Forest, threshold 0.25) on the held-out applicants: 93.3% of defaulters caught; 67.0% of flagged applicants were real defaulters; 89.5% of all decisions correct."));
+children.push(caption("Table A1. Decisions of the proposed model (class-weighted Random Forest, threshold 0.25) on the held-out applicants: 92.7% of defaulters caught; 66.9% of flagged applicants were real defaulters; 89.4% of all decisions correct."));
 children.push(p([txt("The complete analysis, including all exploratory charts, model code, cross-validation results and the full decision-tree rules, is in the accompanying notebook "), new TextRun({ text: "Loan_Default_Prediction_Capstone.html", font: FONT, size: 22, italics: true }), txt(".")]));
 
 // ---------- document ----------

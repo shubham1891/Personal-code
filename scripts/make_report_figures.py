@@ -65,20 +65,20 @@ rows = styler_table("comparison = pd.concat")
 header = rows[0]
 comp = pd.DataFrame([r[1:] for r in rows[2:]], index=[r[0] for r in rows[2:]], columns=header[1:]).replace(",", "", regex=True).astype(float)
 
-# threshold table
-rows = styler_table("thr_table = pd.DataFrame")
+# out-of-fold threshold table of the selected model (training rows)
+rows = styler_table("winner = selection[")
 thr = pd.DataFrame([r[1:] for r in rows[1:]], columns=rows[0][1:]).replace(",", "", regex=True).astype(float)
 
-# feature importances (printed as a 12-row frame)
+# impurity-based importances of the final model (top 12, printed as a frame with two columns)
 imp_txt = ""
-for o in cell_outputs("importances = pd.Series(rf_tuned.feature_importances_"):
+for o in cell_outputs('"impurity_importance": mdi.round(3)'):
     d = o.get("data", {})
-    if "text/plain" in d and "importance" in "".join(d["text/plain"]):
+    if "text/plain" in d and "impurity_importance" in "".join(d["text/plain"]):
         imp_txt = "".join(d["text/plain"])
 imp = {}
 for line in imp_txt.splitlines()[1:]:
     parts = line.split()
-    if len(parts) == 2:
+    if len(parts) == 3:
         imp[parts[0]] = float(parts[1])
 
 # ---------------------------------------------------------------- descriptive statistics from the data
@@ -198,7 +198,7 @@ ax1.axvline(0.5, color=GREY, linewidth=1, linestyle=":")
 ax1.text(0.505, 52, "Default threshold 0.50", color=GREY, fontsize=8)
 h1, l1 = ax1.get_legend_handles_labels(); h2, l2 = ax2.get_legend_handles_labels()
 ax1.legend(h1 + h2, l1 + l2, frameon=False, fontsize=8, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.02))
-ax1.set_title("Moving the decision threshold of the class-weighted Random Forest", fontsize=11, color=NAVY, loc="left", pad=22)
+ax1.set_title("Moving the decision threshold of the class-weighted Random Forest (out-of-fold, training rows)", fontsize=11, color=NAVY, loc="left", pad=22)
 fig.tight_layout(); fig.savefig(OUT / "report_threshold.png"); plt.close(fig)
 
 # Figure: feature importance (top 12, plain names)
@@ -207,9 +207,9 @@ fig, ax = plt.subplots(figsize=(7.5, 3.8))
 ax.barh([NAMES.get(k, k) for k, _ in items], [v * 100 for _, v in items], color=[RED if "missing" in k or k == "DEBTINC" else NAVY for k, _ in items])
 for i, (k, v) in enumerate(items):
     ax.text(v * 100 + 0.4, i, f"{v*100:.1f}%", va="center", fontsize=8)
-ax.set_xlabel("Share of the model's decision power (%)"); ax.set_xlim(0, 34)
-ax.set_title("What the Random Forest relies on most", fontsize=11, color=NAVY, loc="left")
+ax.set_xlabel("Share of the model's decision power (%)"); ax.set_xlim(0, 24)
+ax.set_title("What the final Random Forest relies on most", fontsize=11, color=NAVY, loc="left")
 fig.tight_layout(); fig.savefig(OUT / "report_feature_importance.png"); plt.close(fig)
 
 print("wrote", sorted(p.name for p in OUT.glob("report_*.png")))
-print("check: base rate %.2f%%, best threshold %.2f, top importance %s" % (base_rate, best, items[-1]))
+print("check: base rate %.2f%%, best threshold %.2f, top importance %s, n_imp %d" % (base_rate, best, items[-1], len(items)))
