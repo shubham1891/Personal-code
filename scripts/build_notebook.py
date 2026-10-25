@@ -830,6 +830,8 @@ md(r"""
 - Fit on the train data
 - Tune the model
 - Test the model on test set
+
+**A note on technique choice.** The Practical Data Science toolkit covers decision trees, bagging and random forests, and time-series forecasting. The first three are used below, building up from a single tree to a bagged ensemble to a random forest so that the contribution of each idea is visible. Time-series methods do not apply to this problem: each row is one loan application with no date or ordering, so there is no sequence to model. A time-aware validation (train on earlier applications, test on later ones) is recommended as further analysis once application dates are available. Logistic regression is included as the linear benchmark required for a fair comparison of linear and non-linear techniques.
 """)
 
 md(r"""
@@ -1164,6 +1166,46 @@ These rules match the EDA findings exactly, which is reassuring: the model is fo
 
 # --------------------------------------------------------------------------------------
 md(r"""
+### Bagging (Bootstrap Aggregating): from one tree to many
+
+A single decision tree has **high variance**: small changes in the training data produce a different tree, which is why the fully grown tree scored 100% on training data and far less on test data. **Bagging** trains many trees, each on a *bootstrap sample* (a random sample of the training applicants drawn with replacement), and combines their votes. Averaging many over-fitted trees cancels out their individual errors, which lowers variance without raising bias.
+
+A Random Forest is bagging plus one more idea (a random subset of features at every split), so building a plain bagged ensemble first shows how much of the improvement comes from bagging alone.
+""")
+
+code(r"""
+from sklearn.ensemble import BaggingClassifier
+
+# Bagging of 200 fully grown decision trees
+bag = BaggingClassifier(estimator=DecisionTreeClassifier(random_state=RANDOM_STATE),
+                        n_estimators=200, random_state=RANDOM_STATE, n_jobs=-1)
+bag.fit(X_train, y_train)
+
+print("Train performance - Bagging (200 trees)")
+metrics_score(y_train, bag.predict(X_train), title="Bagging - train")
+print("Test performance - Bagging (200 trees)")
+metrics_score(y_test, bag.predict(X_test), title="Bagging - test")
+results.append(model_scores(bag, X_train, y_train, X_test, y_test, "Bagging (200 trees)"))
+""")
+
+code(r"""
+# Does weighting the base trees towards the defaulter class help a bagged ensemble?
+bag_cw = BaggingClassifier(estimator=DecisionTreeClassifier(random_state=RANDOM_STATE, class_weight={0: 0.2, 1: 0.8}),
+                           n_estimators=200, random_state=RANDOM_STATE, n_jobs=-1)
+bag_cw.fit(X_train, y_train)
+results.append(model_scores(bag_cw, X_train, y_train, X_test, y_test, "Bagging (class-weighted trees)"))
+pd.concat(results[-2:], ignore_index=True).set_index("Model").round(3)
+""")
+
+md(r"""
+**Observations - Bagging:**
+- Averaging 200 trees lifts **test precision from 71% (single tree) to 83% and ROC-AUC from 0.81 to 0.95** at the same recall (about 68%). That is the variance reduction bagging promises: the ensemble is right far more often when it flags a defaulter, and it ranks applicants by risk almost as well as the forest will.
+- Train recall is still 100%: bagging limits the *damage* of over-fitting on unseen data, it does not stop each tree from memorising its sample.
+- Weighting the base trees towards the defaulter class does **not** raise recall (it falls to about 61%), for the same reason as with the single tree: an un-pruned tree already fits its bootstrap sample perfectly, so the weights have nothing left to rebalance. Class weights become useful once the trees are also constrained, which is what the random forest tuning below does.
+- A bagged ensemble still misses about a third of defaulters. The random forest adds feature sub-sampling, which de-correlates the trees and should improve both ranking and, combined with class weights, recall.
+""")
+
+md(r"""
 ### **Building a Random Forest Classifier**
 
 **Random Forest is a bagging algorithm where the base models are Decision Trees.** Samples are taken from the training data and on each sample a decision tree makes a prediction.
@@ -1346,7 +1388,7 @@ md(r"""
 
 *Linear vs non-linear.* The balanced logistic regression reaches 80% recall but only 61% precision and a ROC-AUC of 0.91. Every random forest beats it on precision and AUC at a similar recall, confirming that the threshold-shaped relationships in this data are better captured by trees. The linear model remains the most transparent benchmark.
 
-*Single tree vs forest.* The tuned decision tree achieves the **highest raw recall (about 82%)** but the **lowest precision (about 53%)**: it would reject almost one good customer for every defaulter it catches. The random forests reach about 78% recall with precision between 65% and 77%, a far better balance, and the highest AUC (0.93-0.96), meaning they rank applicants by risk most accurately.
+*Single tree vs bagging vs forest.* The tuned decision tree achieves the **highest raw recall (about 82%)** but the **lowest precision (about 53%)**: it would reject almost one good customer for every defaulter it catches. Bagging 200 trees shows the value of averaging: at the same 68% recall as the single fully grown tree, precision rises to 83% and ROC-AUC from 0.81 to 0.95. The random forests add feature sub-sampling and class weights and reach about 78% recall with precision between 65% and 77%, a far better balance, and the highest AUC (0.93-0.96), meaning they rank applicants by risk most accurately.
 
 *Among the forests.* The class-weighted forest (0.2/0.8) has the best F1 (about 0.78) and precision at the same recall; the recall-tuned forest has the same recall with lower precision but a smaller train-test gap; the reduced-feature forest performs essentially the same as the tuned one with 12 instead of 27 inputs.
 
@@ -1365,6 +1407,7 @@ Performance is only one side of the decision. The table below weighs each techni
 |---|---|---|---|---|---|
 | Logistic Regression (balanced) | Excellent: one coefficient per attribute, odds ratios can be quoted directly | Trivial; trains in under a second; needs scaling and outlier capping in the pipeline | Very stable across re-trainings | Under-fits threshold effects, so it declines about 1.6 good customers per defaulter caught; needs careful handling of correlated inputs (MORTDUE/VALUE) | Keep as the transparent benchmark and challenger model |
 | Decision Tree (tuned) | Excellent: a short rule list a credit officer can read | Trivial | Unstable: small changes in training data can re-shape the tree; must be re-validated at every re-train | Lowest precision (53%): too much good business declined | Use as the **explanation layer**, not as the scorer |
+| Bagged trees (200) | Same as the forest: importances and per-applicant reason codes, no rule list | Low | Robust, like the forest | Class weights do not move its recall, so it is stuck at catching about two thirds of defaulters; below the forest on every metric | Superseded by the Random Forest |
 | Random Forest (class weights or tuned) | Good with the right tooling: global feature importances plus per-applicant reason codes (the attributes that pushed the score up); not a rule list on its own | Low: trains in seconds, scores in milliseconds; 200-300 trees are trivial to host | Robust: averaging removes single-tree instability; needs drift monitoring and yearly re-training like any credit model | Perceived as a black box by some stakeholders; needs model-risk documentation and a fairness review before launch | **Adopt as the scoring engine**, paired with the tree for explanations |
 
 **Potential outcome, in numbers.** The cell below turns the test-set confusion matrix into an indicative dollar impact per 1,000 applicants, using the same cost assumptions as the threshold analysis (missed defaulter about \$9,000, wrongly declined good customer about \$2,000). The baseline is the current process, under which every one of these applicants was approved and 20% defaulted.
@@ -1474,7 +1517,7 @@ md(r"""
 
 6. **The models agree with each other and with the EDA.** The linear coefficients, the tree's rules and the forest's importances all point to the same handful of drivers, which gives confidence that the signal is real and stable.
 
-7. **Model type matters less than handling the imbalance and missingness correctly.** Class weights improved recall by about 23 points for the logistic regression and 10 points for the forest; switching from a single tree to a forest mainly bought precision.
+7. **Model type matters less than handling the imbalance and missingness correctly.** Class weights improved recall by about 23 points for the logistic regression and 10 points for the forest. Averaging trees (bagging) mainly bought precision and ranking quality; the forest's feature sub-sampling plus class weights then bought recall.
 
 8. **The decision threshold is a business dial.** With the forest's high AUC (0.96), the bank can move recall between about 70% and 94% by changing the cut-off, trading against how many good customers it declines. At the cost-minimising cut-off of 0.25 the forest catches 93% of defaulters with 67% precision.
 """)
@@ -1500,6 +1543,7 @@ md(r"""
 **Why not the alternatives**
 - *Logistic regression (balanced):* fully transparent, but at a similar recall it mis-classifies many more good customers (precision 61% vs 77%) because it cannot represent the threshold effects.
 - *Tuned decision tree:* highest recall (81%) but precision of 54% means too much lost business; it is better used as the explanation layer than as the scorer.
+- *Bagged trees:* a clear improvement over a single tree (precision 83%, ROC-AUC 0.95) but it misses a third of defaulters and class weights do not move its recall; the forest dominates it on every metric that matters.
 - *Default random forest:* best precision (85%) but misses almost a third of defaulters, which is the costlier error.
 
 **Guard-rails for adoption**

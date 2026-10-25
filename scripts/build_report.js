@@ -137,7 +137,7 @@ children.push(p("The consumer credit department wants to replace that process wi
 children.push(h2("Why this solution design"));
 children.push(p([bold("The metric follows the money. "), txt("The two errors a scoring model can make do not cost the same. Approving someone who then defaults (a missed defaulter) costs the bank most of the principal plus collection costs; declining someone who would have repaid costs only the interest margin on one customer. The primary measure of success is therefore the share of future defaulters the model catches (recall), with precision and F1 tracked so the model does not simply decline everyone.")]));
 children.push(p([bold("Missing values were treated as information, not noise. "), txt("Because the absence of a debt-to-income ratio or a property valuation was itself the strongest predictor of default, every imputed field received a 'was missing' indicator before imputation. This single step is responsible for a large part of every model's performance.")]));
-children.push(p([bold("Linear and non-linear techniques were compared head to head. "), txt("Logistic regression (the transparent linear benchmark), a decision tree (readable rules) and a random forest (an ensemble of trees) were trained on the same 70/30 stratified split, tuned with cross-validated grid search optimising recall, and evaluated on the held-out 30%. The table below summarises the result.")]));
+children.push(p([bold("Linear and non-linear techniques were compared head to head. "), txt("Logistic regression (the transparent linear benchmark), a decision tree (readable rules), a bagged ensemble of trees and a random forest were trained on the same 70/30 stratified split, tuned with cross-validated grid search optimising recall, and evaluated on the held-out 30%. Building up from one tree to bagging to a forest makes the contribution of each idea visible. Time-series techniques were not applicable because the applications carry no dates. The table below summarises the result.")]));
 
 children.push(table(
   ["Model (test set, 1,788 applicants)", "Defaulters caught", "Precision", "Accuracy", "ROC-AUC"],
@@ -146,6 +146,7 @@ children.push(table(
     ["Logistic Regression (balanced class weights)", "80%", "61%", "86%", "0.91"],
     ["Decision Tree (fully grown)", "69%", "71%", "88%", "0.81"],
     ["Decision Tree (tuned, pruned, balanced)", "82%", "53%", "82%", "0.88"],
+    ["Bagged trees (200 trees)", "68%", "83%", "91%", "0.95"],
     ["Random Forest (default)", "69%", "85%", "91%", "0.96"],
     ["Random Forest (class weights 0.2/0.8)", "78%", "77%", "91%", "0.96"],
     ["Random Forest (tuned for recall)", "78%", "65%", "87%", "0.93"],
@@ -159,7 +160,7 @@ children.push(caption("Table 1. Performance of the techniques explored on the he
 children.push(figure("model_comparison.png", 6.3, 2.7));
 children.push(caption("Figure 1. Test-set recall, precision, F1 and ROC-AUC by model."));
 
-children.push(p([bold("The Random Forest was chosen as the scoring engine "), txt("because it offers the best balance on the chosen metric. The tuned decision tree catches slightly more defaulters at the 0.5 threshold (82%) but declines almost one good customer for every defaulter it catches (53% precision). The balanced logistic regression catches 80% but with 61% precision, because a straight line cannot represent the threshold effects in the data. The class-weighted forest catches 78% at 77% precision and ranks applicants by risk most accurately (ROC-AUC 0.96), which is what makes the next step possible.")]));
+children.push(p([bold("The Random Forest was chosen as the scoring engine "), txt("because it offers the best balance on the chosen metric. The tuned decision tree catches slightly more defaulters at the 0.5 threshold (82%) but declines almost one good customer for every defaulter it catches (53% precision). The balanced logistic regression catches 80% but with 61% precision, because a straight line cannot represent the threshold effects in the data. Bagging 200 trees shows the value of averaging: at the same recall as a single fully grown tree, precision rises from 71% to 83% and ROC-AUC from 0.81 to 0.95. The class-weighted forest adds feature sub-sampling and class weights, catches 78% at 77% precision and ranks applicants by risk most accurately (ROC-AUC 0.96), which is what makes the next step possible.")]));
 children.push(p([bold("The decision threshold was set from business cost, not convention. "), txt("Because the forest ranks risk so well, lowering its decision threshold from 0.5 to 0.25 raises the share of defaulters caught from 78% to 93% while precision falls only from 77% to 67%. Under the indicative cost assumptions this is the cost-minimising operating point, and every threshold between 0.20 and 0.30 is within 12% of it, so the choice is robust.")]));
 children.push(figure("threshold_tradeoff.png", 6.0, 3.2));
 children.push(caption("Figure 2. Recall, precision and indicative expected cost per 1,000 applicants as the forest's decision threshold moves."));

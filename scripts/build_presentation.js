@@ -144,7 +144,7 @@ pres.addSection({ title: "Problem and approach" });
   const steps = [
     ["Explore", "Univariate, bivariate and correlation analysis; default rate by band; pattern of missing values"],
     ["Prepare", "Flag every missing field, impute median/mode, cap outliers for the linear model only, one-hot encode, 70/30 stratified split"],
-    ["Model", "Logistic Regression (linear benchmark), Decision Tree, Random Forest; class weights; cross-validated grid search"],
+    ["Model", "Logistic Regression (linear benchmark), Decision Tree, Bagging, Random Forest; class weights; cross-validated grid search"],
     ["Measure", "Recall on defaulters as the primary metric; precision, F1, ROC-AUC as guard-rails; cost-based threshold"],
     ["Recommend", "Model specification, business rules, implementation plan, benefits, risks"],
   ];
@@ -246,16 +246,16 @@ pres.addSection({ title: "Modelling" });
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
   s.addText("Model comparison: the Random Forest gives the best balance", { placeholder: "title" });
-  const labels = ["Logistic Regression (balanced)", "Decision Tree (tuned)", "Random Forest (default)", "Random Forest (class weights)", "Random Forest, threshold 0.25"];
+  const labels = ["Logistic Regression (balanced)", "Decision Tree (tuned)", "Bagged trees (200)", "Random Forest (default)", "Random Forest (class weights)", "Random Forest, threshold 0.25"];
   s.addChart(pres.charts.BAR, [
-    { name: "Defaulters caught (recall)", labels, values: [79.8, 81.8, 68.9, 78.4, 93.3] },
-    { name: "Precision", labels, values: [61.2, 53.3, 84.5, 77.3, 67.0] },
+    { name: "Defaulters caught (recall)", labels, values: [79.8, 81.8, 67.8, 68.9, 78.4, 93.3] },
+    { name: "Precision", labels, values: [61.2, 53.3, 82.6, 84.5, 77.3, 67.0] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.9, h: 3.9, barDir: "bar", barGrouping: "clustered", barGapWidthPct: 50, catAxisLabelFontSize: 10,
        chartColors: [H.accent1, H.accent4], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
        showLegend: true, legendPos: "b", legendFontSize: 10, catAxisOrientation: "maxMin", title: "Test set (1,788 unseen applicants), % ", objectName: "model comparison chart" });
   s.addText(bullets([
     "Linear vs non-linear: logistic regression reaches 80% recall but only 61% precision. The data is made of thresholds, which trees capture and a straight line cannot.",
-    "Single tree vs forest: the tuned tree catches 82% but declines almost one good customer per defaulter caught (53% precision).",
+    "Single tree vs ensembles: the tuned tree catches 82% but declines almost one good customer per defaulter caught (53% precision). Bagging 200 trees lifts precision to 83% and AUC to 0.95 at 68% recall.",
     "The class-weighted forest catches 78% at 77% precision, with the best ROC-AUC (0.96): it ranks applicants by risk most accurately.",
     "Because it ranks so well, lowering its threshold to 0.25 lifts recall to 93% at 67% precision, the lowest expected cost of any option.",
   ], 12), { x: 6.45, y: 1.25, w: 3.15, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "comparison bullets" });
@@ -407,13 +407,14 @@ pres.addSection({ title: "Appendix" });
     ["Decision Tree (default)", "0.686", "0.706", "0.696", "0.880", "0.807", "1.000"],
     ["Decision Tree (class weights)", "0.616", "0.728", "0.668", "0.878", "0.779", "1.000"],
     ["Decision Tree (tuned: balanced, min 20 per leaf)", "0.818", "0.533", "0.645", "0.820", "0.879", "0.924"],
+    ["Bagging (200 fully grown trees)", "0.678", "0.826", "0.745", "0.907", "0.946", "1.000"],
     ["Random Forest (default, 200 trees)", "0.689", "0.845", "0.759", "0.913", "0.962", "1.000"],
     ["Random Forest (class weights 0.2/0.8)", "0.784", "0.773", "0.779", "0.911", "0.958", "1.000"],
     ["Random Forest (tuned for recall)", "0.784", "0.653", "0.712", "0.874", "0.933", "0.921"],
     ["Random Forest (tuned, 12 features)", "0.782", "0.664", "0.718", "0.878", "0.928", "0.917"],
     [{ text: "Proposed: RF class weights, threshold 0.25", options: { bold: true } }, { text: "0.933", options: { bold: true } }, { text: "0.670", options: { bold: true } }, { text: "0.780", options: { bold: true } }, { text: "0.895", options: { bold: true } }, { text: "0.958", options: { bold: true } }, "-"],
   ];
-  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [3.3, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95], fontSize: 10.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.33, valign: "middle", margin: 0.04, align: "left", objectName: "full comparison table" });
+  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [3.3, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95], fontSize: 10, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.3, valign: "middle", margin: 0.03, align: "left", objectName: "full comparison table" });
   s.addText("Train recall of 1.000 marks the un-pruned models that memorised the training data. Grid search used stratified cross-validation on the training set only, scoring on recall.", { x: 0.5, y: 4.95, w: 9.0, h: 0.25, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "table footnote" });
 }
 
