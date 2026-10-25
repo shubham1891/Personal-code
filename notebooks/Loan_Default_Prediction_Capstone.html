@@ -11016,7 +11016,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </li>
 <li><p><strong>Debt-to-income ratio has a hard threshold.</strong> Between 20% and 40% the default rate is only 4% to 7% (and 11% below 20%); between 40% and 45% it is 11%; above 45% it is 87% to 100%. A 45% cut-off is a simple, defensible policy rule.</p>
 </li>
-<li><p><strong>Past credit behaviour predicts future behaviour.</strong> Each additional major derogatory report or delinquent credit line raises the default rate sharply (0 reports: 17%; 1: 39%; 2: 51%; 3 or more: 73%). Recent credit inquiries show the same rising pattern.</p>
+<li><p><strong>Past credit behaviour predicts future behaviour.</strong> Each additional major derogatory report or delinquent credit line raises the default rate sharply (0 reports: 17%; 1: 39%; 2: 51%; 3 or more: about 75%). Recent credit inquiries show the same rising pattern.</p>
 </li>
 <li><p><strong>A long credit history protects.</strong> Applicants whose oldest credit line is under 5 years old default 44% of the time; above 20 years the rate falls to about 10%.</p>
 </li>
@@ -14503,7 +14503,7 @@ Surrogate tree (depth 4) reproduces 90.2% of the forest's decisions on unseen ap
 <p><strong>Insights - the surrogate tree:</strong></p>
 <ul>
 <li>A four-level tree reproduces about <strong>90% of the forest's decisions</strong> on unseen applicants, so its rules are a faithful summary of the scoring engine, not a separate model with its own opinions.</li>
-<li>The rules are the same drivers in the same order as the EDA and the stand-alone tree found: <em>Is the debt-to-income ratio missing? If recorded, is it above about 44%? How many delinquent credit lines? How long is the credit history? What is the loan size and job tenure?</em> An applicant who is flagged can therefore be told which of these conditions applied to them.</li>
+<li>The rules are the same drivers in the same order as the EDA and the stand-alone tree found: <em>Is the debt-to-income ratio missing? If recorded, is it above about 44%? How many delinquent credit lines? How long is the credit history? How many years in the current job?</em> (The loan amount appears as a split in the "ratio missing" branch, but every applicant on that path is flagged whatever the amount.) An applicant who is flagged can therefore be told which of these conditions applied to them.</li>
 <li>For the roughly 10% of decisions the surrogate does not reproduce, and for a per-applicant explanation in all cases, the production system should also report the applicant's top risk drivers from the forest itself (for example with SHAP-style reason codes, listed under further analysis).</li>
 </ul>
 </div>
@@ -14714,7 +14714,7 @@ Surrogate tree (depth 4) reproduces 90.2% of the forest's decisions on unseen ap
 <ol>
 <li><strong>Lowest expected cost of credit errors, chosen without looking at the test set.</strong> Among the forest candidates it had the lowest out-of-fold expected cost at its best threshold, and on the held-out applicants it then delivered about 93% recall at 67% precision and 89% accuracy, with a ROC-AUC of about 0.96. The single decision tree (82% recall at 53% precision) and the logistic regression (80% at 61%) are far behind on precision, and the recall-tuned forest buys its recall with too much precision.</li>
 <li><strong>Robust.</strong> Averaging hundreds of trees removes the instability of a single tree; the out-of-fold and test results agree, and the threshold is insensitive to the cost assumptions over a wide range.</li>
-<li><strong>Interpretable enough for ECOA.</strong> The surrogate tree gives a short, faithful rule list (debt-to-income missing or above about 44%, delinquent lines, credit-history length, loan size and job tenure); global importances and per-applicant reason codes document the score itself.</li>
+<li><strong>Interpretable enough for ECOA.</strong> The surrogate tree gives a short, faithful rule list (debt-to-income missing or above about 44%, delinquent lines, credit-history length, job tenure); global importances and per-applicant reason codes document the score itself.</li>
 <li><strong>Operationally simple.</strong> The inputs are all fields already captured in the underwriting process; no new data is required to deploy, and the first process change the analysis recommends (mandatory income and valuation verification) improves the data for every future model.</li>
 </ol>
 <p><strong>Why not the alternatives</strong></p>

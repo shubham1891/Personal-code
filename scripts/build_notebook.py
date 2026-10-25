@@ -845,7 +845,7 @@ md(r"""
 
 3. **Debt-to-income ratio has a hard threshold.** Between 20% and 40% the default rate is only 4% to 7% (and 11% below 20%); between 40% and 45% it is 11%; above 45% it is 87% to 100%. A 45% cut-off is a simple, defensible policy rule.
 
-4. **Past credit behaviour predicts future behaviour.** Each additional major derogatory report or delinquent credit line raises the default rate sharply (0 reports: 17%; 1: 39%; 2: 51%; 3 or more: 73%). Recent credit inquiries show the same rising pattern.
+4. **Past credit behaviour predicts future behaviour.** Each additional major derogatory report or delinquent credit line raises the default rate sharply (0 reports: 17%; 1: 39%; 2: 51%; 3 or more: about 75%). Recent credit inquiries show the same rising pattern.
 
 5. **A long credit history protects.** Applicants whose oldest credit line is under 5 years old default 44% of the time; above 20 years the rate falls to about 10%.
 
@@ -1651,7 +1651,7 @@ print(export_text(surrogate, feature_names=final_cols, max_depth=4, show_weights
 md(r"""
 **Insights - the surrogate tree:**
 - A four-level tree reproduces about **90% of the forest's decisions** on unseen applicants, so its rules are a faithful summary of the scoring engine, not a separate model with its own opinions.
-- The rules are the same drivers in the same order as the EDA and the stand-alone tree found: *Is the debt-to-income ratio missing? If recorded, is it above about 44%? How many delinquent credit lines? How long is the credit history? What is the loan size and job tenure?* An applicant who is flagged can therefore be told which of these conditions applied to them.
+- The rules are the same drivers in the same order as the EDA and the stand-alone tree found: *Is the debt-to-income ratio missing? If recorded, is it above about 44%? How many delinquent credit lines? How long is the credit history? How many years in the current job?* (The loan amount appears as a split in the "ratio missing" branch, but every applicant on that path is flagged whatever the amount.) An applicant who is flagged can therefore be told which of these conditions applied to them.
 - For the roughly 10% of decisions the surrogate does not reproduce, and for a per-applicant explanation in all cases, the production system should also report the applicant's top risk drivers from the forest itself (for example with SHAP-style reason codes, listed under further analysis).
 """)
 
@@ -1727,7 +1727,7 @@ md(r"""
 **Why this is the best solution to adopt**
 1. **Lowest expected cost of credit errors, chosen without looking at the test set.** Among the forest candidates it had the lowest out-of-fold expected cost at its best threshold, and on the held-out applicants it then delivered about 93% recall at 67% precision and 89% accuracy, with a ROC-AUC of about 0.96. The single decision tree (82% recall at 53% precision) and the logistic regression (80% at 61%) are far behind on precision, and the recall-tuned forest buys its recall with too much precision.
 2. **Robust.** Averaging hundreds of trees removes the instability of a single tree; the out-of-fold and test results agree, and the threshold is insensitive to the cost assumptions over a wide range.
-3. **Interpretable enough for ECOA.** The surrogate tree gives a short, faithful rule list (debt-to-income missing or above about 44%, delinquent lines, credit-history length, loan size and job tenure); global importances and per-applicant reason codes document the score itself.
+3. **Interpretable enough for ECOA.** The surrogate tree gives a short, faithful rule list (debt-to-income missing or above about 44%, delinquent lines, credit-history length, job tenure); global importances and per-applicant reason codes document the score itself.
 4. **Operationally simple.** The inputs are all fields already captured in the underwriting process; no new data is required to deploy, and the first process change the analysis recommends (mandatory income and valuation verification) improves the data for every future model.
 
 **Why not the alternatives**

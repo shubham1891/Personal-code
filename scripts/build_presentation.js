@@ -193,7 +193,7 @@ pres.addSection({ title: "Key insights" });
     { name: "Default rate", labels: ["0", "1", "2", "3", "4", "5", "6+"], values: [14.0, 33.9, 44.8, 55.0, 59.0, 81.6, 100] },
   ], { ...chartFrame(), x: 5.05, y: 1.2, w: 4.55, h: 3.3, barDir: "col", chartColors: [H.accent3], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
        valAxisMaxVal: 110, valAxisLabelFormatCode: "0", title: "Default rate (%) by number of delinquent credit lines", objectName: "delinquency chart" });
-  s.addText("Between a 20% and a 40% ratio only 4-7% default; above 45% almost everyone does. Each delinquent line or derogatory report roughly doubles the risk (0 reports: 17%, 1: 39%, 2: 51%, 3+: about 73%). Both are plain-language rules an applicant can be given.", { x: 0.5, y: 4.55, w: 9.0, h: 0.6, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "insight 2 summary" });
+  s.addText("Between a 20% and a 40% ratio only 4-7% default; above 45% almost everyone does. Each delinquent line or derogatory report roughly doubles the risk (0 reports: 17%, 1: 39%, 2: 51%, 3+: about 75%). Both are plain-language rules an applicant can be given.", { x: 0.5, y: 4.55, w: 9.0, h: 0.6, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "insight 2 summary" });
   notes(s, "Two more drivers that are easy to explain. The debt-to-income ratio is not a slope but a cliff: between 20 and 40 percent, 4 to 7 percent default; above 45 percent, 87 to 100 percent. And repayment history repeats: each delinquent credit line roughly doubles the default rate.");
 }
 
@@ -446,7 +446,7 @@ pres.addSection({ title: "Appendix" });
     ["2", "If recorded, is the ratio above about 44%?", "Yes: about three in four defaulted (87-100% above 45%). Flag unless the credit history is very long (over about 17 years)."],
     ["3", "How many delinquent credit lines?", "Two or more with a modest mortgage balance: flag. None: only about 4-5% default, the safest group."],
     ["4", "How long is the credit history, how many years at the job?", "Under about 15 years of history or under about 3 years in the job tilts a borderline case towards flag."],
-    ["5", "Loan size", "Small loans with an unverified ratio are flagged; the loan amount refines borderline cases."],
+    ["5", "Loan size", "Appears as a split under an unverified ratio and short history, but every applicant on that path is flagged whatever the amount; the amount does not change the decision at this depth."],
   ];
   rules.forEach(([n, q, a], i) => {
     const y = 1.3 + i * 0.76;
