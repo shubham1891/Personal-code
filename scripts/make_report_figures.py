@@ -66,7 +66,7 @@ header = rows[0]
 comp = pd.DataFrame([r[1:] for r in rows[2:]], index=[r[0] for r in rows[2:]], columns=header[1:]).replace(",", "", regex=True).astype(float)
 
 # out-of-fold threshold table of the selected model (training rows)
-rows = styler_table("winner = selection[")
+rows = styler_table('tbl = oof[winner]["table"]')
 thr = pd.DataFrame([r[1:] for r in rows[1:]], columns=rows[0][1:]).replace(",", "", regex=True).astype(float)
 
 # impurity-based importances of the final model (top 12, printed as a frame with two columns)
@@ -198,7 +198,7 @@ ax1.axvline(0.5, color=GREY, linewidth=1, linestyle=":")
 ax1.text(0.505, 52, "Default threshold 0.50", color=GREY, fontsize=8)
 h1, l1 = ax1.get_legend_handles_labels(); h2, l2 = ax2.get_legend_handles_labels()
 ax1.legend(h1 + h2, l1 + l2, frameon=False, fontsize=8, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.02))
-ax1.set_title("Moving the decision threshold of the class-weighted Random Forest (out-of-fold, training rows)", fontsize=11, color=NAVY, loc="left", pad=22)
+ax1.set_title("Moving the decision threshold of the selected Random Forest (out-of-fold, training rows)", fontsize=11, color=NAVY, loc="left", pad=22)
 fig.tight_layout(); fig.savefig(OUT / "report_threshold.png"); plt.close(fig)
 
 # Figure: feature importance (top 12, plain names)

@@ -134,13 +134,13 @@ children.push(
   bullet([bold("Missing values. "), txt("A 0/1 'was missing' flag was created for each of the eleven columns with gaps, then numerical gaps were filled with the training-row median and categorical gaps with the training-row mode. No rows were dropped.")]),
   bullet([bold("Outliers. "), txt("For the linear model only, continuous variables were capped at the inter-quartile whiskers computed on the training rows (which removes the impossible debt-to-income and credit-age values) and the two count variables at their 99th percentile, because their inter-quartile range is zero. Tree models use the untouched values, since they split on rank order and would otherwise lose information such as 'above 50% always defaults'.")]),
   bullet([bold("Encoding and scaling. "), txt("Loan purpose and occupation were one-hot encoded (first level dropped); the continuous inputs were standardised for the logistic regression only, leaving the flags as 0/1 so their coefficients read as the effect of the flag.")]),
-  bullet([bold("Imbalance. "), txt("The 1:4 class imbalance was handled with class weights inside the models rather than by resampling, so every real applicant is kept.")]),
+  bullet([bold("Imbalance. "), txt("The 1:4 class imbalance was handled inside the models (class weights while building the individual models, the decision threshold in the final selection) rather than by resampling, so every real applicant is kept.")]),
 );
 
 // ---------------------------------------------------------------- 3. building models
 children.push(h1("3. Building Models"));
 children.push(h2("Measure of success"));
-children.push(p("The two errors a scoring model can make do not cost the same. Approving an applicant who then defaults (a missed defaulter) costs most of the principal plus collection costs: with defaulted loans averaging $16,900 and about half recovered through collateral, roughly $9,000. Declining an applicant who would have repaid costs the interest margin on one customer, roughly $2,000. The primary metric is therefore recall on the default class (the share of future defaulters the model flags). Because recall alone rewards flagging everyone, precision (the share of flagged applicants who really default) and F1 are tracked as guard-rails, accuracy is reported for completeness, and ROC-AUC measures how well applicants are ranked by risk, which matters when the threshold is moved. Individual models were tuned by cross-validated grid search optimising recall; the final model and its threshold were then chosen on the expected cost of the two errors, estimated with out-of-fold predictions on the training rows, so that precision is priced in explicitly."));
+children.push(p("The two errors a scoring model can make do not cost the same. Approving an applicant who then defaults (a missed defaulter) costs most of the principal plus collection costs: with defaulted loans averaging $16,900 and about half recovered through collateral, roughly $9,000. Declining an applicant who would have repaid costs the interest margin on one customer, roughly $2,000. The primary metric is therefore recall on the default class (the share of future defaulters the model flags). Because recall alone rewards flagging everyone, precision (the share of flagged applicants who really default) and F1 are tracked as guard-rails, accuracy is reported for completeness, and ROC-AUC measures how well applicants are ranked by risk, which matters when the threshold is moved. Individual models were tuned by cross-validated grid search optimising recall; the final model's configuration and its threshold were then chosen on the expected cost of the two errors, estimated with repeated out-of-fold predictions on the training rows, so that precision is priced in explicitly."));
 
 children.push(h2("Models built and what each one taught us"));
 children.push(table(
@@ -183,19 +183,37 @@ children.push(p([bold("Is there scope to improve further? "), txt("Yes, and the 
 // ---------------------------------------------------------------- 5. proposal
 children.push(h1("5. Proposal for the Final Solution Design"));
 children.push(h2("Choosing the model and its threshold on training data only"));
-children.push(p("Four forest candidates (the class-weighted and the recall-tuned forest, each on all 27 inputs and on the 12-input subset) were compared on the expected cost of credit errors, estimated with 5-fold out-of-fold predictions on the training rows, each at its own cost-minimising threshold. The test set played no part in the choice."));
+children.push(p("Class weights and the decision threshold are two dials for the same trade-off (how readily the model flags an applicant), so they were chosen together and on the business criterion, with a rule fixed before the search: the candidate with the lowest mean out-of-fold expected cost wins, and among candidates within one fold-to-fold standard error of it the simplest is preferred. Every candidate was scored with repeated 5-fold out-of-fold predictions on the training rows (three different splits, 15 validation folds) and judged at its own cost-minimising threshold. The test set played no part in the choice. Stage 1 searched the forest's class weights and minimum leaf size on all 27 inputs (Table 4)."));
+children.push(table(
+  ["Class weights", "Min. applicants per leaf", "Best threshold", "Recall at best", "Precision at best", "Mean expected cost per 1,000", "Fold-to-fold SD"],
+  [
+    ["none", "1", "0.15", "93.7%", "64.7%", "$317,000", "$41,000"],
+    ["0.3 / 0.7", "1", "0.20", "94.0%", "64.0%", "$320,000", "$34,000"],
+    ["0.2 / 0.8", "1", "0.25", "93.2%", "65.1%", "$321,000", "$39,000"],
+    ["balanced", "1", "0.25", "92.7%", "65.0%", "$330,000", "$36,000"],
+    ["0.1 / 0.9", "1", "0.30", "93.5%", "62.0%", "$345,000", "$38,000"],
+    ["0.3 / 0.7", "10", "0.30", "87.7%", "57.7%", "$477,000", "$55,000"],
+    ["none", "10", "0.20", "86.5%", "58.6%", "$485,000", "$48,000"],
+    ["0.2 / 0.8", "10", "0.40", "86.5%", "58.6%", "$486,000", "$52,000"],
+    ["balanced", "10", "0.35", "89.9%", "53.9%", "$488,000", "$52,000"],
+    ["0.1 / 0.9", "10", "0.50", "89.0%", "53.7%", "$503,000", "$54,000"],
+  ],
+  [1300, 1300, 1150, 1150, 1250, 1700, 1510], true,
+));
+children.push(caption("Table 4. Stage 1 of the selection: forest configurations (200 trees, all 27 inputs) on repeated out-of-fold predictions of the training rows, sorted by mean expected cost. Costs assume $9,000 per missed defaulter and $2,000 per wrongly declined customer."));
+children.push(p("Fully grown trees beat constrained trees by a wide margin for every weighting: the leaf size of 10 that the recall-only grid search chose makes the probabilities cruder, which costs dearly once the threshold is free to move. Among the fully grown forests the class weights barely matter: the unweighted, 0.3/0.7 and 0.2/0.8 forests lie within one standard error (about $10,500) of each other and simply reach their minimum at different thresholds (0.15, 0.20 and 0.25). By the pre-stated rule the unweighted forest went forward as the simplest configuration with the lowest mean cost; its score also keeps its natural meaning as an estimated default rate. Stage 2 pitted it against the recall-tuned grid winner, each on all 27 inputs and on the 12-input subset (Table 5)."));
 children.push(table(
   ["Candidate", "Out-of-fold ROC-AUC", "Best threshold", "Recall at best", "Precision at best", "Expected cost per 1,000 applicants"],
   [
-    ["Random Forest, class weights 0.2/0.8, 27 inputs", "0.96", "0.25", "93.5%", "65.2%", "$315,000"],
-    ["Random Forest, recall-tuned, 27 inputs", "0.93", "0.35", "90.0%", "53.9%", "$486,000"],
-    ["Random Forest, class weights 0.2/0.8, 12 inputs", "0.94", "0.25", "91.6%", "62.5%", "$371,000"],
-    ["Random Forest, recall-tuned, 12 inputs", "0.92", "0.35", "88.7%", "53.9%", "$505,000"],
+    ["Random Forest, unweighted, fully grown, 27 inputs", "0.96", "0.15", "93.7%", "64.7%", "$317,000"],
+    ["Random Forest, unweighted, fully grown, 12 inputs", "0.95", "0.15", "91.3%", "62.1%", "$378,000"],
+    ["Random Forest, recall-tuned grid winner, 27 inputs", "0.93", "0.35", "89.7%", "54.0%", "$490,000"],
+    ["Random Forest, recall-tuned grid winner, 12 inputs", "0.92", "0.35", "88.3%", "53.7%", "$513,000"],
   ],
   [3160, 1200, 1100, 1200, 1300, 1400], true,
 ));
-children.push(caption("Table 4. Out-of-fold selection of the final model (training rows only). Costs assume $9,000 per missed defaulter and $2,000 per wrongly declined customer."));
-children.push(p("The class-weighted forest on all 27 inputs has the lowest expected cost. The recall-tuned grid winner costs about 50% more once precision is priced in, confirming that recall-only tuning over-shoots; the 12-input versions cost about a sixth more than their 27-input counterparts, so occupation, loan purpose and the minor flags do add value at the cost-optimal operating point. The cost-minimising threshold is 0.25 and stays at 0.25 for any cost ratio between 3:1 and 6:1 (Figure 5)."));
+children.push(caption("Table 5. Stage 2 of the selection: final candidates on repeated out-of-fold predictions of the training rows (mean of three 5-fold splits). Same cost assumptions as Table 4."));
+children.push(p("The unweighted forest on all 27 inputs has the lowest expected cost. The recall-tuned grid winner costs about half again as much once precision is priced in, confirming that recall-only tuning over-shoots; the 12-input version costs about a fifth more, well outside one standard error, so occupation, loan purpose and the minor flags do add value at the cost-optimal operating point and the simpler model is not chosen. The cost-minimising threshold is 0.15 (flag every applicant whose estimated default probability exceeds 15%); it stays at 0.15 for any cost ratio between 3:1 and 6:1 (Figure 5) and agrees with the theoretical break-even for a calibrated score at the stated costs, $2,000 / $11,000 = 0.18. The final pipeline is written out step by step in the notebook, with the exact 27 input columns, the training-row imputation values and the model settings, so that every input to the scoring model is explicit."));
 children.push(figure("report_threshold.png", 6.4, 2.71));
 children.push(caption("Figure 5. Recall, precision and indicative expected cost as the forest's threshold moves, on out-of-fold predictions of the training rows."));
 
@@ -204,16 +222,16 @@ children.push(table(
   ["Proposed model on the 1,788 held-out applicants", "Model flags as likely default", "Model clears as likely to repay", "Total"],
   [
     ["Actually defaulted", "331 (caught)", "26 (missed)", "357"],
-    ["Actually repaid", "164 (wrongly flagged)", "1,267 (correctly cleared)", "1,431"],
-    ["Total", "495", "1,293", "1,788"],
+    ["Actually repaid", "155 (wrongly flagged)", "1,276 (correctly cleared)", "1,431"],
+    ["Total", "486", "1,302", "1,788"],
   ],
   [3460, 2000, 2300, 1600], true,
 ));
-children.push(caption("Table 5. Decisions of the proposed model at the 0.25 threshold: 92.7% of defaulters caught, 66.9% precision, 89.4% accuracy, ROC-AUC 0.96. At the conventional 0.5 threshold the same model gives 77.3% recall and 76.9% precision."));
-children.push(p("Per 1,000 applicants the model flags about 185 of 200 defaulters before the money leaves the bank, misses about 15 and declines or refers about 92 customers who would have repaid. Under the indicative costs this cuts default-related cost from roughly $1.8 million per 1,000 applicants (today: all approved, 20% default) to about $0.3 million, a reduction of more than 80%. Out-of-fold and test results agree within two points, which is the evidence that the selection did not over-fit."));
+children.push(caption("Table 6. Decisions of the proposed model at the 0.15 threshold: 92.7% of defaulters caught, 68.1% precision, 89.9% accuracy, ROC-AUC 0.96. At the conventional 0.5 threshold the same model gives 68.6% recall and 84.2% precision."));
+children.push(p("Per 1,000 applicants the model flags about 185 of 200 defaulters before the money leaves the bank, misses about 15 and declines or refers about 87 customers who would have repaid. Under the indicative costs this cuts default-related cost from roughly $1.8 million per 1,000 applicants (today: all approved, 20% default) to about $0.3 million, a reduction of about 83%. Out-of-fold and test results agree within a few points (recall 93% vs 94%, precision 68% vs 65%), which is the evidence that the selection did not over-fit."));
 
 children.push(h2("Performance versus interpretability"));
-children.push(p("The forest is the best performer but cannot be read as a rule list, and the ECOA requires a specific reason for each adverse decision. The proposal resolves the trade-off with a surrogate decision tree: a four-level tree fitted to the forest's own flag/clear decisions on the training rows, which reproduces 90% of the forest's decisions on unseen applicants. Its rules are the same drivers the analysis found throughout: is the debt-to-income ratio missing; if recorded, is it above about 44%; how many delinquent credit lines; how long is the credit history; how many years in the current job. For each applicant the production system should also report the top risk drivers from the forest itself, so that the roughly 10% of decisions the surrogate does not reproduce still carry a specific reason. Figure 6 shows what the forest relies on: the debt-to-income ratio, its missing flag, delinquent lines and credit-history length together carry about half of its decision power, and permutation importance ranks the same four at the top."));
+children.push(p("The forest is the best performer but cannot be read as a rule list, and the ECOA requires a specific reason for each adverse decision. The proposal resolves the trade-off with a surrogate decision tree: a four-level tree fitted to the forest's own flag/clear decisions on the training rows, which reproduces 90% of the forest's decisions on unseen applicants. Its rules are the same drivers the analysis found throughout: is the debt-to-income ratio missing; if recorded, is it above about 45%; are there two or more delinquent credit lines; how long is the credit history; are there derogatory reports. For each applicant the production system should also report the top risk drivers from the forest itself, so that the roughly 10% of decisions the surrogate does not reproduce still carry a specific reason. Figure 6 shows what the forest relies on: the debt-to-income ratio, its missing flag, delinquent lines and credit-history length together carry about half of its decision power, and permutation importance ranks the same four at the top."));
 children.push(figure("report_feature_importance.png", 5.9, 2.99));
 children.push(caption("Figure 6. The twelve inputs the final Random Forest relies on most."));
 
@@ -221,12 +239,12 @@ children.push(h2("The proposed solution design"));
 children.push(table(
   ["Element", "Proposal"],
   [
-    ["Scoring engine", "Random Forest, 200 trees, class weights {repaid: 0.2, default: 0.8}, all 27 inputs; median/mode imputation learned on training rows plus a missing flag per field; no outlier capping"],
-    ["Decision rule", "Flag when predicted probability > 0.25 (cost-minimising on out-of-fold predictions, stable for cost ratios 3:1 to 6:1, to be re-derived with the bank's own loss and margin figures); approve / refer / decline bands keep an underwriter in the loop around the threshold"],
+    ["Scoring engine", "Random Forest, 200 fully grown trees, no class weights (the configuration search showed they add nothing once the threshold is chosen on cost), all 27 inputs: the 10 financial attributes (LOAN, MORTDUE, VALUE, YOJ, DEROG, DELINQ, CLAGE, NINQ, CLNO, DEBTINC), a 0/1 missing-value flag for each of the 11 fields with gaps (MORTDUE, VALUE, REASON, JOB, YOJ, DEROG, DELINQ, CLAGE, NINQ, CLNO, DEBTINC) and six 0/1 indicators from one-hot encoding (REASON = HomeImp; JOB = Office, Other, ProfExe, Sales, Self); median/mode imputation learned on training rows plus a missing flag per field; no outlier capping, no scaling"],
+    ["Decision rule", "Flag when predicted probability > 0.15 (cost-minimising on repeated out-of-fold predictions, stable for cost ratios 3:1 to 6:1, equal to the theoretical break-even of 0.18 within the search step, to be re-derived with the bank's own loss and margin figures); approve / refer / decline bands keep an underwriter in the loop around the threshold"],
     ["Explanation layer", "Depth-4 surrogate decision tree (90% agreement with the forest) for adverse-action reasons, plus per-applicant top risk drivers"],
-    ["Fallback", "The same forest on 12 inputs without occupation and loan purpose, if the fair-lending review requires it (about a sixth more expected credit-error cost)"],
+    ["Fallback", "The same forest on 12 inputs without occupation and loan purpose, if the fair-lending review requires it (about a fifth more expected credit-error cost)"],
     ["Policy rules to adopt now", "Make income and property-valuation verification mandatory; decline or escalate above a 45% debt-to-income ratio, or with two or more delinquent lines or derogatory reports"],
-    ["Why this is the best solution", "Lowest expected cost of credit errors, chosen without the test set and confirmed on it (93% recall, 67% precision); robust (hundreds of averaged trees, out-of-fold and test agree, threshold insensitive to cost assumptions); interpretable through the surrogate tree and reason codes; deployable on fields the underwriting process already captures"],
+    ["Why this is the best solution", "Lowest expected cost of credit errors among ten configurations and four final candidates, chosen under a pre-stated rule without the test set and confirmed on it (93% recall, 68% precision); robust (hundreds of averaged trees, out-of-fold and test agree, threshold insensitive to cost assumptions); interpretable through the surrogate tree and reason codes; deployable on fields the underwriting process already captures"],
   ],
   [2300, 7060],
 ));

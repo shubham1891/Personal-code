@@ -1031,13 +1031,17 @@ plt.show()
 add_after(166, "markdown", r"""
 ### **Choosing the final model and its decision threshold on training data only**
 
-The comparison above uses the conventional 0.5 cut-off. The bank's real question is which model, at its best cut-off, gives the lowest expected cost of credit errors. To answer that without touching the test set, each candidate forest is scored with **5-fold out-of-fold predictions on the training rows**; the threshold that minimises the indicative expected cost (a missed defaulter about \$9,000, a wrongly declined good customer about \$2,000) is found on those predictions, and the candidate with the lowest cost wins. Only then is the winner refitted on all training rows and scored once on the test set.
+The comparison above uses the conventional 0.5 cut-off, and the class weights used so far (0.2/0.8 by convention, `balanced` from a recall-only grid search) were never tested against the business criterion. The bank's real question is which forest configuration, at its best cut-off, gives the lowest expected cost of credit errors. Class weights and the decision threshold are two dials for the same trade-off, so they are chosen together, on that criterion, and **without touching the test set**: every candidate is scored with **repeated 5-fold out-of-fold predictions on the training rows** (three different 5-fold splits, 15 validation folds), and the threshold that minimises the mean indicative expected cost (a missed defaulter about \$9,000, a wrongly declined good customer about \$2,000) is found on those predictions.
+
+**Selection rule, fixed before the search:** lowest mean out-of-fold expected cost wins; among candidates within one fold-to-fold standard error of the lowest cost, the simplest (fewest non-default settings, fewer inputs) is preferred. Stage 1 searches the class weights and the minimum leaf size on all 27 inputs; stage 2 pits the winner against the recall-tuned grid winner, each on 27 and on 12 inputs. Only then is the winner refitted on all training rows and scored once on the test set.
 """)
 add_after(166, "code", r"""
 #@title
 from sklearn.model_selection import cross_val_predict
 COST_FN, COST_FP = 9000, 2000
-THRESHOLDS = np.round(np.arange(0.10, 0.71, 0.05), 2)
+THRESHOLDS = np.round(np.arange(0.05, 0.71, 0.05), 2)
+CV_REPEATS = [1, 2, 3]            # three different stratified 5-fold splits = 15 validation folds per candidate
+COST_COL = 'Mean OOF expected cost per 1,000 ($)'
 
 def cost_table(y_true, proba, thresholds=THRESHOLDS):
     rows = []
@@ -1049,34 +1053,126 @@ def cost_table(y_true, proba, thresholds=THRESHOLDS):
                      'expected_cost_per_1000_$': 1000 * (fn * COST_FN + fp * COST_FP) / n})
     return pd.DataFrame(rows)
 
-# 12 most important features of the tuned forest, as a leaner candidate feature set
+def oof_evaluate(model, cols):
+    # repeated 5-fold out-of-fold evaluation on the training rows: mean threshold table, best row, mean AUC, fold-to-fold SD of the cost
+    probas, tables, fold_costs = [], [], {}
+    for seed in CV_REPEATS:
+        cv_rep = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
+        p = cross_val_predict(model, X_train[cols], y_train, cv=cv_rep, method='predict_proba')[:, 1]
+        probas.append(p); tables.append(cost_table(y_train, p))
+        for _, val in cv_rep.split(X_train[cols], y_train):
+            fold_tbl = cost_table(y_train.iloc[val], p[val])
+            for t, c in zip(fold_tbl['threshold'], fold_tbl['expected_cost_per_1000_$']):
+                fold_costs.setdefault(t, []).append(c)
+    tbl = pd.concat(tables).groupby('threshold', as_index=False).mean()
+    best = tbl.loc[tbl['expected_cost_per_1000_$'].idxmin()]
+    return {'probas': probas, 'table': tbl, 'best': best, 'auc': np.mean([metrics.roc_auc_score(y_train, p) for p in probas]),
+            'fold_sd': np.std(fold_costs[best['threshold']], ddof=1)}
+
+def summary_row(res):
+    return {'Mean OOF ROC-AUC': res['auc'], 'Best threshold': res['best']['threshold'], 'OOF recall at best': res['best']['recall'],
+            'OOF precision at best': res['best']['precision'], COST_COL: res['best']['expected_cost_per_1000_$'], 'Fold-to-fold SD of cost ($)': res['fold_sd']}
+
+SELECTION_FORMAT = {'Mean OOF ROC-AUC': '{:.3f}', 'Best threshold': '{:.2f}', 'OOF recall at best': '{:.3f}', 'OOF precision at best': '{:.3f}',
+                    COST_COL: '{:,.0f}', 'Fold-to-fold SD of cost ($)': '{:,.0f}'}
+
+# Stage 1: class weights x minimum leaf size (200 trees, all 27 inputs)
+weight_options = {'none': None, 'balanced': 'balanced', '0.3/0.7': {0: 0.3, 1: 0.7}, '0.2/0.8': {0: 0.2, 1: 0.8}, '0.1/0.9': {0: 0.1, 1: 0.9}}
+stage1 = {}
+for w_name, w in weight_options.items():
+    for leaf in [1, 10]:          # 1 = fully grown trees (default); 10 = the leaf size the recall-only grid search chose
+        stage1[(w_name, leaf)] = oof_evaluate(RandomForestClassifier(n_estimators=200, class_weight=w, min_samples_leaf=leaf, random_state=1, n_jobs=-1), list(X_train.columns))
+config_search = pd.DataFrame({k: summary_row(v) for k, v in stage1.items()}).T
+config_search.index.names = ['Class weights', 'Min. applicants per leaf']
+
+# the pre-stated rule: lowest mean cost; among configurations within one standard error of it, the simplest
+lowest = config_search[COST_COL].min()
+one_se = config_search.loc[config_search[COST_COL].idxmin(), 'Fold-to-fold SD of cost ($)'] / np.sqrt(5 * len(CV_REPEATS))
+within = config_search[config_search[COST_COL] <= lowest + one_se].copy()
+within['non-default settings'] = [(w != 'none') + (leaf != 1) for w, leaf in within.index]
+best_weights, best_leaf = within.sort_values(['non-default settings', COST_COL]).index[0]
+best_leaf = int(best_leaf)
+print(f'Lowest mean OOF cost ${lowest:,.0f}; one standard error ${one_se:,.0f}; within one SE: {list(within.index)}')
+print(f'Stage 1 choice: class weights = {best_weights}, min. applicants per leaf = {best_leaf}')
+config_search.style.format(SELECTION_FORMAT).highlight_min(subset=[COST_COL], color='#c6efce')
+""")
+add_after(166, "markdown", r"""
+**Observations - configuration search:** fully grown trees beat trees with at least 10 applicants per leaf by a wide margin for every class-weight setting (about \$317,000-345,000 against \$477,000-503,000 per 1,000 applicants): the leaf size the recall-only grid search chose makes the probabilities cruder, which costs dearly once the threshold is free to move. Among the fully grown forests the class weights barely matter: no weights (\$317,000), 0.3/0.7 (\$320,000) and 0.2/0.8 (\$321,000) are within one standard error (about \$10,500) of each other and simply reach their minimum at different thresholds (0.15, 0.20, 0.25); only `balanced` and the extreme 0.1/0.9 are clearly worse. By the pre-stated rule the unweighted forest goes forward: lowest mean cost and the simplest configuration; its probabilities also keep their meaning as an estimated default rate.
+""")
+add_after(166, "code", r"""
+#@title
+# Stage 2: the chosen configuration against the recall-tuned grid winner, each on all 27 inputs and on the 12 most important features of the tuned forest
 keep = pd.Series(rf_estimator_tuned.feature_importances_, index=X_train.columns).sort_values(ascending=False)
 keep = keep[keep > 0.01].index.tolist()
 
+def chosen_forest():
+    return RandomForestClassifier(n_estimators=200, class_weight=weight_options[best_weights], min_samples_leaf=best_leaf, random_state=1, n_jobs=-1)
+
 candidates = {
-    'RF class weights 0.2/0.8, 27 inputs': (RandomForestClassifier(n_estimators=200, class_weight={0: 0.2, 1: 0.8}, random_state=1, n_jobs=-1), list(X_train.columns)),
-    'RF recall-tuned, 27 inputs': (RandomForestClassifier(**grid_obj.best_params_, random_state=1, n_jobs=-1), list(X_train.columns)),
-    'RF class weights 0.2/0.8, 12 inputs': (RandomForestClassifier(n_estimators=200, class_weight={0: 0.2, 1: 0.8}, random_state=1, n_jobs=-1), keep),
-    'RF recall-tuned, 12 inputs': (RandomForestClassifier(**grid_obj.best_params_, random_state=1, n_jobs=-1), keep),
+    f'RF class weights {best_weights}, leaf {best_leaf}, 27 inputs': (chosen_forest(), list(X_train.columns)),
+    f'RF class weights {best_weights}, leaf {best_leaf}, 12 inputs': (chosen_forest(), keep),
+    'RF recall-tuned grid winner, 27 inputs': (RandomForestClassifier(**grid_obj.best_params_, random_state=1, n_jobs=-1), list(X_train.columns)),
+    'RF recall-tuned grid winner, 12 inputs': (RandomForestClassifier(**grid_obj.best_params_, random_state=1, n_jobs=-1), keep),
 }
-cv5 = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
-oof, summary_rows = {}, []
+oof = {}
 for name, (model, cols) in candidates.items():
-    proba_oof = cross_val_predict(model, X_train[cols], y_train, cv=cv5, method='predict_proba')[:, 1]
-    tbl = cost_table(y_train, proba_oof); best = tbl.loc[tbl['expected_cost_per_1000_$'].idxmin()]
-    oof[name] = (proba_oof, tbl)
-    summary_rows.append({'Candidate': name, 'OOF ROC-AUC': metrics.roc_auc_score(y_train, proba_oof), 'Best threshold': best['threshold'],
-                         'OOF recall at best': best['recall'], 'OOF precision at best': best['precision'], 'OOF expected cost per 1,000 ($)': best['expected_cost_per_1000_$']})
-selection = pd.DataFrame(summary_rows).set_index('Candidate')
-winner = selection['OOF expected cost per 1,000 ($)'].idxmin()
+    oof[name] = stage1[(best_weights, best_leaf)] if name.endswith(f'leaf {best_leaf}, 27 inputs') else oof_evaluate(model, cols)
+selection = pd.DataFrame({name: summary_row(res) for name, res in oof.items()}).T
+selection.index.name = 'Candidate'
+selection['Inputs'] = [len(cols) for _, cols in candidates.values()]
+lowest = selection[COST_COL].min()
+one_se = selection.loc[selection[COST_COL].idxmin(), 'Fold-to-fold SD of cost ($)'] / np.sqrt(5 * len(CV_REPEATS))
+within = selection[selection[COST_COL] <= lowest + one_se]
+winner = within.sort_values(['Inputs', COST_COL]).index[0]       # simplest (fewest inputs) among those within one standard error
 FINAL_THRESHOLD = float(selection.loc[winner, 'Best threshold'])
+print(f'Within one standard error (${one_se:,.0f}) of the lowest cost: {list(within.index)}')
 print('Selected model:', winner, '| selected threshold:', FINAL_THRESHOLD)
-selection.round(3)
+selection.style.format(SELECTION_FORMAT).highlight_min(subset=[COST_COL], color='#c6efce')
+""")
+add_after(166, "code", r"""
+#@title
+# Out-of-fold cost curve of the winner (mean over the three repeated 5-fold splits) and the sensitivity of the threshold to the cost ratio
+tbl = oof[winner]['table']
+fig, ax1 = plt.subplots(figsize=(9, 4.5))
+ax1.plot(tbl['threshold'], tbl['recall'], marker='o', label='Recall (out-of-fold)')
+ax1.plot(tbl['threshold'], tbl['precision'], marker='o', label='Precision (out-of-fold)')
+ax1.set_xlabel('probability threshold'); ax1.set_ylabel('score'); ax1.legend(loc='lower left')
+ax2 = ax1.twinx()
+ax2.plot(tbl['threshold'], tbl['expected_cost_per_1000_$'], color='grey', linestyle='--', marker='s', label='expected cost / 1,000 applicants')
+ax2.set_ylabel('expected cost per 1,000 applicants ($)'); ax2.legend(loc='upper right')
+ax1.axvline(FINAL_THRESHOLD, color='red', linestyle=':', linewidth=1)
+plt.title(f'{winner}: effect of the decision threshold (training rows, out-of-fold)'); plt.show()
+
+rows = []
+for ratio in [2, 3, 4.5, 6, 9]:
+    costs = [sum(confusion_matrix(y_train, (p > t).astype(int)).ravel()[2] * ratio + confusion_matrix(y_train, (p > t).astype(int)).ravel()[1] for p in oof[winner]['probas']) for t in THRESHOLDS]
+    rows.append({'cost of a missed defaulter / cost of a wrongly declined customer': f'{ratio}:1', 'cost-minimising threshold': THRESHOLDS[int(np.argmin(costs))],
+                 'break-even threshold for a perfectly calibrated score': round(1 / (1 + ratio), 2)})
+display(pd.DataFrame(rows))
+tbl.round(3)
+""")
+add_after(166, "code", r"""
+#@title
+# The final solution written out end to end, so that every step and every input to the scoring model is explicit
+final_model, final_cols = candidates[winner]
+flag_cols = [c for c in final_cols if c.endswith('_missing_values_flag')]
+dummy_cols = [c for c in final_cols if c.startswith(('REASON_', 'JOB_')) and c not in flag_cols]
+raw_cols = [c for c in final_cols if c not in flag_cols + dummy_cols]
+assert len(final_cols) == len(raw_cols) + len(flag_cols) + len(dummy_cols) == 27 and final_cols == list(X_train.columns)
+print(f'FINAL PIPELINE (every statistic below was learned on the {len(train_idx):,} training rows only)')
+print(f'1. Raw inputs kept as numbers ({len(raw_cols)}):', raw_cols)
+print(f'2. Missing-value flags, 1 if the field was blank ({len(flag_cols)}):', flag_cols)
+print('3. Imputation of blanks - training-row medians:', {k: round(v, 2) for k, v in hm.loc[train_idx, num_cols].median().items()})
+print('                          training-row modes  :', {c: hm.loc[train_idx, c].mode()[0] for c in ['REASON', 'JOB']})
+print(f'4. One-hot encoding of REASON and JOB, first level dropped ({len(dummy_cols)}):', dummy_cols)
+print('5. No outlier capping and no scaling: tree ensembles are unaffected by monotone transformations of an input')
+print('6. Model:', type(final_model).__name__, {k: v for k, v in final_model.get_params().items() if k in ['n_estimators', 'class_weight', 'min_samples_leaf', 'max_features', 'max_depth', 'random_state']})
+print(f'7. Model inputs, in order ({len(final_cols)}):', final_cols)
+print(f'8. Decision rule: flag the applicant when the predicted default probability exceeds {FINAL_THRESHOLD:.2f} (break-even for a calibrated score at the stated costs: {COST_FP / (COST_FN + COST_FP):.2f})')
 """)
 add_after(166, "code", r"""
 #@title
 # Fit the winner on all training rows and score the test set once, at the selected threshold and at 0.5 for reference
-final_model, final_cols = candidates[winner]
 final_model.fit(X_train[final_cols], y_train)
 proba_test = final_model.predict_proba(X_test[final_cols])[:, 1]
 final_pred = (proba_test > FINAL_THRESHOLD).astype(int)
@@ -1087,19 +1183,29 @@ cost_table(y_test, proba_test, thresholds=np.array([FINAL_THRESHOLD, 0.5])).roun
 """)
 add_after(166, "code", r"""
 #@title
+# What the final model relies on: impurity importance of the fitted forest and permutation importance (drop in test ROC-AUC when a column is shuffled)
+from sklearn.inspection import permutation_importance
+mdi = pd.Series(final_model.feature_importances_, index=final_cols).sort_values(ascending=False)
+perm = permutation_importance(final_model, X_test[final_cols], y_test, scoring='roc_auc', n_repeats=5, random_state=1, n_jobs=-1)
+perm_imp = pd.Series(perm.importances_mean, index=final_cols).sort_values(ascending=False)
+pd.DataFrame({'impurity_importance': mdi.round(3), 'permutation_importance_auc_drop': perm_imp.round(4)}).sort_values('impurity_importance', ascending=False).head(12)
+""")
+add_after(166, "code", r"""
+#@title
 # Explanation layer: a surrogate decision tree fitted to the forest's own decisions, and its agreement (fidelity) with the forest on the test applicants
 forest_decision_train = (final_model.predict_proba(X_train[final_cols])[:, 1] > FINAL_THRESHOLD).astype(int)
 surrogate = DecisionTreeClassifier(max_depth=4, min_samples_leaf=20, random_state=1).fit(X_train[final_cols], forest_decision_train)
 fidelity = (surrogate.predict(X_test[final_cols]) == final_pred).mean()
 print(f'The depth-4 surrogate tree reproduces {fidelity:.1%} of the forest decisions on unseen applicants.\n')
-print(export_text(surrogate, feature_names=final_cols, max_depth=3, show_weights=False))
+print(export_text(surrogate, feature_names=final_cols, max_depth=4, show_weights=False))
 """)
 md(167, r"""
 **Insights:**
 - Every un-pruned tree model (the single tree, bagging and the default and class-weighted forests) scores 100% on the training data; only the test columns tell the models apart.
 - On the test set at the 0.5 cut-off the tuned decision tree has the highest recall (82%) but the lowest precision (53%); the class-weighted Random Forest has the best balance (77% recall, 77% precision, 91% accuracy); the balanced logistic regression reaches 80% recall at 61% precision.
-- The out-of-fold selection picks the class-weighted forest on all 27 inputs with a 0.25 threshold: it has the lowest expected cost, well ahead of the recall-tuned grid winner (whose recall is bought with too much precision) and of the 12-input variants. On the test set, scored once, it catches 93% of defaulters at 67% precision: missed defaulters drop from about 45 to 15 per 1,000 applicants compared with the 0.5 cut-off, wrongly declined customers rise from about 46 to 92, and the indicative expected cost falls by more than a third.
-- The depth-4 surrogate tree reproduces about 90% of the forest's decisions, so its rules (debt-to-income missing or above about 44%, delinquent lines, credit-history length, job tenure) are a faithful plain-language summary of the scoring engine.
+- The configuration search shows that, once the threshold is chosen on cost, class weights add nothing: the unweighted forest, the 0.2/0.8 forest and the 0.3/0.7 forest are within one standard error of each other at their own best thresholds, while constrained trees (10 applicants per leaf, the recall-only grid choice) cost about half again as much. By the pre-stated rule the **unweighted forest on all 27 inputs with a 0.15 threshold** is selected: lowest mean out-of-fold cost (about \$317,000 per 1,000 applicants), well ahead of the recall-tuned grid winner (\$490,000) and of the 12-input version (\$378,000).
+- On the test set, scored once, it catches 93% of defaulters at 68% precision and 90% accuracy (ROC-AUC 0.96): compared with the 0.5 cut-off, missed defaulters drop from about 63 to 15 per 1,000 applicants, wrongly declined customers rise from about 26 to 87, and the indicative expected cost halves (about \$0.30 million vs \$0.62 million per 1,000). The 0.15 cut-off agrees with the theoretical break-even for a calibrated score at the stated costs (0.18).
+- The depth-4 surrogate tree reproduces about 90% of the forest's decisions, so its rules (debt-to-income missing or above about 45%, two or more delinquent lines, credit-history length, derogatory reports) are a faithful plain-language summary of the scoring engine.
 """)
 md(168, r"""
 **1. Comparison of various techniques and their relative performance based on chosen Metric (Measure of success):**
@@ -1109,11 +1215,11 @@ md(168, r"""
 
 *Linear vs non-linear.* The balanced logistic regression reaches 80% recall but only 61% precision: the data is made of thresholds (debt-to-income above 45%, any delinquency), which trees capture and a straight line cannot. The linear model remains the most transparent benchmark.
 
-*Single tree vs bagging vs forest.* The tuned decision tree catches the most defaulters at the 0.5 cut-off (82%) but declines almost one good customer for every defaulter it catches (53% precision). Bagging 200 trees shows the value of averaging: at the same recall as a fully grown tree, precision rises to 83%. The class-weighted Random Forest adds feature sub-sampling and class weights and reaches 77% recall at 77% precision, the best balance, while the recall-tuned forest reaches 79% recall with lower precision (66%) and, once precision is priced in, a clearly higher expected cost.
+*Single tree vs bagging vs forest.* The tuned decision tree catches the most defaulters at the 0.5 cut-off (82%) but declines almost one good customer for every defaulter it catches (53% precision). Bagging 200 trees shows the value of averaging: at the same recall as a fully grown tree, precision rises to 83%. The class-weighted Random Forest adds feature sub-sampling and class weights and reaches 77% recall at 77% precision, the best balance at 0.5, while the recall-tuned forest reaches 79% recall with lower precision (66%) and, once precision is priced in, a clearly higher expected cost. Which forest is best for the bank is decided by the out-of-fold cost search above, not by this table.
 
 *Pros and cons.* Logistic regression: fully transparent, trivial to run, but under-fits threshold effects on the raw inputs. Decision tree: a readable rule list, but unstable between re-trainings and the lowest precision. Bagging / Random Forest: the strongest and most robust, explained through feature importances, a surrogate tree and per-applicant reason codes rather than a rule list, and they need model-risk documentation and drift monitoring like any credit model.
 
-*Scope to improve.* Yes: (1) choosing the decision threshold on expected cost (done above, on training data only) lifts recall above 90% at a controlled precision cost (0.25 threshold: 93% recall, 67% precision on the test set); (2) engineered features such as loan-to-value and payment-to-income; (3) gradient boosting and probability calibration; (4) reject inference, because the data only covers loans the bank approved.
+*Scope to improve.* Yes: (1) choosing the decision threshold on expected cost (done above, on training data only) lifts recall above 90% at a controlled precision cost (0.15 threshold on the unweighted forest: 93% recall, 68% precision on the test set); (2) engineered features such as loan-to-value and payment-to-income; (3) gradient boosting and probability calibration; (4) reject inference, because the data only covers loans the bank approved.
 """)
 md(169, r"""
 **2. Refined insights:**
@@ -1124,20 +1230,20 @@ md(169, r"""
 3. **Credit-history length protects:** about 10% default with 20+ years of history versus 43% with under 5 years.
 4. **Loan size, property value and mortgage balance are secondary:** they matter in combination (small loans are riskier, missing valuations are almost always bad) but are weak on their own.
 5. **Occupation and loan purpose add little once financial behaviour is known,** which simplifies fair-lending compliance.
-6. **Handling imbalance and missingness mattered more than the choice of algorithm:** class weights improved recall by about 23 points for the logistic regression and 9 for the forest; averaging trees mainly bought precision.
-7. **The decision threshold is a business dial, and it should be set on training data:** with the forest's strong ranking ability the bank can move recall between about 70% and 94% by changing the cut-off. The cost-minimising cut-off of 0.25, chosen on out-of-fold predictions, catches about 93% of defaulters with 67% precision on unseen applicants.
-8. **Occupation and loan purpose add little on their own but are not worthless:** dropping them and nine minor flags raised the out-of-fold expected cost by about a sixth, so their use should be cleared by the fair-lending review, with the 12-input model as the fallback.
+6. **Handling imbalance and missingness mattered more than the choice of algorithm:** at the 0.5 cut-off class weights improved recall by about 23 points for the logistic regression and 9 for the forest, and averaging trees mainly bought precision. Once the threshold was chosen on cost, however, the class weights were no longer needed: the unweighted forest at a 0.15 cut-off was the cheapest configuration.
+7. **The decision threshold is a business dial, and it should be set on training data:** with the forest's strong ranking ability the bank can move recall between about 70% and 94% by changing the cut-off. The cost-minimising cut-off of 0.15, chosen on repeated out-of-fold predictions, catches about 93% of defaulters with 68% precision on unseen applicants and agrees with the theoretical break-even (0.18) for the stated costs.
+8. **Occupation and loan purpose add little on their own but are not worthless:** dropping them and nine minor flags raised the out-of-fold expected cost by about a fifth, so their use should be cleared by the fair-lending review, with the 12-input model as the fallback.
 """)
 md(170, r"""
 **3. Proposal for the final solution design:**
 - What model do you propose to be adopted? Why is this the best solution to adopt?
 
-**Proposal: a class-weighted Random Forest as the scoring engine, explained by a surrogate decision tree.**
+**Proposal: a Random Forest scoring engine with a cost-based decision threshold, explained by a surrogate decision tree.**
 
-- *Specification:* Random Forest with 200 trees, class weights {repaid: 0.2, default: 0.8}, trained on the untreated data with all 27 inputs (ten financial attributes, eleven missing-value flags, occupation and loan-purpose indicators), median/mode imputation learned on the training rows; decision threshold 0.25, chosen by minimising expected cost on out-of-fold predictions (stable for cost ratios between 3:1 and 6:1, to be re-derived with the bank's own loss and margin figures) with approve / refer / decline bands so an underwriter stays in the loop near the threshold. Fallback: the same forest on 12 inputs without occupation and loan purpose, about a sixth more expensive in credit errors, if the fair-lending review requires it.
-- *Why it is the best solution:* it had the lowest out-of-fold expected cost of all candidates without any use of the test set, and on the held-out applicants it then caught 93% of defaulters at 67% precision and 89% accuracy (ROC-AUC 0.96), far better than the single tree (82% recall at 53% precision) and the logistic regression (80% at 61%) and well ahead of the recall-tuned forest once precision is priced in; it is robust because it averages hundreds of trees and its out-of-fold and test results agree.
-- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's decisions reproduces about 90% of them on unseen applicants and gives the plain-language rules (ratio missing or above about 44%, delinquent lines, credit-history length, job tenure) that the ECOA adverse-action notice needs; global importances and per-applicant reason codes document the score itself.
-- *How it solves the problem:* per 1,000 applicants it flags about 185 of 200 defaulters before the money leaves the bank, declines or refers about 92 good customers, and cuts the indicative default-related cost from roughly \$1.8 million to about \$0.3 million; it also gives the bank explicit policy rules (verify income and valuation, cap debt-to-income at 45%, escalate two or more delinquencies or derogatory reports) that can be adopted immediately.
+- *Specification:* Random Forest with 200 fully grown trees and no class weights (the configuration search showed that class weights add nothing once the threshold is chosen on cost), trained on the untreated data with the 27 inputs listed in the final-pipeline cell (ten financial attributes, eleven missing-value flags, six occupation and loan-purpose indicators), a missing flag per column and median/mode imputation learned on the training rows; decision threshold 0.15, chosen by minimising expected cost on repeated out-of-fold predictions (stable for cost ratios between 3:1 and 6:1, equal to the theoretical break-even of 0.18 within the search step, to be re-derived with the bank's own loss and margin figures) with approve / refer / decline bands so an underwriter stays in the loop near the threshold. Fallback: the same forest on 12 inputs without occupation and loan purpose, about a fifth more expensive in credit errors, if the fair-lending review requires it.
+- *Why it is the best solution:* it had the lowest repeated out-of-fold expected cost of ten forest configurations and four final candidates without any use of the test set, and on the held-out applicants it then caught 93% of defaulters at 68% precision and 90% accuracy (ROC-AUC 0.96), far better than the single tree (82% recall at 53% precision) and the logistic regression (80% at 61%) and well ahead of the recall-tuned forest once precision is priced in; it is robust because it averages hundreds of trees and its out-of-fold and test results agree; and because it is unweighted its score is an estimated default rate, so the 0.15 cut-off reads directly as the bank's risk appetite.
+- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's decisions reproduces about 90% of them on unseen applicants and gives the plain-language rules (ratio missing or above about 45%, two or more delinquent lines, credit-history length, derogatory reports) that the ECOA adverse-action notice needs; global importances and per-applicant reason codes document the score itself.
+- *How it solves the problem:* per 1,000 applicants it flags about 185 of 200 defaulters before the money leaves the bank, declines or refers about 87 good customers, and cuts the indicative default-related cost from roughly \$1.8 million to about \$0.3 million; it also gives the bank explicit policy rules (verify income and valuation, cap debt-to-income at 45%, escalate two or more delinquencies or derogatory reports) that can be adopted immediately.
 - *Guard-rails:* shadow period on all applications (the training data covers only loans the old process approved), fair-lending review before launch, monthly monitoring of recall, precision and approval rate, yearly re-training.
 """)
 
