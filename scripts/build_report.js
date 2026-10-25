@@ -44,24 +44,24 @@ const figure = (name, widthIn, heightIn) =>
 
 const border = { style: BorderStyle.SINGLE, size: 4, color: "BFBFBF" };
 const borders = { top: border, bottom: border, left: border, right: border };
-function table(header, rows, widths) {
+function table(header, rows, widths, keepTogether = false) {
   const total = widths.reduce((a, b) => a + b, 0);
-  const cell = (text, isHeader, w, alignRight) =>
+  const cell = (text, isHeader, w, alignRight, keep = false) =>
     new TableCell({
       width: { size: w, type: WidthType.DXA }, borders,
       shading: isHeader ? { type: ShadingType.CLEAR, fill: NAVY, color: "auto" } : undefined,
       margins: { top: 60, bottom: 60, left: 100, right: 100 },
-      children: [new Paragraph({ alignment: alignRight ? AlignmentType.RIGHT : AlignmentType.LEFT, spacing: { after: 0 },
+      children: [new Paragraph({ alignment: alignRight ? AlignmentType.RIGHT : AlignmentType.LEFT, spacing: { after: 0 }, keepNext: keep,
         children: [new TextRun({ text: String(text), bold: isHeader, font: FONT, size: 19, color: isHeader ? "FFFFFF" : "000000" })] })],
     });
   return new Table({
     width: { size: total, type: WidthType.DXA }, columnWidths: widths,
     rows: [
-      new TableRow({ tableHeader: true, cantSplit: true, children: header.map((h, i) => cell(h, true, widths[i], false)) }),
+      new TableRow({ tableHeader: true, cantSplit: true, children: header.map((h, i) => cell(h, true, widths[i], false, keepTogether)) }),
       ...rows.map((r, ri) => new TableRow({
         cantSplit: true,
         children: r.map((c, i) => {
-          const tc = cell(c, false, widths[i], i > 0 && /^[\d$.,%\-]+$/.test(String(c)));
+          const tc = cell(c, false, widths[i], i > 0 && /^[\d$.,%\-]+$/.test(String(c)), keepTogether && ri < rows.length - 1);
           if (ri % 2 === 1) tc.options = tc.options || {};
           return tc;
         }),
@@ -104,7 +104,7 @@ children.push(
   bullet([bold("A long credit history protects. "), txt("Applicants whose oldest credit line is under five years old default 43% of the time; above twenty years the rate is about 10%.")]),
   bullet([bold("Small loans are not safe loans. "), txt("Loans under $5,000 default 57% of the time, almost three times the average.")]),
   bullet([bold("Occupation and loan purpose matter little once financial behaviour is known. "), txt("Sales and self-employed applicants default more often (35% and 30%) and office workers least (13%), but removing occupation and loan purpose from the final model changed its performance by at most one point. The production model can run without them, which simplifies fair-lending compliance.")]),
-  bullet([bold("Tree-based models beat the linear model. "), txt("The relationships in this data are thresholds and cliffs rather than straight lines. A class-weighted Random Forest reached a ROC-AUC of 0.96 against 0.91 for logistic regression, and at a similar share of defaulters caught it declined far fewer good customers.")]),
+  bullet([bold("Tree-based models beat the linear model. "), txt("The relationships in this data are thresholds and cliffs rather than straight lines. A class-weighted Random Forest scored 0.96 on risk-ranking quality (ROC-AUC, where 1.0 means every defaulter is ranked above every repayer) against 0.91 for logistic regression, and at a similar share of defaulters caught it declined far fewer good customers.")]),
 );
 
 children.push(h2("Final proposed model specification"));
@@ -117,12 +117,20 @@ children.push(table(
     ["Decision threshold", "Flag as likely default when predicted probability > 0.25 (cost-minimising value under the stated loss assumptions), instead of the default 0.5"],
     ["Explanation layer", "A pruned Decision Tree (balanced class weights, minimum 20 applicants per leaf) trained on the same data; its rules on debt-to-income, delinquencies, derogatory reports and credit-history length supply the adverse-action reasons required under the Equal Credit Opportunity Act"],
     ["Measure of success", "Recall on the defaulter class (share of future defaulters caught), with precision and F1 as guard-rails against declining too many good customers"],
-    ["Performance on unseen applicants", "93% of defaulters caught (recall), 67% precision, 90% accuracy, ROC-AUC 0.96. At the default 0.5 threshold: 78% recall, 77% precision, 91% accuracy."],
+    ["Performance on unseen applicants", "93.3% of defaulters caught (recall), 67.0% precision, 89.5% accuracy, risk-ranking quality (ROC-AUC) 0.96. At the default 0.5 threshold: 78.4% recall, 77.3% precision, 91.1% accuracy."],
     ["Validation", "70/30 stratified train/test split; hyper-parameters chosen by 3- and 5-fold stratified cross-validation on the training set only"],
   ],
   [2300, 7060],
 ));
 children.push(spacer());
+children.push(h2("Key next steps"));
+children.push(
+  bullet([bold("Decide and calibrate: "), txt("the head of consumer credit approves the three-band policy (approve / refer / decline); finance supplies actual loss-given-default and margin figures so the 0.25 threshold can be confirmed.")]),
+  bullet([bold("Prepare the process: "), txt("make income and property-valuation verification mandatory fields, since their absence is the strongest default signal; build the scoring pipeline with reason codes.")]),
+  bullet([bold("Prove it safely: "), txt("run the model in shadow mode alongside manual decisions for one to two months and complete a fair-lending review before switching it on.")]),
+  bullet([bold("Make the most of it: "), txt("automate clear approvals and declines, route the uncertain band to underwriters, monitor recall, precision and approval rate monthly, and re-train yearly.")]),
+  bullet([bold("Improve it: "), txt("add reject inference, loan-to-value and payment-to-income features, probability calibration and time-based validation in the next iteration.")]),
+);
 children.push(p([
   txt("Per 1,000 applicants the proposed model is expected to catch about 187 of the 200 defaulters, miss about 13, and decline about 92 customers who would have repaid. Under indicative cost assumptions (a missed defaulter costs about $9,000, a wrongly declined good customer about $2,000) this cuts default-related cost from roughly "),
   bold("$1.8 million per 1,000 applicants"), txt(" today to about "), bold("$0.3 million"), txt(", a reduction of more than 80%."),
@@ -140,7 +148,7 @@ children.push(p([bold("Missing values were treated as information, not noise. ")
 children.push(p([bold("Linear and non-linear techniques were compared head to head. "), txt("Logistic regression (the transparent linear benchmark), a decision tree (readable rules), a bagged ensemble of trees and a random forest were trained on the same 70/30 stratified split, tuned with cross-validated grid search optimising recall, and evaluated on the held-out 30%. Building up from one tree to bagging to a forest makes the contribution of each idea visible. Time-series techniques were not applicable because the applications carry no dates. The table below summarises the result.")]));
 
 children.push(table(
-  ["Model (test set, 1,788 applicants)", "Defaulters caught", "Precision", "Accuracy", "ROC-AUC"],
+  ["Model (held-out test set, 1,788 applicants)", "Defaulters caught", "Precision", "Accuracy", "Risk-ranking quality (ROC-AUC)"],
   [
     ["Logistic Regression (plain)", "57%", "77%", "88%", "0.91"],
     ["Logistic Regression (balanced class weights)", "80%", "61%", "86%", "0.91"],
@@ -153,21 +161,21 @@ children.push(table(
     ["Random Forest (tuned, 12 features only)", "78%", "66%", "88%", "0.93"],
     ["Proposed: RF (class weights), threshold 0.25", "93%", "67%", "90%", "0.96"],
   ],
-  [4160, 1400, 1200, 1200, 1400],
+  [3860, 1400, 1200, 1200, 1700],
 ));
 children.push(caption("Table 1. Performance of the techniques explored on the held-out test set."));
 
-children.push(figure("model_comparison.png", 6.3, 2.7));
-children.push(caption("Figure 1. Test-set recall, precision, F1 and ROC-AUC by model."));
+children.push(figure("report_model_comparison.png", 6.4, 2.71));
+children.push(caption("Figure 1. Share of defaulters caught, precision and risk-ranking quality of each technique on the held-out applicants."));
 
 children.push(p([bold("The Random Forest was chosen as the scoring engine "), txt("because it offers the best balance on the chosen metric. The tuned decision tree catches slightly more defaulters at the 0.5 threshold (82%) but declines almost one good customer for every defaulter it catches (53% precision). The balanced logistic regression catches 80% but with 61% precision, because a straight line cannot represent the threshold effects in the data. Bagging 200 trees shows the value of averaging: at the same recall as a single fully grown tree, precision rises from 71% to 83% and ROC-AUC from 0.81 to 0.95. The class-weighted forest adds feature sub-sampling and class weights, catches 78% at 77% precision and ranks applicants by risk most accurately (ROC-AUC 0.96), which is what makes the next step possible.")]));
 children.push(p([bold("The decision threshold was set from business cost, not convention. "), txt("Because the forest ranks risk so well, lowering its decision threshold from 0.5 to 0.25 raises the share of defaulters caught from 78% to 93% while precision falls only from 77% to 67%. Under the indicative cost assumptions this is the cost-minimising operating point, and every threshold between 0.20 and 0.30 is within 12% of it, so the choice is robust.")]));
-children.push(figure("threshold_tradeoff.png", 6.0, 3.2));
+children.push(figure("report_threshold.png", 6.4, 2.71));
 children.push(caption("Figure 2. Recall, precision and indicative expected cost per 1,000 applicants as the forest's decision threshold moves."));
 
 children.push(p([bold("Interpretability is provided by a companion decision tree. "), txt("A forest of 200 trees cannot be read as a rule list, but the pruned decision tree trained on the same data can, and it uses the same drivers in the same order: is the debt-to-income ratio missing; is it above about 44%; how many delinquent credit lines; how many derogatory reports; how long is the credit history. Those rules supply the adverse-action reasons, while the forest's feature importances (Figure 3) and per-applicant reason codes document the score itself.")]));
-children.push(figure("feature_importance.png", 5.2, 4.0));
-children.push(caption("Figure 3. Feature importance of the tuned Random Forest. The debt-to-income ratio and its missing-value flag account for more than half of the model's decision power."));
+children.push(figure("report_feature_importance.png", 5.9, 2.99));
+children.push(caption("Figure 3. The twelve inputs the Random Forest relies on most. The debt-to-income ratio and its missing-value flag together carry more than half (52.6%) of the model's decision power."));
 
 children.push(h2("How the solution affects the business"));
 children.push(
@@ -216,7 +224,7 @@ children.push(table(
     ["Total indicative cost of credit errors", "about $10.8 million", "about $1.8 million"],
     ["Indicative annual benefit", "", "about $9 million gross; about $8.5 million after running costs"],
   ],
-  [3760, 2500, 3100],
+  [3760, 2500, 3100], true,
 ));
 children.push(caption("Table 2. Indicative annual benefit of the proposed solution under the stated assumptions."));
 children.push(p([bold("Costs. "), txt("A one-off implementation of roughly $300,000 to $400,000 (data pipeline and integration, validation, fairness review, documentation and training) and running costs of roughly $100,000 per year (monitoring, re-training, model-risk reviews). Even if the realised benefit were only a quarter of the indicative figure, the solution would pay back within the first year.")]));
@@ -251,16 +259,22 @@ children.push(
 // Appendix
 children.push(new Paragraph({ children: [new PageBreak()] }));
 children.push(h1("Appendix: Supporting Analysis"));
-children.push(figure("missing_vs_present.png", 6.3, 2.6));
+children.push(figure("report_missing_vs_present.png", 6.4, 2.71));
 children.push(caption("Figure A1. Default rate when an attribute is missing versus present. A missing debt-to-income ratio or property valuation is the strongest signal in the data."));
-children.push(figure("default_rate_bands.png", 6.6, 1.75));
+children.push(figure("report_default_rate_bands.png", 6.6, 2.14));
 children.push(caption("Figure A2. Default rate by debt-to-income band, age of oldest credit line and loan amount."));
-children.push(figure("credit_history_counts.png", 6.6, 1.75));
+children.push(figure("report_credit_history.png", 6.6, 2.14));
 children.push(caption("Figure A3. Default rate by number of derogatory reports, delinquent credit lines and recent credit inquiries."));
-children.push(figure("roc_curves.png", 4.2, 3.6));
-children.push(caption("Figure A4. ROC curves on the test set. The Random Forest ranks applicants by risk most accurately."));
-children.push(figure("final_confusion_matrix.png", 3.8, 2.8));
-children.push(caption("Figure A5. Confusion matrix of the proposed model (class-weighted Random Forest, threshold 0.25) on the 1,788 test applicants: 333 of 357 defaulters caught, 164 good customers flagged."));
+children.push(table(
+  ["Proposed model on the 1,788 held-out applicants", "Model flags as likely default", "Model clears as likely to repay", "Total"],
+  [
+    ["Actually defaulted", "333 (caught)", "24 (missed)", "357"],
+    ["Actually repaid", "164 (wrongly flagged)", "1,267 (correctly cleared)", "1,431"],
+    ["Total", "497", "1,291", "1,788"],
+  ],
+  [3460, 2000, 2300, 1600], true,
+));
+children.push(caption("Table A1. Decisions of the proposed model (class-weighted Random Forest, threshold 0.25) on the held-out applicants: 93.3% of defaulters caught; 67.0% of flagged applicants were real defaulters; 89.5% of all decisions correct."));
 children.push(p([txt("The complete analysis, including all exploratory charts, model code, cross-validation results and the full decision-tree rules, is in the accompanying notebook "), new TextRun({ text: "Loan_Default_Prediction_Capstone.html", font: FONT, size: 22, italics: true }), txt(".")]));
 
 // ---------- document ----------
