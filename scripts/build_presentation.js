@@ -1,0 +1,488 @@
+// Builds presentation/Loan_Default_Prediction_Presentation.pptx (Live Presentation, 8 minutes + Q&A).
+// Run from the repository root:  node scripts/build_presentation.js
+// Requires: pptxgenjs (npm). The applyTheme helper comes from the pptx skill if available; the deck
+// still builds without it (scheme colours then fall back to Office defaults).
+
+const fs = require("fs");
+const path = require("path");
+const pptxgen = require("pptxgenjs");
+
+const ROOT = path.resolve(__dirname, "..");
+const OUT = path.join(ROOT, "presentation", "Loan_Default_Prediction_Presentation.pptx");
+
+// ---------------- theme ----------------
+const THEME = {
+  name: "Loan Default Navy",
+  headFontFace: "Cambria",
+  bodyFontFace: "Calibri",
+  colors: {
+    dk1: "1F1F1F", lt1: "FFFFFF", dk2: "1E2761", lt2: "EEF2FA",
+    accent1: "1E2761", accent2: "C44E52", accent3: "4C72B0", accent4: "9DB4DE", accent5: "3C8D5A", accent6: "8C8C8C",
+    hlink: "1E2761", folHlink: "4C72B0",
+  },
+};
+const H = THEME.colors; // hex values for the options that only take hex
+
+const pres = new pptxgen();
+pres.layout = "LAYOUT_16x9"; // 10 x 5.625 in
+pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
+pres.author = "Shubham Garg";
+pres.title = "Loan Default Prediction - Capstone Presentation";
+const C = pres.SchemeColor;
+
+// ---------------- layouts ----------------
+pres.defineSlideMaster({
+  title: "DARK",
+  background: { color: H.dk2 },
+  objects: [
+    { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 1.7, w: 8.8, h: 1.3, fontSize: 40, bold: true, color: H.lt1, align: "left", valign: "bottom", margin: 0 }, text: "" } },
+    { placeholder: { options: { name: "body", type: "body", x: 0.6, y: 3.1, w: 8.8, h: 1.2, fontSize: 18, color: H.lt2, align: "left", valign: "top", margin: 0 }, text: "" } },
+  ],
+});
+pres.defineSlideMaster({
+  title: "CONTENT",
+  background: { color: H.lt1 },
+  objects: [
+    { placeholder: { options: { name: "title", type: "title", x: 0.5, y: 0.25, w: 9.0, h: 0.85, fontSize: 24, bold: true, color: H.dk2, align: "left", valign: "middle", margin: 0 }, text: "" } },
+    { text: { text: "Loan Default Prediction  |  Capstone", options: { x: 0.5, y: 5.22, w: 5, h: 0.3, fontSize: 9, color: H.accent6, margin: 0 } } },
+  ],
+  slideNumber: { x: 9.0, y: 5.22, w: 0.5, h: 0.3, fontSize: 9, color: H.accent6, align: "right" },
+});
+
+// ---------------- helpers ----------------
+const chartFrame = () => ({
+  catAxisLabelFontFace: "+mn-lt", valAxisLabelFontFace: "+mn-lt", dataLabelFontFace: "+mn-lt", titleFontFace: "+mj-lt", legendFontFace: "+mn-lt",
+  catAxisLabelColor: H.dk1, valAxisLabelColor: H.accent6, dataLabelColor: H.dk1,
+  catAxisLabelFontSize: 10, valAxisLabelFontSize: 9, dataLabelFontSize: 10,
+  valGridLine: { color: "E3E3E3", size: 0.5 }, catGridLine: { style: "none" }, valAxisMinVal: 0,
+  showLegend: false, showTitle: true, titleFontSize: 12, titleColor: H.dk2,
+});
+function bullets(items, size = 14) {
+  return items.map((t, i) => ({
+    text: t, options: { bullet: { indent: 14 }, fontSize: size, color: C.text1, paraSpaceAfter: 8, breakLine: i < items.length - 1 },
+  }));
+}
+function card(slide, x, y, w, h, opts = {}) {
+  slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
+    x, y, w, h, rectRadius: 0.08, fill: { color: opts.fill || C.background2 }, line: { color: opts.line || C.background2, width: 0.75 },
+    shadow: opts.shadow ? { type: "outer", blur: 4, offset: 1, angle: 90, color: "A0A0A0", opacity: 0.25 } : undefined,
+    objectName: opts.name || "card",
+  });
+}
+function stat(slide, x, y, w, big, label, color = C.accent1, bigSize = 36) {
+  slide.addText(big, { x, y, w, h: 0.75, fontSize: bigSize, bold: true, color, align: "center", valign: "bottom", margin: 0, isTextBox: true, objectName: `stat ${big}` });
+  slide.addText(label, { x, y: y + 0.78, w, h: 0.55, fontSize: 11, color: C.text1, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: `stat label ${label}` });
+}
+function numberedCircle(slide, x, y, n, fill = C.accent1) {
+  slide.addShape(pres.shapes.OVAL, { x, y, w: 0.42, h: 0.42, fill: { color: fill }, line: { color: fill }, objectName: `step ${n}` });
+  slide.addText(String(n), { x, y, w: 0.42, h: 0.42, fontSize: 14, bold: true, color: C.background1, align: "center", valign: "middle", margin: 0, isTextBox: true, objectName: `step number ${n}` });
+}
+function notes(slide, text) { slide.addNotes(text); }
+
+// =====================================================================================
+pres.addSection({ title: "Opening" });
+
+// 1. Title
+{
+  const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Opening" });
+  s.addText("Loan Default Prediction", { placeholder: "title" });
+  s.addText([
+    { text: "An interpretable credit-scoring model for home equity loan approvals", options: { fontSize: 18, color: C.background2, breakLine: true } },
+    { text: "Capstone Project  |  Practical Data Science  |  MIT Professional Education - Applied AI and Data Science Program", options: { fontSize: 12, color: C.accent4, breakLine: true } },
+    { text: "Shubham Garg  |  November 2026", options: { fontSize: 12, color: C.accent4 } },
+  ], { placeholder: "body" });
+  s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.45, w: 0.9, h: 0.08, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "title marker" });
+  notes(s, "Good morning. In the next eight minutes I will show how a bank can cut its home-equity loan losses by more than three quarters with a model it can also explain to regulators and applicants.");
+}
+
+// 2. Key takeaways
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Opening" });
+  s.addText("Key takeaways", { placeholder: "title" });
+  const items = [
+    ["1 in 5", "home equity loans in the data ended in default. Accuracy alone is a misleading yardstick."],
+    ["62%", "default rate when the applicant's debt-to-income ratio is missing, versus 8.6% when it is recorded. Unverified income is the strongest warning sign."],
+    ["93%", "of future defaulters are caught by the proposed Random Forest model, while 2 of every 3 applicants it flags really would have defaulted."],
+    ["~$9M", "indicative annual benefit on 6,000 applications, from roughly $10.8M of default-related cost down to about $1.8M."],
+  ];
+  items.forEach(([big, text], i) => {
+    const x = 0.5 + i * 2.3;
+    card(s, x, 1.3, 2.15, 3.6, { shadow: true, name: `takeaway card ${i + 1}` });
+    s.addText(big, { x: x + 0.15, y: 1.5, w: 1.85, h: 0.9, fontSize: 34, bold: true, color: i === 2 ? C.accent5 : C.accent1, align: "left", valign: "middle", margin: 0, isTextBox: true, objectName: `takeaway number ${i + 1}` });
+    s.addText(text, { x: x + 0.15, y: 2.5, w: 1.85, h: 2.2, fontSize: 12.5, color: C.text1, align: "left", valign: "top", margin: 0, isTextBox: true, objectName: `takeaway text ${i + 1}` });
+  });
+  notes(s, "Four things to remember. One in five loans goes bad. The biggest red flag is income the bank could not verify. The proposed model catches 93 percent of defaulters before the money leaves the bank. And under reasonable assumptions that is worth about nine million dollars a year.");
+}
+
+// =====================================================================================
+pres.addSection({ title: "Problem and approach" });
+
+// 3. Problem
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Problem and approach" });
+  s.addText("The problem: approving home equity loans without losing the profit to defaults", { placeholder: "title" });
+  s.addText(bullets([
+    "Interest on home loans is a major share of retail bank profit; bad loans eat it up.",
+    "Today each application is judged manually: slow, inconsistent across underwriters, open to error and bias.",
+    "The consumer credit department wants an empirically derived credit-scoring model built on its own recent loans.",
+    "Constraint: under the Equal Credit Opportunity Act every rejection needs a specific, defensible reason, so the model must be interpretable.",
+  ], 13.5), { x: 0.5, y: 1.25, w: 5.3, h: 3.0, valign: "top", margin: 0, isTextBox: true, objectName: "problem bullets" });
+  card(s, 6.1, 1.25, 3.4, 3.75, { name: "data card" });
+  s.addText("The data: Home Equity dataset (HMEQ)", { x: 6.3, y: 1.35, w: 3.0, h: 0.4, fontSize: 12, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "data card title" });
+  stat(s, 6.3, 1.75, 1.5, "5,960", "recent loans", C.accent1, 28);
+  stat(s, 7.85, 1.75, 1.5, "12", "attributes known at application", C.accent1, 28);
+  stat(s, 6.3, 3.15, 1.5, "19.9%", "defaulted or seriously delinquent", C.accent2, 28);
+  stat(s, 7.85, 3.15, 1.5, "44%", "of applications have a blank field", C.accent3, 28);
+  s.addText("Objective: predict which applicants are likely to default and tell the bank which attributes to weigh when approving a loan.", { x: 0.5, y: 4.35, w: 5.3, h: 0.7, fontSize: 12.5, italic: true, color: C.accent1, margin: 0, isTextBox: true, valign: "top", objectName: "objective" });
+  notes(s, "The business context: profit comes from interest, losses come from defaulters, and the current manual process is slow and inconsistent. The data is 5,960 recent home equity loans with 12 attributes and a 20 percent default rate. Almost half the applications have at least one blank field, which turns out to matter a great deal.");
+}
+
+// 4. Approach
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Problem and approach" });
+  s.addText("Approach: from raw applications to a decision the bank can defend", { placeholder: "title" });
+  const steps = [
+    ["Explore", "Univariate, bivariate and correlation analysis; default rate by band; pattern of missing values"],
+    ["Prepare", "Flag every missing field, impute median/mode, cap outliers for the linear model only, one-hot encode, 70/30 stratified split"],
+    ["Model", "Logistic Regression (linear benchmark), Decision Tree, Random Forest; class weights; cross-validated grid search"],
+    ["Measure", "Recall on defaulters as the primary metric; precision, F1, ROC-AUC as guard-rails; cost-based threshold"],
+    ["Recommend", "Model specification, business rules, implementation plan, benefits, risks"],
+  ];
+  steps.forEach(([title, text], i) => {
+    const x = 0.5 + i * 1.84;
+    card(s, x, 1.35, 1.7, 3.5, { fill: i === 3 ? C.accent4 : C.background2, line: i === 3 ? C.accent4 : C.background2, name: `step card ${i + 1}` });
+    numberedCircle(s, x + 0.15, 1.5, i + 1);
+    s.addText(title, { x: x + 0.15, y: 2.0, w: 1.45, h: 0.4, fontSize: 15, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: `step title ${i + 1}` });
+    s.addText(text, { x: x + 0.15, y: 2.45, w: 1.45, h: 2.3, fontSize: 11, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: `step text ${i + 1}` });
+  });
+  notes(s, "Five steps. Explore the data, prepare it, build linear and non-linear models, measure them on the metric that follows the money, and turn the result into recommendations. The key preparation decision was to keep a flag for every missing field instead of just filling the gaps.");
+}
+
+// =====================================================================================
+pres.addSection({ title: "Key insights" });
+
+// 5. Insight 1: missing information
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Key insights" });
+  s.addText("Insight 1: information the applicant did not provide is the strongest warning sign", { placeholder: "title" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Field missing", labels: ["Property value", "Debt-to-income", "Credit-line age", "No. of credit lines", "Derogatory reports", "Occupation"], values: [93.8, 62.0, 25.3, 23.9, 12.3, 8.2] },
+    { name: "Field present", labels: ["Property value", "Debt-to-income", "Credit-line age", "No. of credit lines", "Derogatory reports", "Occupation"], values: [18.5, 8.6, 19.7, 19.8, 21.0, 20.5] },
+  ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.6, h: 3.9, barDir: "col", barGrouping: "clustered", barGapWidthPct: 60,
+       chartColors: [H.accent2, H.accent3], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
+       showLegend: true, legendPos: "b", legendFontSize: 10, title: "Default rate (%) when a field is missing vs present", objectName: "missing fields chart" });
+  s.addText(bullets([
+    "No recorded debt-to-income ratio: 62% default (1,267 applicants, 21% of the data).",
+    "No property valuation: 94% default (112 applicants).",
+    "Overall default rate is 20%, so these gaps multiply risk three to five times.",
+    "Interpretation: income or collateral that could not be verified, or that the applicant chose not to supply.",
+    "Action: every imputed field gets a 'was missing' flag in the model, and verification should become mandatory in the process.",
+  ], 12.5), { x: 6.2, y: 1.25, w: 3.4, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "insight 1 bullets" });
+  notes(s, "The single most important finding. When the debt-to-income ratio is missing, 62 percent of those applicants defaulted. When the property valuation is missing, 94 percent. The absence of information is itself a signal, so the models carry a flag for every missing field.");
+}
+
+// 6. Insight 2: debt burden and repayment history
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Key insights" });
+  s.addText("Insight 2: debt burden has a cliff at 45%, and past delinquency repeats", { placeholder: "title" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Default rate", labels: ["0-20", "20-30", "30-35", "35-40", "40-45", "45-50", "50+"], values: [10.6, 4.4, 6.0, 7.0, 11.2, 87.2, 100] },
+  ], { ...chartFrame(), x: 0.4, y: 1.2, w: 4.55, h: 3.3, barDir: "col", chartColors: [H.accent2], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
+       valAxisMaxVal: 110, valAxisLabelFormatCode: "0", title: "Default rate (%) by debt-to-income ratio band (%)", objectName: "debt to income chart" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Default rate", labels: ["0", "1", "2", "3", "4", "5", "6+"], values: [14.0, 33.9, 44.8, 55.0, 59.0, 81.6, 100] },
+  ], { ...chartFrame(), x: 5.05, y: 1.2, w: 4.55, h: 3.3, barDir: "col", chartColors: [H.accent3], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
+       valAxisMaxVal: 110, valAxisLabelFormatCode: "0", title: "Default rate (%) by number of delinquent credit lines", objectName: "delinquency chart" });
+  s.addText("Below a 40% ratio only 4-7% default; above 45% almost everyone does. Each delinquent line or derogatory report roughly doubles the risk (0 reports: 17%, 1: 39%, 2: 51%, 3+: 70%+). Both are plain-language rules an applicant can be given.", { x: 0.5, y: 4.55, w: 9.0, h: 0.6, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "insight 2 summary" });
+  notes(s, "Two more drivers that are easy to explain. The debt-to-income ratio is not a slope but a cliff: under 40 percent, 4 to 7 percent default; above 45 percent, 87 to 100 percent. And repayment history repeats: each delinquent credit line roughly doubles the default rate.");
+}
+
+// 7. Insight 3: credit history length, loan size, occupation
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Key insights" });
+  s.addText("Insight 3: long credit histories protect, small loans do not, occupation matters less", { placeholder: "title" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Default rate", labels: ["<5 yrs", "5-10", "10-15", "15-20", "20-25", "25+"], values: [43.4, 26.2, 22.8, 15.3, 9.3, 10.7] },
+  ], { ...chartFrame(), x: 0.4, y: 1.2, w: 3.1, h: 3.1, barDir: "col", chartColors: [H.accent3], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
+       valAxisMaxVal: 60, valAxisLabelFormatCode: "0", title: "By age of oldest credit line", objectName: "credit age chart" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Default rate", labels: ["<5k", "5-10k", "10-15k", "15-20k", "20-30k", "30k+"], values: [57.2, 25.1, 20.5, 16.2, 14.4, 19.5] },
+  ], { ...chartFrame(), x: 3.5, y: 1.2, w: 3.1, h: 3.1, barDir: "col", chartColors: [H.accent2], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
+       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", title: "By loan amount ($)", objectName: "loan amount chart" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Default rate", labels: ["Sales", "Self", "Mgr", "Other", "ProfExe", "Office"], values: [34.9, 30.1, 23.3, 23.2, 16.6, 13.2] },
+  ], { ...chartFrame(), x: 6.6, y: 1.2, w: 3.0, h: 3.1, barDir: "col", chartColors: [H.accent6], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
+       valAxisMaxVal: 45, valAxisLabelFormatCode: "0", title: "By occupation", objectName: "occupation chart" });
+  s.addText("Default rate (%) by group. Applicants with under five years of credit history default four times as often as those with twenty-plus years. Loans under $5,000 default 57% of the time. Occupation shifts risk moderately but adds almost nothing once financial behaviour is known, so the final model does not need it.", { x: 0.5, y: 4.35, w: 9.0, h: 0.8, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "insight 3 summary" });
+  notes(s, "Three supporting drivers. A long credit history protects. Small loans are the riskiest, not the safest. Occupation matters a little, but removing it from the final model changed performance by at most a point, which is good news for fair lending.");
+}
+
+// =====================================================================================
+pres.addSection({ title: "Modelling" });
+
+// 8. Measure of success
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
+  s.addText("Measure of success: the two mistakes do not cost the same", { placeholder: "title" });
+  const colW = 4.4;
+  [["Missed defaulter", "The model says 'will repay', the customer defaults.", "Bank loses most of the principal plus collection cost: about $9,000 on a typical $18,600 loan.", C.accent2],
+   ["Wrongly declined", "The model says 'will default', the customer would have repaid.", "Bank forgoes the interest margin on one good customer: about $2,000.", C.accent3]].forEach(([t, d, c, col], i) => {
+    const x = 0.5 + i * (colW + 0.2);
+    card(s, x, 1.3, colW, 2.2, { name: `error card ${i + 1}` });
+    s.addShape(pres.shapes.OVAL, { x: x + 0.2, y: 1.5, w: 0.5, h: 0.5, fill: { color: col }, line: { color: col }, objectName: `error marker ${i + 1}` });
+    s.addText(t, { x: x + 0.85, y: 1.45, w: colW - 1.0, h: 0.6, fontSize: 17, bold: true, color: col, margin: 0, isTextBox: true, valign: "middle", objectName: `error title ${i + 1}` });
+    s.addText(d, { x: x + 0.2, y: 2.15, w: colW - 0.4, h: 0.5, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: `error desc ${i + 1}` });
+    s.addText(c, { x: x + 0.2, y: 2.7, w: colW - 0.4, h: 0.7, fontSize: 12, bold: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: `error cost ${i + 1}` });
+  });
+  s.addText(bullets([
+    "A missed defaulter costs roughly 4.5 times a wrongly declined customer, so the primary metric is Recall: the share of future defaulters the model catches.",
+    "Guard-rails: Precision (how many of the flagged applicants really default) and F1, so the model does not simply decline everyone. ROC-AUC measures how well applicants are ranked by risk, which matters when the threshold moves.",
+    "All models are tuned by cross-validated grid search on recall and judged on a held-out 30% of applicants the models never saw.",
+  ], 12.5), { x: 0.5, y: 3.7, w: 9.0, h: 1.45, valign: "top", margin: 0, isTextBox: true, objectName: "metric bullets" });
+  notes(s, "Before comparing models, the yardstick. Approving a future defaulter costs the bank most of the principal; declining a good customer costs only the margin. So the primary metric is recall, the share of defaulters we catch, with precision as the guard-rail against declining everyone.");
+}
+
+// 9. Model comparison
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
+  s.addText("Model comparison: the Random Forest gives the best balance", { placeholder: "title" });
+  const labels = ["Logistic Regression (balanced)", "Decision Tree (tuned)", "Random Forest (default)", "Random Forest (class weights)", "Random Forest, threshold 0.25"];
+  s.addChart(pres.charts.BAR, [
+    { name: "Defaulters caught (recall)", labels, values: [79.8, 81.8, 68.9, 78.4, 93.3] },
+    { name: "Precision", labels, values: [61.2, 53.3, 84.5, 77.3, 67.0] },
+  ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.9, h: 3.9, barDir: "bar", barGrouping: "clustered", barGapWidthPct: 50, catAxisLabelFontSize: 10,
+       chartColors: [H.accent1, H.accent4], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
+       showLegend: true, legendPos: "b", legendFontSize: 10, catAxisOrientation: "maxMin", title: "Test set (1,788 unseen applicants), % ", objectName: "model comparison chart" });
+  s.addText(bullets([
+    "Linear vs non-linear: logistic regression reaches 80% recall but only 61% precision. The data is made of thresholds, which trees capture and a straight line cannot.",
+    "Single tree vs forest: the tuned tree catches 82% but declines almost one good customer per defaulter caught (53% precision).",
+    "The class-weighted forest catches 78% at 77% precision, with the best ROC-AUC (0.96): it ranks applicants by risk most accurately.",
+    "Because it ranks so well, lowering its threshold to 0.25 lifts recall to 93% at 67% precision, the lowest expected cost of any option.",
+  ], 12), { x: 6.45, y: 1.25, w: 3.15, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "comparison bullets" });
+  notes(s, "Eight model variants were built; these are the five that matter. The forest with class weights has the best balance and the best ranking ability. Because it ranks applicants so well, we can lower its decision threshold and catch 93 percent of defaulters while two thirds of the flagged applicants really would have defaulted.");
+}
+
+// 10. Proposed solution
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
+  s.addText("Proposed solution: a Random Forest scorer with a Decision Tree explanation layer", { placeholder: "title" });
+  card(s, 0.5, 1.25, 5.3, 3.85, { name: "spec card" });
+  s.addText("Model specification", { x: 0.7, y: 1.35, w: 4.9, h: 0.4, fontSize: 14, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "spec title" });
+  s.addText(bullets([
+    "Scoring engine: Random Forest, 200 trees, class weights 0.2 (repaid) / 0.8 (default).",
+    "Inputs: the 10 financial attributes plus 'debt-to-income missing' and 'property value missing' flags. Occupation and loan purpose are not needed.",
+    "Decision threshold 0.25 (cost-minimising) instead of the default 0.5; approve / refer / decline bands keep an underwriter in the loop near the threshold.",
+    "Explanation layer: a pruned Decision Tree built on the same data. Its rules (ratio missing, ratio above 44%, delinquencies, derogatory reports, credit-history length) supply the adverse-action reasons the ECOA requires.",
+    "Validated on a 30% hold-out; hyper-parameters chosen by stratified cross-validation.",
+  ], 11.5), { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
+  stat(s, 6.1, 1.3, 1.65, "93%", "of defaulters caught", C.accent5, 34);
+  stat(s, 7.85, 1.3, 1.65, "67%", "of flagged applicants truly default", C.accent1, 34);
+  stat(s, 6.1, 2.75, 1.65, "0.96", "ROC-AUC: risk ranking quality", C.accent1, 34);
+  stat(s, 7.85, 2.75, 1.65, "90%", "overall accuracy", C.accent1, 34);
+  s.addText("Per 1,000 applicants: about 187 of 200 defaulters flagged in advance, 13 missed, 92 good customers referred or declined.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
+  notes(s, "The proposal. A Random Forest does the scoring; a pruned decision tree built on the same data provides the plain-language reasons for every decline. On unseen applicants it catches 93 percent of defaulters and two out of three flagged applicants really would have defaulted.");
+}
+
+// 11. Threshold choice
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
+  s.addText("Why a 0.25 threshold: the decision cut-off is a business dial, not a constant", { placeholder: "title" });
+  const labels = ["0.20", "0.25", "0.30", "0.35", "0.40", "0.45", "0.50", "0.55", "0.60", "0.65", "0.70"];
+  s.addChart(pres.charts.LINE, [
+    { name: "Defaulters caught (recall) %", labels, values: [94.1, 93.3, 90.2, 88.2, 85.2, 82.6, 78.4, 73.7, 68.9, 63.6, 57.4] },
+    { name: "Precision %", labels, values: [63.8, 67.0, 68.8, 70.8, 72.7, 75.1, 77.3, 80.7, 82.6, 82.5, 84.0] },
+  ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.3, h: 3.65, chartColors: [H.accent5, H.accent1], lineSize: 2.5, lineDataSymbol: "circle", lineDataSymbolSize: 6,
+       showLegend: true, legendPos: "b", legendFontSize: 10, valAxisMinVal: 50, valAxisMaxVal: 100, valAxisLabelFormatCode: "0", catAxisTitle: "probability threshold", showCatAxisTitle: true, catAxisTitleFontSize: 10, catAxisTitleColor: H.accent6,
+       title: "Class-weighted Random Forest on the test set", objectName: "threshold chart" });
+  [["At 0.50 (default)", "43 missed defaulters", "46 good customers declined", "$479k indicative cost", C.accent6],
+   ["At 0.25 (proposed)", "13 missed defaulters", "92 good customers declined", "$304k indicative cost", C.accent5]].forEach(([t, a, b, c, col], i) => {
+    const y = 1.3 + i * 1.95;
+    card(s, 5.9, y, 3.7, 1.8, { name: `threshold card ${i + 1}` });
+    s.addText(t, { x: 6.1, y: y + 0.1, w: 3.3, h: 0.4, fontSize: 14, bold: true, color: col, margin: 0, isTextBox: true, objectName: `threshold card title ${i + 1}` });
+    s.addText(bullets([a, b, c], 12), { x: 6.1, y: y + 0.55, w: 3.3, h: 1.2, valign: "top", margin: 0, isTextBox: true, objectName: `threshold card body ${i + 1}` });
+  });
+  s.addText("Per 1,000 applicants; cost assumes $9,000 per missed defaulter and $2,000 per wrongly declined customer. Thresholds 0.20-0.30 are all within 12% of the minimum, so the choice is robust.", { x: 0.5, y: 4.92, w: 8.4, h: 0.28, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
+  notes(s, "The model outputs a probability, and 0.5 is only a convention. Moving the cut-off to 0.25 cuts missed defaulters from 43 to 13 per thousand applicants, at the price of declining 92 instead of 46 good customers. Under the cost assumptions that is the cheapest operating point, and it is robust: anything between 0.2 and 0.3 is within 12 percent of it.");
+}
+
+// =====================================================================================
+pres.addSection({ title: "Recommendations" });
+
+// 12. Business impact
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Recommendations" });
+  s.addText("Business impact: an indicative $9 million a year", { placeholder: "title" });
+  const rows = [
+    [{ text: "Per year, 6,000 applications", options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } }, { text: "Current process", options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } }, { text: "With the proposed model", options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } }],
+    ["Loans that default", "about 1,200 (20%)", "about 80 slip through"],
+    ["Default-related losses", "about $10.8M", "about $0.7M"],
+    ["Good customers declined or referred", "none", "about 550, margin forgone about $1.1M"],
+    [{ text: "Total cost of credit errors", options: { bold: true } }, { text: "about $10.8M", options: { bold: true } }, { text: "about $1.8M", options: { bold: true } }],
+  ];
+  s.addTable(rows, { x: 0.5, y: 1.3, w: 5.8, colW: [2.4, 1.5, 1.9], fontSize: 11.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.42, valign: "middle", margin: 0.06, objectName: "impact table" });
+  card(s, 6.6, 1.3, 3.0, 2.1, { fill: C.accent1, line: C.accent1, name: "benefit card" });
+  s.addText("~$9M", { x: 6.7, y: 1.4, w: 2.8, h: 0.95, fontSize: 40, bold: true, color: C.background1, align: "center", valign: "bottom", margin: 0, isTextBox: true, objectName: "benefit number" });
+  s.addText("indicative gross annual benefit; about $8.5M after running costs", { x: 6.7, y: 2.4, w: 2.8, h: 0.9, fontSize: 12, color: C.background2, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: "benefit label" });
+  s.addText(bullets([
+    "Assumptions: 6,000 applications a year, average loan $18,600, loss given default about 50%, forgone margin about $2,000 per declined good customer, production performance equal to test performance.",
+    "Costs: roughly $300-400k one-off (pipeline, integration, validation, fairness review, training) and about $100k a year to run and monitor. Pays back within the first year even if only a quarter of the benefit is realised.",
+    "Non-financial: faster decisions, consistent treatment, auditable reasons for every decline, verified income and valuation on every application.",
+  ], 11), { x: 0.5, y: 3.6, w: 9.1, h: 1.55, valign: "top", margin: 0, isTextBox: true, objectName: "impact bullets" });
+  notes(s, "Put together with round-number assumptions, the bank's default-related cost falls from about 10.8 million to about 1.8 million a year on 6,000 applications. Even if the real benefit were a quarter of that, the project pays back inside a year. Finance should replace these assumptions with actual loss and margin figures.");
+}
+
+// 13. Recommendations and roadmap
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Recommendations" });
+  s.addText("Recommendations and implementation roadmap", { placeholder: "title" });
+  const phases = [
+    ["Months 0-2: prepare", ["Make income and valuation verification mandatory fields", "Build the scoring pipeline and reason codes", "Calibrate the threshold with real loss and margin figures", "Fairness and model-risk review"]],
+    ["Months 2-4: shadow and pilot", ["Score every application alongside the manual decision", "Compare outcomes, tune the approve / refer / decline bands", "Train underwriters on reason codes and referrals"]],
+    ["Month 4 onwards: scale", ["Switch on automated approve / decline for clear cases", "Monthly monitoring of recall, precision, approval rate, missing fields", "Yearly re-training; threshold review with finance"]],
+  ];
+  phases.forEach(([title, items], i) => {
+    const x = 0.5 + i * 3.05;
+    card(s, x, 1.3, 2.9, 2.55, { name: `phase card ${i + 1}` });
+    numberedCircle(s, x + 0.15, 1.42, i + 1);
+    s.addText(title, { x: x + 0.65, y: 1.42, w: 2.15, h: 0.42, fontSize: 13, bold: true, color: C.accent1, margin: 0, isTextBox: true, valign: "middle", objectName: `phase title ${i + 1}` });
+    s.addText(bullets(items, 11), { x: x + 0.15, y: 1.95, w: 2.6, h: 1.85, valign: "top", margin: 0, isTextBox: true, objectName: `phase bullets ${i + 1}` });
+  });
+  s.addText("Policy rules to adopt now, independent of the model", { x: 0.5, y: 4.0, w: 9.0, h: 0.35, fontSize: 13, bold: true, color: C.accent2, margin: 0, isTextBox: true, objectName: "rules title" });
+  s.addText(bullets([
+    "Decline or escalate when the debt-to-income ratio is above 45%, when there are two or more delinquent credit lines, or two or more major derogatory reports.",
+    "Treat an application with no verifiable income or property valuation as high risk, never as neutral.",
+  ], 11.5), { x: 0.5, y: 4.38, w: 9.0, h: 0.8, valign: "top", margin: 0, isTextBox: true, objectName: "rules bullets" });
+  notes(s, "Implementation in three phases: prepare, shadow and pilot, then scale. And two policy rules the bank can adopt immediately, with or without the model: a debt-to-income limit of 45 percent and a hard look at anyone with two or more delinquencies or derogatory reports.");
+}
+
+// 14. Risks and next steps
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Recommendations" });
+  s.addText("Risks, challenges and further analysis", { placeholder: "title" });
+  card(s, 0.5, 1.3, 4.45, 3.85, { name: "risks card" });
+  s.addText("Risks and mitigations", { x: 0.7, y: 1.4, w: 4.1, h: 0.4, fontSize: 14, bold: true, color: C.accent2, margin: 0, isTextBox: true, objectName: "risks title" });
+  s.addText(bullets([
+    "Selection bias: data covers approved loans only. Mitigate with a shadow period on all applications and reject inference.",
+    "The 'ratio missing' signal will change once verification is mandatory. Re-train after the rule is in place.",
+    "Economic drift: monitor monthly, re-train yearly, review the threshold.",
+    "Fair lending: keep occupation out of the model; disparate-impact testing before launch and annually.",
+    "Explainability and automation bias: tree-based reason codes, a referral band, documented overrides.",
+  ], 11), { x: 0.7, y: 1.85, w: 4.1, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "risks bullets" });
+  card(s, 5.15, 1.3, 4.45, 3.85, { name: "next steps card" });
+  s.addText("Further analysis", { x: 5.35, y: 1.4, w: 4.1, h: 0.4, fontSize: 14, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "next title" });
+  s.addText(bullets([
+    "Reject inference to cover applicants the old process declined.",
+    "Engineered features: loan-to-value and payment-to-income ratios.",
+    "Gradient boosting and probability calibration, so a score of 0.25 means a 25% chance of default.",
+    "Time-based validation once application dates are available.",
+    "Risk-based pricing for the referral band; early-warning scoring on existing loans.",
+    "Per-applicant SHAP-style reason codes in applicant-friendly language.",
+  ], 11), { x: 5.35, y: 1.85, w: 4.1, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "next bullets" });
+  notes(s, "The main risks are selection bias, because the data only covers approved loans, drift in the missing-value signal once verification becomes mandatory, and fair-lending exposure. Each has a concrete mitigation. Next steps include reject inference, engineered ratios, calibration and time-based validation.");
+}
+
+// 15. Close
+{
+  const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Recommendations" });
+  s.addText("Thank you", { placeholder: "title" });
+  s.addText([
+    { text: "Questions and discussion", options: { fontSize: 18, color: C.background2, breakLine: true } },
+    { text: "Catch 93% of defaulters, explain every decision, and save an indicative $9M a year.", options: { fontSize: 13, color: C.accent4 } },
+  ], { placeholder: "body" });
+  s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.45, w: 0.9, h: 0.08, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "close marker" });
+}
+
+// =====================================================================================
+pres.addSection({ title: "Appendix" });
+
+// A1. Full comparison table
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
+  s.addText("Appendix A: all models on the held-out test set", { placeholder: "title" });
+  const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
+  const rows = [
+    [hdr("Model"), hdr("Recall"), hdr("Precision"), hdr("F1"), hdr("Accuracy"), hdr("ROC-AUC"), hdr("Train recall")],
+    ["Logistic Regression (plain)", "0.569", "0.772", "0.655", "0.880", "0.907", "0.643"],
+    ["Logistic Regression (balanced)", "0.798", "0.612", "0.693", "0.859", "0.906", "0.823"],
+    ["Decision Tree (default)", "0.686", "0.706", "0.696", "0.880", "0.807", "1.000"],
+    ["Decision Tree (class weights)", "0.616", "0.728", "0.668", "0.878", "0.779", "1.000"],
+    ["Decision Tree (tuned: balanced, min 20 per leaf)", "0.818", "0.533", "0.645", "0.820", "0.879", "0.924"],
+    ["Random Forest (default, 200 trees)", "0.689", "0.845", "0.759", "0.913", "0.962", "1.000"],
+    ["Random Forest (class weights 0.2/0.8)", "0.784", "0.773", "0.779", "0.911", "0.958", "1.000"],
+    ["Random Forest (tuned for recall)", "0.784", "0.653", "0.712", "0.874", "0.933", "0.921"],
+    ["Random Forest (tuned, 12 features)", "0.782", "0.664", "0.718", "0.878", "0.928", "0.917"],
+    [{ text: "Proposed: RF class weights, threshold 0.25", options: { bold: true } }, { text: "0.933", options: { bold: true } }, { text: "0.670", options: { bold: true } }, { text: "0.780", options: { bold: true } }, { text: "0.895", options: { bold: true } }, { text: "0.958", options: { bold: true } }, "-"],
+  ];
+  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [3.3, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95], fontSize: 10.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.33, valign: "middle", margin: 0.04, align: "left", objectName: "full comparison table" });
+  s.addText("Train recall of 1.000 marks the un-pruned models that memorised the training data. Grid search used stratified cross-validation on the training set only, scoring on recall.", { x: 0.5, y: 4.95, w: 9.0, h: 0.25, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "table footnote" });
+}
+
+// A2. Feature importance
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
+  s.addText("Appendix B: what the Random Forest relies on", { placeholder: "title" });
+  s.addChart(pres.charts.BAR, [
+    { name: "Importance", labels: ["Debt-to-income missing", "Debt-to-income ratio", "Delinquent credit lines", "Age of oldest credit line", "Derogatory reports", "Loan amount", "Property value", "Mortgage due", "Number of credit lines", "Years at job", "Recent inquiries", "Property value missing"],
+      values: [28.4, 24.2, 9.7, 7.2, 4.9, 4.2, 3.8, 3.6, 3.2, 2.9, 1.9, 1.8] },
+  ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.8, h: 3.9, barDir: "bar", chartColors: [H.accent1], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.0",
+       valAxisMaxVal: 35, valAxisLabelFormatCode: "0", catAxisOrientation: "maxMin", title: "Feature importance (%), tuned Random Forest", objectName: "feature importance chart" });
+  s.addText(bullets([
+    "The debt-to-income ratio and its missing flag carry more than half (53%) of the forest's decision power.",
+    "Next come repayment history (delinquencies, derogatory reports) and depth of credit history.",
+    "Loan, property and mortgage amounts matter in combination but are weak on their own.",
+    "Occupation and loan-purpose dummies rank at the bottom; removing them and nine minor flags left performance unchanged (12-feature model).",
+    "Logistic-regression coefficients and the decision-tree rules point to the same drivers, so the signal is stable across techniques.",
+  ], 12), { x: 6.4, y: 1.25, w: 3.2, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "importance bullets" });
+}
+
+// A3. Decision rules
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
+  s.addText("Appendix C: the explanation layer, rules read from the pruned Decision Tree", { placeholder: "title" });
+  const rules = [
+    ["1", "Is the debt-to-income ratio missing?", "Yes: highest-risk branch (62% historical default). Verify income or decline."],
+    ["2", "If recorded, is the ratio above about 44%?", "Yes: almost certain default in the data (87-100%). Decline."],
+    ["3", "Any delinquent credit lines?", "One or more pushes the applicant back into the risky branch, even with a healthy ratio."],
+    ["4", "Any major derogatory reports, and how long is the credit history?", "Short history (under about 15 years) with a derogatory report is risky; long clean histories are safe."],
+    ["5", "Loan size, mortgage balance and property value", "Refine the decision deeper in the tree; small loans with weak history lean towards default."],
+  ];
+  rules.forEach(([n, q, a], i) => {
+    const y = 1.3 + i * 0.76;
+    numberedCircle(s, 0.5, y + 0.1, Number(n));
+    s.addText(q, { x: 1.1, y, w: 3.6, h: 0.66, fontSize: 12.5, bold: true, color: C.accent1, margin: 0, isTextBox: true, valign: "middle", objectName: `rule question ${n}` });
+    s.addText(a, { x: 4.8, y, w: 4.8, h: 0.66, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "middle", objectName: `rule answer ${n}` });
+    if (i < rules.length - 1) s.addShape(pres.shapes.LINE, { x: 1.1, y: y + 0.72, w: 8.5, h: 0, line: { color: "E3E3E3", width: 0.75 }, objectName: `rule divider ${n}` });
+  });
+  s.addText("Tuned tree: Gini criterion, balanced class weights, minimum 20 applicants per leaf, depth 14, 105 leaves. Test recall 82%, precision 53%: used for explanations, not for scoring.", { x: 0.5, y: 5.0, w: 9.0, h: 0.25, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "tree footnote" });
+}
+
+// A4. Pre-processing summary
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
+  s.addText("Appendix D: data treatment and pre-processing", { placeholder: "title" });
+  const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
+  const rows = [
+    [hdr("Step"), hdr("What was done"), hdr("Why")],
+    ["Duplicates", "None found; no rows dropped", "5,960 loans retained, including 2 with only the loan amount recorded"],
+    ["Missing values", "A 0/1 'was missing' flag per column, then median (numeric) or mode (categorical) imputation", "Missingness of debt-to-income and property value is the strongest default signal; dropping rows would lose 44% of the data"],
+    ["Outliers", "IQR capping for the linear model only; DEROG and DELINQ capped at the 99th percentile; tree models use raw values", "Linear models are pulled by extremes (debt-to-income 203%, credit history 97 years); trees split on rank order and keep the 'above 50% always defaults' signal"],
+    ["Encoding and scaling", "One-hot encoding of REASON and JOB (drop first); standard scaling for the linear model only", "Comparable coefficients and stable convergence for logistic regression"],
+    ["Split", "70% train / 30% test, stratified on the target, fixed seed; identical applicants in both data versions", "Both sets keep the 20% default rate; results comparable across models"],
+    ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the models rather than resampling", "Keeps every real applicant; lifted recall by 23 points for logistic regression and 10 for the forest"],
+  ];
+  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.8, 3.7], fontSize: 10.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.05, align: "left", objectName: "preprocessing table" });
+}
+
+// ---------------- write ----------------
+(async () => {
+  await pres.writeFile({ fileName: OUT });
+  console.log("wrote", OUT);
+  const themeScript = process.env.PPTX_APPLY_THEME;
+  if (themeScript && fs.existsSync(themeScript)) {
+    const { applyTheme } = require(themeScript);
+    await applyTheme(OUT, THEME);
+    console.log("applied theme");
+  } else {
+    console.log("applyTheme helper not found; scheme colours use Office defaults");
+  }
+})();
