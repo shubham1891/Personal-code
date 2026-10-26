@@ -26,6 +26,11 @@ NAVY, RED, BLUE, GREEN, GREY, LIGHT = "#1E2761", "#C44E52", "#4C72B0", "#3C8D5A"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "axes.spines.top": False, "axes.spines.right": False,
                      "axes.grid": True, "grid.color": "#E6E6E6", "grid.linewidth": 0.6, "axes.axisbelow": True, "figure.dpi": 200})
 
+def r0(v):
+    """Round half up to a whole number (matches the rounding in the report tables)."""
+    return int(np.floor(v + 0.5 + 1e-9))
+
+
 NAMES = {  # variable -> plain language
     "LOAN": "Loan amount", "MORTDUE": "Mortgage balance", "VALUE": "Property value", "YOJ": "Years at current job",
     "DEROG": "Major derogatory reports", "DELINQ": "Delinquent credit lines", "CLAGE": "Age of oldest credit line",
@@ -106,14 +111,15 @@ def rate_by_band(col, bins, labels):
     return g.mean() * 100, g.count()
 
 
-def bar_with_labels(ax, labels, values, color, counts=None, fmt="{:.0f}%", ymax=None):
+def bar_with_labels(ax, labels, values, color, counts=None, fmt="{:.0f}%", ymax=None, n_prefix="n="):
     fmt_n = lambda n: f"{n/1000:.1f}k" if n >= 1000 else f"{n}"
-    ticks = [f"{l}\nn={fmt_n(n)}" for l, n in zip(labels, counts)] if counts is not None else list(labels)
+    ticks = [f"{l}\n{n_prefix}{fmt_n(n)}" for l, n in zip(labels, counts)] if counts is not None else list(labels)
     bars = ax.bar(ticks, values, color=color, width=0.65)
     ax.tick_params(axis="x", labelsize=6.5)
     for b, v in zip(bars, values):
-        ax.text(b.get_x() + b.get_width() / 2, v + 1.5, fmt.format(v), ha="center", va="bottom", fontsize=8)
-    ax.axhline(base_rate, color="black", linestyle="--", linewidth=0.9)
+        ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{r0(v)}%", ha="center", va="bottom", fontsize=7.5,
+                bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.4}, zorder=4)
+    ax.axhline(base_rate, color="#555555", linestyle="--", linewidth=0.8, zorder=1)
     ax.set_ylim(0, ymax or max(values) * 1.25)
     ax.set_ylabel("Default rate (%)")
 
@@ -130,11 +136,11 @@ fig, ax = plt.subplots(figsize=(8.5, 3.6))
 x = np.arange(len(names))
 b1 = ax.bar(x - 0.2, missing, 0.4, color=RED, label="Field missing on the application")
 b2 = ax.bar(x + 0.2, present, 0.4, color=BLUE, label="Field present")
-for b, v in zip(b1, missing):
-    ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{v:.0f}%", ha="center", fontsize=8)
-for b, v in zip(b2, present):
-    ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{v:.0f}%", ha="center", fontsize=8)
-ax.axhline(base_rate, color="black", linestyle="--", linewidth=0.9, label=f"All applicants ({base_rate:.1f}%)")
+for bars_, vals_ in [(b1, missing), (b2, present)]:
+    for b, v in zip(bars_, vals_):
+        ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{r0(v)}%", ha="center", fontsize=6.5,
+                bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.3}, zorder=4)
+ax.axhline(base_rate, color="#555555", linestyle="--", linewidth=0.8, zorder=1, label=f"All applicants ({base_rate:.1f}%)")
 ax.set_xticks(x); ax.set_xticklabels(names, rotation=30, ha="right")
 ax.set_ylabel("Default rate (%)"); ax.set_ylim(0, 105); ax.legend(frameon=False, fontsize=8)
 ax.set_title("Default rate when a field is missing versus present", fontsize=11, color=NAVY, loc="left")
@@ -160,17 +166,17 @@ fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). n =
 fig.tight_layout(); fig.savefig(OUT / "report_default_rate_bands.png", bbox_inches="tight"); plt.close(fig)
 
 # Figure: credit-history counts
-fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.4))
+fig, axes = plt.subplots(1, 3, figsize=(11, 3.4), gridspec_kw={"width_ratios": [6, 7, 9]})
 for ax, (col, cap, xlabel) in zip(axes, [("DEROG", 5, "Major derogatory reports"), ("DELINQ", 6, "Delinquent credit lines"), ("NINQ", 8, "Recent credit inquiries")]):
     s = df[col].clip(upper=cap)
     g = df.groupby(s, observed=True)["BAD"]
     r, n = g.mean() * 100, g.count()
     labels = [f"{int(i)}+" if i == cap else f"{int(i)}" for i in r.index]
-    bar_with_labels(ax, labels, r.values, BLUE if col != "DEROG" else RED, counts=n.values, ymax=118)
+    bar_with_labels(ax, labels, r.values, BLUE if col != "DEROG" else RED, counts=n.values, ymax=118, n_prefix="")
     ax.set_xlabel(xlabel); ax.set_title(f"By {xlabel.lower()}", fontsize=10, color=NAVY, loc="left")
 for ax in axes[1:]:
     ax.set_ylabel("")
-fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). n = applicants with that count (missing values excluded).", ha="center", fontsize=8, color=GREY)
+fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). Second line under each bar: applicants with that count (missing values excluded).", ha="center", fontsize=8, color=GREY)
 fig.tight_layout(); fig.savefig(OUT / "report_credit_history.png", bbox_inches="tight"); plt.close(fig)
 
 # Figure: interactions (multivariate) - default rate for pairs of variables, single-hue sequential scale
@@ -216,8 +222,8 @@ rate_b, n_b = _grid(df.loc[known, "JOB"].map(job_names), df.loc[known, "REASON"]
                     list(job_names.values()), list(reason_names.values()))
 fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.3), gridspec_kw={"width_ratios": [1.35, 1]})
 _heat(axes[0], rate_a, n_a, 100, "Delinquent credit lines", "Debt-to-income ratio", "Debt burden and repayment history combine")
-_heat(axes[1], rate_b, n_b, 50, "Loan purpose", "Occupation", "Loan purpose matters within some occupations")
-fig.text(0.5, -0.02, "Each cell: default rate and number of applicants. Small cells (n under about 30) are noisy.", ha="center", fontsize=8, color=GREY)
+_heat(axes[1], rate_b, n_b, 100, "Loan purpose", "Occupation", "Loan purpose matters within some occupations")
+fig.text(0.5, -0.02, "Each cell: default rate and number of applicants. Both panels use the same 0-100% colour scale. Small cells (n under about 30) are noisy.", ha="center", fontsize=8, color=GREY)
 fig.tight_layout(w_pad=3); fig.savefig(OUT / "report_interactions.png", bbox_inches="tight"); plt.close(fig)
 
 # Figure: model comparison (test set)
@@ -237,7 +243,7 @@ for i, (col, label, color) in enumerate(metrics):
     vals = [comp.loc[k, col] * 100 for k, _ in show]
     bars = ax.bar(x + (i - 1) * w, vals, w, color=color, label=label)
     for b, v in zip(bars, vals):
-        ax.text(b.get_x() + b.get_width() / 2, v + 1, f"{v:.0f}", ha="center", fontsize=7.5)
+        ax.text(b.get_x() + b.get_width() / 2, v + 1, f"{r0(v)}", ha="center", fontsize=7.5)
 ax.set_xticks(x); ax.set_xticklabels([lab for _, lab in show], fontsize=8)
 ax.set_ylim(0, 112); ax.set_ylabel("Score on unseen applicants (%)")
 ax.legend(frameon=False, fontsize=8, ncol=3, loc="upper left")

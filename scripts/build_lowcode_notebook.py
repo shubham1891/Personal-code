@@ -681,7 +681,7 @@ md(93, r"""
 - You can try different splits like 70:30 or 80:20 as per your choice. Does this change in split affect the performance?
 - If the data is imbalanced, can you make the split more balanced and if yes, how?
 
-*A 70:30 split leaves 1,788 applicants (357 defaulters) for an honest test. An 80:20 split would train on slightly more data but test on fewer defaulters, so the test scores become noisier. The scores move by a point or two between splits, but the ranking of the models does not change. We should not "balance" the split itself by removing applicants. Stratifying on `BAD` keeps the true 20% default rate in both sets. We then handle the imbalance inside the models, with class weights and later the decision threshold (or by resampling the training rows only).*
+*A 70:30 split leaves 1,788 applicants (357 defaulters) for an honest test. An 80:20 split would train on slightly more data but test on fewer defaulters, so the test scores become noisier. On two other 70/30 splits, the cheapest forest configuration (no class weights) and its 0.15 threshold did not change (see the robustness cell). We did not test an 80:20 split. We should not "balance" the split itself by removing applicants. Stratifying on `BAD` keeps the true 20% default rate in both sets. We then handle the imbalance inside the models, with class weights and later the decision threshold (or by resampling the training rows only).*
 """)
 md(94, r"""
 ## **Model Evaluation Criterion**
@@ -693,7 +693,7 @@ The model can make two kinds of mistakes and they do not cost the same:
 | Model says | Reality | Name | Business consequence |
 |---|---|---|---|
 | Will repay (approve) | Defaults | **False Negative** | The bank loses most of the principal plus collection costs: about \$9,000 on a typical \$16,900 defaulted loan after recovering collateral. |
-| Will default (reject) | Would have repaid | **False Positive** | The bank forgoes the interest margin on one good customer: about \$2,000. |
+| Will default (reject) | Repays | **False Positive** | The bank forgoes the interest margin on one good customer: about \$2,000. |
 
 A missed defaulter costs roughly 4.5 times a wrongly rejected good applicant. That is why the **primary metric is Recall on the defaulter class (BAD = 1)**. Of all applicants who later defaulted, what share did the model flag? Recall alone can be gamed (rejecting everyone gives 100% recall). We therefore track **Precision** (how many flagged applicants really default) and **F1** as guard-rails, with **Accuracy** for completeness.
 
@@ -1098,7 +1098,7 @@ plt.show()
 pd.Series(importances, index=feature_names).sort_values(ascending=False).round(4).head(12)
 """)
 add_after(159, "markdown", r"""
-**Insights (feature importance):** The two debt-to-income features dominate: the `DEBTINC` missing flag and `DEBTINC` together carry more than half (about 53%) of this recall-tuned forest's split power. (We show the final model's own importances, about a third for the pair, after we choose it.) This shows that affordability, and whether it could be checked, is the heart of the decision. Next come `DELINQ`, `CLAGE` and `DEROG` (repayment behaviour and depth of credit history), then `LOAN`, `VALUE`, `MORTDUE` and `CLNO`. The `JOB` and `REASON` dummies rank at the bottom: once financial behaviour is known, occupation and loan purpose add little. This is also good news from a fair-lending perspective.
+**Insights (feature importance):** The two debt-to-income features dominate: the `DEBTINC` missing flag and `DEBTINC` together carry more than half (about 53%) of this recall-tuned forest's split power. (We show the final model's own importances, about a third for the pair, after we choose it.) This shows that affordability, and whether it could be checked, is the heart of the decision. Next come `DELINQ`, `CLAGE` and `DEROG` (repayment behaviour and depth of credit history), then `LOAN`, `VALUE`, `MORTDUE` and `CLNO`. The `JOB` and `REASON` dummies rank at the bottom: once financial behaviour is known, occupation and loan purpose add little. The selection step below tests whether occupation adds value at the cost-optimal threshold.
 """)
 md(160, r"""
 ### **Think about it:**
@@ -1480,7 +1480,7 @@ print(export_text(surrogate, feature_names=final_cols, max_depth=4, show_weights
 md(167, r"""
 **Insights (model selection and final model):**
 - The configuration search shows that, once we choose the threshold on cost, class weights make no measurable difference. The unweighted forest, the 0.2/0.8 forest and the 0.3/0.7 forest are within one standard error of each other at their own best thresholds. Constrained trees (10 applicants per leaf, the recall-only grid choice) cost about half again as much. By the pre-stated rule we choose the **unweighted forest on all 27 inputs with a 0.15 threshold**. It has the lowest mean cost on out-of-fold predictions (about \$317,000 per 1,000 applicants). It is well ahead of the recall-tuned grid winner (\$490,000), the 12-input version (\$378,000) and the version without any occupation information (\$351,000, the fair-lending fallback).
-- On the test set, scored once, it catches 93% of defaulters at 68% precision and 90% accuracy (ROC-AUC 0.96). Compared with the 0.5 threshold, missed defaulters fall from about 63 to 15 per 1,000 applicants. Wrongly declined applicants rise from about 26 to 87 per 1,000 applicants. The indicative expected cost halves (about \$0.30 million vs \$0.62 million per 1,000). The test cost (\$304,000 ± \$28,000 standard error per 1,000) is consistent with the out-of-fold estimate (\$317,000). One test evaluation is too noisy to adjudicate between the fully grown configurations, so that choice rests on the out-of-fold comparison.
+- On the test set, scored once, it catches 93% of defaulters at 68% precision and 90% accuracy (ROC-AUC 0.96). Compared with the 0.5 threshold, missed defaulters fall from about 63 to 15 per 1,000 applicants. Wrongly flagged good applicants rise from about 26 to 87 per 1,000 applicants. The indicative expected cost halves (about \$0.30 million vs \$0.62 million per 1,000). The test cost (\$304,000 ± \$28,000 standard error per 1,000) is consistent with the out-of-fold estimate (\$317,000). One test evaluation is too noisy to adjudicate between the fully grown configurations, so that choice rests on the out-of-fold comparison.
 - The 0.15 threshold sits just below the textbook break-even for a perfectly calibrated score (0.18). The reason is that the forest's scores understate risk in the decision range (applicants scored 0.15-0.20 defaulted about 23% of the time). The threshold held on a finer threshold grid and on two other train/test splits.
 - In practice the bank would approve about 69% of applicants automatically (about 1% default). It would refer about 7% to an underwriter (about 24% default) and decline about 24% (74% default, 87% of all defaulters). Overall the model flags about 27% of applicants, an approval rate of about 73% on a population the bank approves in full today. All quoted performance figures are for the single 0.15 threshold. Under the bands the share of defaulters caught lies between about 87% (every referral approved) and 96% (every referral declined).
 - Two thirds of all defaulters sit in the fifth of applicants with no recorded debt-to-income ratio, a group the model flags almost entirely (96%). On applicants with a recorded ratio it flags 9% and catches 83% of their defaulters at 80% precision. Those figures are the better guide to its behaviour once income verification is mandatory and the bank re-trains the model.
@@ -1501,7 +1501,7 @@ md(168, r"""
 
 The class-weighted Random Forest adds feature sub-sampling and class weights. It reaches 77% recall at 77% precision, the best balance at 0.5. The recall-tuned forest reaches 79% recall with lower precision (66%). Once we include the cost of lower precision, it has a clearly higher expected cost. The out-of-fold cost search above decides which forest is best for the bank, not this table.
 
-*Pros and cons.* Logistic regression is fully transparent and trivial to run, but it under-fits threshold effects on the raw inputs. A decision tree gives a readable rule list, but it is unstable between re-trainings and has the lowest precision. Bagging and Random Forest have the best test-set performance and are the most stable. We explain them through feature importances, a surrogate tree and per-applicant reason codes rather than a rule list. They need model-risk documentation and drift monitoring like any credit model.
+*Pros and cons.* Logistic regression is fully transparent and trivial to run, but it under-fits threshold effects on the raw inputs. A decision tree gives a readable rule list, but it is unstable between re-trainings and has the lowest precision. Bagging and Random Forest have the best test-set performance and are the most stable. We explain them through feature importances, a surrogate tree and per-applicant risk drivers rather than a rule list. They need model-risk documentation and drift monitoring like any credit model.
 
 *Scope to improve.* Yes:
 
@@ -1515,7 +1515,7 @@ md(169, r"""
 - What are the most meaningful insights relevant to the problem?
 
 1. **Affordability, and whether the bank can check it, decides most outcomes.** The debt-to-income ratio and its missing flag are among the top features in every model (the top two by the forest's impurity importance). An applicant with no ratio that the bank can check defaulted 62% of the time. One with a ratio above 45% defaulted 87-100% of the time.
-2. **Past repayment behaviour is the next most important predictor.** Delinquent lines, derogatory reports and recent inquiries all raise default risk monotonically. The tree's top splits and the forest's importances agree.
+2. **Past repayment behaviour is the next most important predictor.** Delinquent lines, derogatory reports and recent inquiries all raise default risk as they increase (with noise in the small groups at the top). The tree's top splits and the forest's importances agree.
 3. **Credit-history length protects:** about 10% default with 20+ years of history versus 44% with under 5 years.
 4. **Loan size, property value and mortgage balance are secondary.** They matter in combination (small loans are riskier, missing valuations are almost always bad) but are weak on their own.
 5. **Occupation and loan purpose matter little on their own.** They barely move performance at the conventional threshold, but they are not worthless (see insight 8). So their use is a fair-lending decision with a known price rather than a free simplification.
@@ -1539,19 +1539,20 @@ md(170, r"""
   - It had the lowest expected cost on repeated out-of-fold predictions of fifteen forest configurations and five final candidates, without any use of the test set.
   - On the held-out applicants it then caught 93% of defaulters at 68% precision and 90% accuracy (ROC-AUC 0.96). That is far better than the single tree (82% recall at 53% precision) and the logistic regression (80% at 61%). It is also well ahead of the recall-tuned forest once we include the cost of lower precision.
   - It is stable because it averages hundreds of trees and because its out-of-fold and test results agree.
-  - Because it is unweighted, its score is a conservative estimate of the default rate (applicants scored 0.15-0.20 defaulted about 23% of the time). So the 0.15 threshold reads as "refer or decline above roughly one-in-five estimated risk".
-- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's out-of-fold decisions reproduces about 93% of them on unseen applicants. Global importances and per-applicant reason codes document the score itself. The surrogate gives the plain-language rules that the ECOA adverse-action notice needs:
+  - Because it is unweighted, its score is close to a default rate. In the decision range it understates that rate (applicants scored 0.15-0.20 defaulted about 23% of the time). So the 0.15 threshold reads as "refer or decline above roughly one-in-five estimated risk".
+- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's out-of-fold decisions reproduces about 93% of them on unseen applicants. Per-applicant risk drivers from the forest (for example SHAP values, built in months 0-2) give the reason for each decline. This includes the automatic declines above 0.25. The surrogate gives the plain-language summary of the rules:
   - the ratio is missing,
   - the ratio is above about 44%,
   - a delinquent line together with a derogatory report.
-- *How it solves the problem:* per 1,000 applicants it flags about 185 of 200 defaulters before the money leaves the bank. It declines or refers about 87 good applicants per 1,000 applicants. It cuts the indicative default-related cost per 1,000 applicants from roughly \$1.8 million to about \$0.3 million. It also gives the bank explicit policy rules that the bank can adopt immediately, with thresholds taken from the observed default rates in the EDA:
+- *How it solves the problem:* per 1,000 applicants it flags about 185 of 200 defaulters before the money leaves the bank. It flags about 87 good applicants per 1,000 at the 0.15 threshold. Under the approve / refer / decline bands, the bank declines about 62 good applicants per 1,000 automatically and refers about 55. It cuts the indicative default-related cost per 1,000 applicants from roughly \$1.8 million to about \$0.3 million. It also gives the bank explicit policy rules that the bank can adopt immediately, with thresholds taken from the observed default rates in the EDA:
   - check income and valuation,
   - cap debt-to-income at 45%,
   - refer applicants with two or more delinquencies or derogatory reports to an underwriter.
 - *Guard-rails:*
   - a shadow period on all applications (the training data covers only loans the old process approved),
   - mandatory income verification introduced alongside the shadow period,
-  - a re-train on the verified population before go-live (verification removes the missing-ratio signal the model relies on most),
+  - a test before go-live on the historical applicants with a recorded ratio, with a refit if necessary (verification removes the model's strongest signal),
+  - re-training on the outcomes of newly verified applicants after 12 months or more of repayment data,
   - a fair-lending review before go-live,
   - monthly monitoring of recall, precision and approval rate,
   - yearly re-training.
