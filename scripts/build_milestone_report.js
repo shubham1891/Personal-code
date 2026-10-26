@@ -13,6 +13,7 @@ const {
 
 const ROOT = path.resolve(__dirname, "..");
 const FIG = (name) => fs.readFileSync(path.join(ROOT, "reports", "figures", name));
+const FIG_H = (name, w) => { const b = FIG(name); return Math.round(w * b.readUInt32BE(20) / b.readUInt32BE(16) * 100) / 100; };
 // Height of the interaction figure in inches, from the PNG header (width 6.6 in)
 const FIG_H_INTERACTIONS = (() => { const b = FIG("report_interactions.png"); return Math.round(6.6 * b.readUInt32BE(20) / b.readUInt32BE(16) * 100) / 100; })();
 const OUT = path.join(ROOT, "reports", "Loan_Default_Prediction_Milestone_Report.docx");
@@ -228,8 +229,8 @@ children.push(table(
 ));
 children.push(caption("Table 5. Stage 2 of the selection: final candidates on repeated out-of-fold predictions of the training rows (mean of three 5-fold splits). Same cost assumptions as Table 4."));
 children.push(p("The unweighted forest on all 27 inputs has the lowest expected cost. The recall-tuned grid winner costs about half again as much once precision has a price. This shows that recall-only tuning over-shoots. The balanced logistic regression and the tuned tree cost about $550,000 and $607,000 per 1,000 even at their own best thresholds. So the forest wins on the chosen yardstick as well as on ranking quality. Removing all occupation information costs about 10% more, and the 12-input version costs about a fifth more. Both are well outside one standard error. So occupation, loan purpose and the minor flags do add value at the cost-optimal operating point, and we choose neither simpler model. Removing occupation is therefore a policy choice with a measurable price. The cost-minimising threshold is 0.15 (flag every applicant whose score exceeds 0.15, an estimated default risk of roughly one in five). It stays at 0.15 for any cost ratio between 3:1 and 6:1 (see the notebook's cost-ratio table). Figure 6 shows the curves at the 4.5:1 costs. It also stays there on a finer 0.01 grid, and when we repeat the whole configuration search on two other 70/30 splits. It sits just below the textbook break-even of 0.18 for a perfectly calibrated score, because the forest's scores understate risk in the decision range. The scores still rank applicants well (Brier score 0.062 against 0.160 for the base rate). Applicants scored 0.15 to 0.20 defaulted about 23% of the time, so a score of 0.15 reads as roughly one-in-five estimated risk. We write the final pipeline step by step in the notebook, with the exact 27 input columns, the training-row imputation values and the model settings. This makes every input to the scoring model explicit."));
-children.push(figure("report_threshold.png", 6.4, 2.71));
-children.push(caption("Figure 6. Recall, precision and indicative expected cost as the forest's threshold moves, on out-of-fold predictions of the training rows."));
+children.push(figure("report_threshold.png", 6.4, FIG_H("report_threshold.png", 6.4)));
+children.push(caption("Figure 6. Recall and precision (top) and indicative expected cost (bottom) as the forest's threshold moves, on out-of-fold predictions of the training rows."));
 
 children.push(h2("Performance of the proposed model on unseen applicants"));
 children.push(table(

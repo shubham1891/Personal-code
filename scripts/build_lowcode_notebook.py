@@ -1295,16 +1295,19 @@ selection.style.format(SELECTION_FORMAT).highlight_min(subset=[COST_COL], color=
 add_after(166, "code", r"""
 #@title
 # Out-of-fold cost curve of the winner (mean over the three repeated 5-fold splits) and the sensitivity of the threshold to the cost ratio
+# two panels that share the threshold axis, one y-axis each (no dual-axis chart)
 tbl = oof[winner]['table']
-fig, ax1 = plt.subplots(figsize=(9, 4.5))
-ax1.plot(tbl['threshold'], tbl['recall'], marker='o', label='Recall (out-of-fold)')
-ax1.plot(tbl['threshold'], tbl['precision'], marker='o', label='Precision (out-of-fold)')
-ax1.set_xlabel('probability threshold'); ax1.set_ylabel('score'); ax1.legend(loc='lower left')
-ax2 = ax1.twinx()
-ax2.plot(tbl['threshold'], tbl['expected_cost_per_1000_$'], color='grey', linestyle='--', marker='s', label='expected cost / 1,000 applicants')
-ax2.set_ylabel('expected cost per 1,000 applicants ($)'); ax2.legend(loc='upper right')
-ax1.axvline(FINAL_THRESHOLD, color='red', linestyle=':', linewidth=1)
-plt.title(f'{winner}: effect of the decision threshold (training rows, out-of-fold)'); plt.show()
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 7), sharex=True)
+ax1.plot(tbl['threshold'], tbl['recall'], marker='o', color='#3C8D5A', label='Recall (out-of-fold)')
+ax1.plot(tbl['threshold'], tbl['precision'], marker='o', color='#4C72B0', label='Precision (out-of-fold)')
+ax1.set_ylabel('score'); ax1.legend(loc='lower left')
+ax1.set_title(f'{winner}: recall and precision by threshold (training rows, out-of-fold)')
+ax2.plot(tbl['threshold'], tbl['expected_cost_per_1000_$'], marker='s', color='#1E2761')
+ax2.set_ylabel('expected cost per 1,000 applicants ($)'); ax2.set_xlabel('probability threshold')
+ax2.set_title('Indicative expected cost of credit errors by threshold')
+for ax in (ax1, ax2):
+    ax.axvline(FINAL_THRESHOLD, color='red', linestyle=':', linewidth=1)
+plt.tight_layout(); plt.show()
 
 rows = []
 for ratio in [2, 3, 4.5, 6, 7, 8, 9]:
