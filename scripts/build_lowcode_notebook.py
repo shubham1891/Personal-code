@@ -436,6 +436,115 @@ add_after(76, "markdown", r"""
 - Correlations with the target are weak to moderate: `DELINQ` (0.35), `DEROG` (0.28), `DEBTINC` (0.20), `NINQ` (0.17), `CLAGE` (-0.17). The count variables are close to linear in the default rate. `DEBTINC`, `CLAGE` and `LOAN` act through thresholds that a correlation coefficient understates. This is an early hint that tree-based models should outperform a purely linear one on the raw inputs.
 - In the pairplot, defaulters (red) have visibly shorter `CLAGE`, higher `DEBTINC` and heavier tails on `DELINQ`, `DEROG` and `NINQ`. No single pair separates the classes cleanly, so the separation comes from combinations.
 """)
+add_after(76, "markdown", r"""
+#### Two categorical variables and the target: occupation and loan purpose
+
+The bivariate analysis looked at occupation and loan purpose one at a time. Here we cross them, to check whether the risk of a loan purpose depends on the occupation. Applicants with a missing `JOB` or `REASON` are not in this chart.
+""")
+add_after(76, "code", r"""
+#@title
+# Default rate by occupation and loan purpose (two categorical variables and the target)
+bad_int = data["BAD"].astype(int)
+job_rate = bad_int.groupby([data["JOB"], data["REASON"]], observed=True).mean().unstack() * 100
+job_n = bad_int.groupby([data["JOB"], data["REASON"]], observed=True).size().unstack()
+cell_labels = job_rate.round(0).astype(int).astype(str) + "%\n(n=" + job_n.astype(str) + ")"
+
+fig, ax = plt.subplots(figsize=(7, 5.5))
+sns.heatmap(job_rate, annot=cell_labels, fmt="", cmap="Reds", vmin=0, vmax=50, linewidths=2, linecolor="white",
+            cbar_kws={"label": "default rate (%)"}, ax=ax)
+ax.set_xlabel("loan purpose (REASON)"); ax.set_ylabel("occupation (JOB)")
+ax.set_title("Default rate by occupation and loan purpose")
+plt.show()
+
+pd.concat({"default_rate_%": job_rate.round(1), "applicants": job_n}, axis=1)
+""")
+add_after(76, "markdown", r"""
+**Insights - occupation and loan purpose:**
+- Occupation and loan purpose interact. Self-employed applicants who borrowed to consolidate debt defaulted 44% of the time (73 applicants). Self-employed applicants who borrowed for home improvement defaulted 18% of the time (115 applicants).
+- Managers show the opposite pattern: 32% default on home-improvement loans (174 applicants) against 20% on debt consolidation (572 applicants). The "Other" group follows the managers (29% against 21%).
+- Sales applicants default often for both purposes (35% and 33%), but only 12 of them borrowed for home improvement. Office workers default least for both purposes (15% and 11%).
+- On its own, loan purpose looks weak (22% against 19%). Within some occupations it changes the risk by a factor of two. Tree models can learn this interaction directly. A linear model needs an explicit interaction term to learn it. Any rule that uses occupation needs the fair-lending review.
+""")
+add_after(76, "markdown", r"""
+#### A numerical and a categorical variable with the target: debt burden and credit history by occupation
+
+We check whether the two strongest numerical drivers work in every occupation, or only in some. The boxplots hide the extreme values to keep the boxes readable, and they use only applicants with a recorded value.
+""")
+add_after(76, "code", r"""
+#@title
+# Debt-to-income and credit-history length by occupation, split by outcome
+job_order = data["JOB"].value_counts().index
+fig, axes = plt.subplots(1, 2, figsize=(16, 5.5))
+for ax, col, label, title in [(axes[0], "DEBTINC", "debt-to-income ratio (%)", "Debt-to-income by occupation and outcome"),
+                              (axes[1], "CLAGE", "age of oldest credit line (months)", "Credit-history length by occupation and outcome")]:
+    sns.boxplot(data=data, x="JOB", y=col, hue="BAD", order=job_order, palette=["#4C72B0", "#C44E52"],
+                showfliers=False, ax=ax)
+    ax.set_xlabel("occupation (JOB)"); ax.set_ylabel(label); ax.set_title(title)
+    ax.legend(title="BAD (1 = defaulted)", loc="upper left", bbox_to_anchor=(1.01, 1.0))
+plt.tight_layout(); plt.show()
+
+pd.concat({"DEBTINC_median": data.groupby(["JOB", "BAD"], observed=True)["DEBTINC"].median().unstack().round(1),
+           "CLAGE_median_months": data.groupby(["JOB", "BAD"], observed=True)["CLAGE"].median().unstack().round(0)}, axis=1)
+""")
+add_after(76, "markdown", r"""
+**Insights - debt burden and credit history by occupation:**
+- In every occupation, defaulters have a higher median debt-to-income ratio than repayers. The gap is about 1.5 points for office workers (37.6 against 36.1) and about 6.5 points for sales and self-employed applicants (41.0 against 34.4, and 40.9 against 34.5).
+- In every occupation, defaulters have a shorter credit history. The median gap is 29 months for professionals (160 against 189) and 57 months for managers (127 against 184).
+- So debt burden and credit-history length work in every occupation. Occupation moves the baseline risk, but it does not replace these two drivers.
+""")
+add_after(76, "markdown", r"""
+#### Interactions between the strongest drivers
+
+The bivariate analysis found four strong drivers: the debt-to-income ratio, delinquent credit lines, credit-history length and derogatory reports. Here we cross them in pairs, and we keep "missing" as its own group because missingness is itself a signal. Each cell shows the default rate and the number of applicants. Cells with very few applicants (for example, a ratio above 45% with one delinquent line) are noisy, so we read them with caution.
+""")
+add_after(76, "code", r"""
+#@title
+# Default rate for pairs of drivers, with 'missing' kept as its own group
+def band_with_missing(s, bins, labels):
+    banded = pd.cut(s, bins=bins, labels=labels, include_lowest=True).astype(object)
+    return banded.where(s.notna(), "missing")
+
+dti_band = band_with_missing(data["DEBTINC"], [0, 30, 35, 40, 45, np.inf], ["under 30", "30-35", "35-40", "40-45", "over 45"])
+delinq_group = band_with_missing(data["DELINQ"], [-0.5, 0.5, 1.5, np.inf], ["0", "1", "2+"])
+history_band = band_with_missing(data["CLAGE"], [0, 120, 240, np.inf], ["under 10 yrs", "10-20 yrs", "20+ yrs"])
+derog_group = band_with_missing(data["DEROG"], [-0.5, 0.5, np.inf], ["0", "1+"])
+
+def rate_grid(rows, cols, row_order, col_order):
+    grid_rate = bad_int.groupby([rows, cols]).mean().unstack().reindex(index=row_order, columns=col_order) * 100
+    grid_n = bad_int.groupby([rows, cols]).size().unstack().reindex(index=row_order, columns=col_order).fillna(0).astype(int)
+    return grid_rate, grid_n
+
+grids = [
+    (dti_band, delinq_group, ["under 30", "30-35", "35-40", "40-45", "over 45", "missing"], ["0", "1", "2+", "missing"],
+     "debt-to-income ratio (%)", "delinquent credit lines", "Debt-to-income band and delinquent lines"),
+    (history_band, derog_group, ["under 10 yrs", "10-20 yrs", "20+ yrs", "missing"], ["0", "1+", "missing"],
+     "age of oldest credit line", "major derogatory reports", "Credit-history length and derogatory reports"),
+]
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+for ax, (rows, cols, row_order, col_order, ylabel, xlabel, title) in zip(axes, grids):
+    grid_rate, grid_n = rate_grid(rows, cols, row_order, col_order)
+    grid_labels = grid_rate.round(0).fillna(0).astype(int).astype(str) + "%\n(n=" + grid_n.astype(str) + ")"
+    sns.heatmap(grid_rate, annot=grid_labels, fmt="", mask=(grid_n == 0), cmap="Reds", vmin=0, vmax=100, linewidths=2,
+                linecolor="white", cbar_kws={"label": "default rate (%)"}, ax=ax)
+    ax.set_ylabel(ylabel); ax.set_xlabel(xlabel); ax.set_title(title)
+plt.tight_layout(); plt.show()
+
+# The two strongest missing-value signals together
+ratio_status = data["DEBTINC"].isna().map({False: "ratio recorded", True: "ratio missing"})
+value_status = data["VALUE"].isna().map({False: "value recorded", True: "value missing"})
+both_missing = bad_int.groupby([ratio_status, value_status]).agg(default_rate_pct="mean", applicants="size")
+both_missing["default_rate_pct"] = (100 * both_missing["default_rate_pct"]).round(1)
+both_missing
+""")
+add_after(76, "markdown", r"""
+**Insights - interactions between the strongest drivers:**
+- **Debt burden and repayment history add up.** When the ratio is 45% or less, delinquency still decides much of the risk: 3% to 9% defaulted with no delinquent lines, and 25% to 30% defaulted with two or more.
+- Above 45%, 91% to 100% defaulted, whatever the number of delinquent lines. The ratio alone is enough in that group.
+- When the ratio is missing, delinquency adds risk on top of the missing signal: 50% defaulted with no delinquent lines (695 applicants) and 87% with two or more (253 applicants).
+- **A long credit history lowers the risk but does not cancel a derogatory report.** With one or more reports, the default rate rises from 25% to 56% under 10 years of history, from 15% to 48% at 10 to 20 years, and from 8% to 32% at 20 years or more.
+- **The two missing-value signals compound.** With both fields recorded, 8% defaulted (4,662 applicants). With only the ratio missing, 60% defaulted (1,186 applicants). With only the property value missing, 81% defaulted (31 applicants). With both missing, 99% defaulted (81 applicants).
+- These combined effects are why a tree-based model, which splits on one driver inside another, should beat a model that adds each driver on its own. They also match the surrogate tree we fit later: a high or missing ratio flags an applicant, and repayment history decides among the others.
+""")
 md(77, r"""
 ### **Think about it**
 - Are there missing values and outliers in the dataset? If yes, how can you treat them?
@@ -524,7 +633,8 @@ What are the the most important observations and insights from the data based on
 7. **Occupation matters moderately** (Sales 35%, Self 30%, Office 13%). Loan purpose makes only a 3-point difference, although it is statistically significant.
 8. **Property value and mortgage balance are highly correlated (0.88)** and individually weak predictors.
 9. **Relationships with the target are non-linear** (cliffs and thresholds), so we expect tree-based models to beat logistic regression, which remains the most transparent benchmark.
-10. **Pre-processing decisions:**
+10. **Risk factors combine rather than act alone.** A ratio above 45% flags an applicant by itself. At or below 45%, two or more delinquent lines raise the default rate from 3-9% to 25-30%. A derogatory report raises risk at every credit-history length. When both the ratio and the property value are missing, 99% defaulted. Loan purpose also changes the risk within some occupations (self-employed applicants: 44% on debt consolidation against 18% on home improvement). These interactions favour tree-based models.
+11. **Pre-processing decisions:**
     - We removed no rows and found no duplicates.
     - We reserved the test set before we fitted any statistic.
     - We added a missing-value flag for every column with gaps.
