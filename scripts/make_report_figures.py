@@ -65,6 +65,20 @@ rows = styler_table("comparison = pd.concat")
 header = rows[0]
 comp = pd.DataFrame([r[1:] for r in rows[2:]], index=[r[0] for r in rows[2:]], columns=header[1:]).replace(",", "", regex=True).astype(float)
 
+# final model on the test set (recall / precision at the selected threshold, ROC-AUC), added to the comparison as "Proposed"
+final_outputs = cell_outputs("final_model.fit(X_train[final_cols], y_train)")
+final_auc = None
+for o in final_outputs:
+    if o.get("output_type") == "stream":
+        m = re.search(r"Test ROC-AUC:\s*([0-9.]+)", "".join(o["text"]))
+        if m: final_auc = float(m.group(1))
+rows = styler_table("final_model.fit(X_train[final_cols], y_train)")
+final_tbl = pd.DataFrame([r[1:] for r in rows[1:]], columns=rows[0][1:]).replace(",", "", regex=True).astype(float)
+final_row = final_tbl.iloc[0]
+assert final_auc is not None and final_row["threshold"] < 0.5
+comp.loc["Proposed (own threshold)"] = {"Test Recall": final_row["recall"], "Test Precision": final_row["precision"], "Test ROC-AUC": final_auc}
+PROPOSED_LABEL = f"Proposed: forest\n(threshold {final_row['threshold']:.2f})"
+
 # out-of-fold threshold table of the selected model (training rows)
 rows = styler_table('tbl = oof[winner]["table"]')
 thr = pd.DataFrame([r[1:] for r in rows[1:]], columns=rows[0][1:]).replace(",", "", regex=True).astype(float)
@@ -167,6 +181,7 @@ show = [
     ("Random Forest (default)", "Random Forest\n(default)"),
     ("Random Forest (class weights)", "Random Forest\n(class weights)"),
     ("Random Forest (tuned, recall)", "Random Forest\n(tuned)"),
+    ("Proposed (own threshold)", PROPOSED_LABEL),
 ]
 metrics = [("Test Recall", "Defaulters caught (recall)", NAVY), ("Test Precision", "Precision", LIGHT), ("Test ROC-AUC", "Risk-ranking quality (ROC-AUC)", GREEN)]
 fig, ax = plt.subplots(figsize=(8.5, 3.6))
@@ -176,10 +191,10 @@ for i, (col, label, color) in enumerate(metrics):
     bars = ax.bar(x + (i - 1) * w, vals, w, color=color, label=label)
     for b, v in zip(bars, vals):
         ax.text(b.get_x() + b.get_width() / 2, v + 1, f"{v:.0f}", ha="center", fontsize=7.5)
-ax.set_xticks(x); ax.set_xticklabels([lab for _, lab in show], fontsize=8.5)
+ax.set_xticks(x); ax.set_xticklabels([lab for _, lab in show], fontsize=8)
 ax.set_ylim(0, 112); ax.set_ylabel("Score on unseen applicants (%)")
 ax.legend(frameon=False, fontsize=8, ncol=3, loc="upper left")
-ax.set_title("How the techniques compare on the 1,788 held-out applicants", fontsize=11, color=NAVY, loc="left")
+ax.set_title("Techniques on the 1,788 held-out applicants (0.5 threshold; proposed model at 0.15)", fontsize=11, color=NAVY, loc="left")
 fig.tight_layout(); fig.savefig(OUT / "report_model_comparison.png"); plt.close(fig)
 
 # Figure: threshold trade-off
@@ -187,7 +202,7 @@ fig, ax1 = plt.subplots(figsize=(8.5, 3.6))
 ax1.plot(thr["threshold"], thr["recall"] * 100, marker="o", color=GREEN, label="Defaulters caught (recall)")
 ax1.plot(thr["threshold"], thr["precision"] * 100, marker="o", color=NAVY, label="Precision")
 ax1.set_xlabel("Decision threshold (probability above which an applicant is flagged)")
-ax1.set_ylabel("%"); ax1.set_ylim(50, 100)
+ax1.set_ylabel("%"); ax1.set_ylim(40, 100)
 ax2 = ax1.twinx(); ax2.grid(False)
 ax2.plot(thr["threshold"], thr["expected_cost_per_1000_$"] / 1000, marker="s", linestyle="--", color=GREY, label="Indicative expected cost per 1,000 applicants")
 ax2.set_ylabel("Expected cost per 1,000 applicants ($ thousand)")

@@ -92,7 +92,7 @@ pres.addSection({ title: "Opening" });
     { text: "Shubham Garg  |  November 2026", options: { fontSize: 12, color: C.accent4 } },
   ], { placeholder: "body" });
   s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.45, w: 0.9, h: 0.08, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "title marker" });
-  notes(s, "Good morning. In the next eight minutes I will show how a bank can cut its home-equity loan losses by more than three quarters with a model it can also explain to regulators and applicants.");
+  notes(s, "Good morning. In the next eight minutes I will show how a bank can cut the default-related cost of the home-equity loans it approves today by about four fifths with a model it can also explain to regulators and applicants.");
 }
 
 // 2. Key takeaways
@@ -213,8 +213,8 @@ pres.addSection({ title: "Key insights" });
     { name: "Default rate", labels: ["Sales", "Self", "Mgr", "Other", "ProfExe", "Office"], values: [34.9, 30.1, 23.3, 23.2, 16.6, 13.2] },
   ], { ...chartFrame(), x: 6.6, y: 1.2, w: 3.0, h: 3.1, barDir: "col", chartColors: [H.accent6], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
        valAxisMaxVal: 45, valAxisLabelFormatCode: "0", title: "By occupation", objectName: "occupation chart" });
-  s.addText("Default rate (%) by group. Applicants with under five years of credit history default four times as often as those with twenty-plus years. Loans under $5,000 default 57% of the time. Occupation shifts risk moderately; on its own it adds little once financial behaviour is known, and it stays in the model only subject to the fair-lending review.", { x: 0.5, y: 4.35, w: 9.0, h: 0.8, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "insight 3 summary" });
-  notes(s, "Three supporting drivers. A long credit history protects. Small loans are the riskiest, not the safest. Occupation matters a little; at the usual threshold removing it changes performance by about a point, and the fair-lending review decides whether it stays in.");
+  s.addText("Default rate (%) by group. Applicants with under five years of credit history default four times as often as those with twenty-plus years. Loans under $5,000 default 57% of the time. Occupation shifts risk moderately; on its own it adds little at the usual cut-off, but removing it from the final model raises the expected cost of credit errors by about 10%, so it stays in, subject to the fair-lending review.", { x: 0.5, y: 4.35, w: 9.0, h: 0.8, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "insight 3 summary" });
+  notes(s, "Three supporting drivers. A long credit history protects. Small loans are the riskiest, not the safest. Occupation matters a little: removing it raises the expected cost of credit errors by about 10 percent, and the fair-lending review decides whether it stays in.");
 }
 
 // =====================================================================================
@@ -246,7 +246,7 @@ pres.addSection({ title: "Modelling" });
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
   s.addText("Model comparison: the Random Forest gives the best balance", { placeholder: "title" });
-  const labels = ["Logistic Regression (balanced)", "Decision Tree (tuned)", "Bagged trees (200)", "Random Forest (default)", "Random Forest (class weights)", "Random Forest, threshold 0.15"];
+  const labels = ["Logistic Regression (balanced)", "Decision Tree (tuned)", "Bagged trees (200)", "Random Forest (default; proposed at 0.5)", "Random Forest (class weights)", "Random Forest, threshold 0.15"];
   s.addChart(pres.charts.BAR, [
     { name: "Defaulters caught (recall)", labels, values: [79.6, 82.1, 68.3, 68.6, 77.3, 92.7] },
     { name: "Precision", labels, values: [60.8, 53.1, 82.7, 84.2, 76.9, 68.1] },
@@ -256,10 +256,10 @@ pres.addSection({ title: "Modelling" });
   s.addText(bullets([
     "Linear vs non-linear: logistic regression reaches 80% recall but only 61% precision. The data is made of thresholds, which trees capture and a straight line cannot.",
     "Single tree vs ensembles: the tuned tree catches 82% but declines almost one good customer per defaulter caught (53% precision). Bagging 200 trees lifts precision to 83% and AUC to 0.95 at 68% recall.",
-    "The class-weighted forest catches 77% at 77% precision with a ROC-AUC of 0.96: among the best at ranking applicants by risk.",
-    "The final choice was made on repeated out-of-fold expected cost (training data only): once the threshold is tuned, class weights add nothing, and the plain forest at a 0.15 cut-off catches 93% at 68% precision on the test set, the lowest cost of any option.",
+    "The class-weighted forest: 77% recall at 77% precision, ROC-AUC 0.96, among the best at ranking applicants by risk.",
+    "Final choice on the expected cost of mistakes (training data only), by a rule fixed beforehand: lowest average cost, simplest if within noise. Three forests tied; the plain forest at 0.15 catches 93% at 68% precision on test.",
   ], 12), { x: 6.45, y: 1.25, w: 3.15, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "comparison bullets" });
-  notes(s, "Eleven model variants were built; these six tell the story. At the usual cut-off the forest with class weights has the best balance and ranks applicants among the best. The final configuration and its threshold were then selected together on repeated out-of-fold expected cost using training data only. Class weights turned out to add nothing once the cut-off is tuned, so the plain forest at a 0.15 cut-off was chosen; on the test set it catches 93 percent of defaulters while two thirds of the flagged applicants really would have defaulted.");
+  notes(s, "Eleven model variants were built; these six tell the story. At the usual cut-off the forest with class weights has the best balance and ranks applicants among the best. The final configuration and its threshold were then selected together on repeated out-of-fold expected cost using training data only. The rule was fixed beforehand: lowest average cost of mistakes, and the simplest set-up when several are within run-to-run noise. Three forests tied within that noise, so class weights made no measurable difference once the cut-off is tuned, and the plain forest at a 0.15 cut-off was chosen; on the test set it catches 93 percent of defaulters while two thirds of the flagged applicants really would have defaulted. At their own best cut-offs the logistic regression and the tree cost 550 and 607 thousand dollars per thousand applicants against 317 thousand for the forest, so the forest also wins on the cost yardstick.");
 }
 
 // 10. Proposed solution
@@ -270,17 +270,17 @@ pres.addSection({ title: "Modelling" });
   s.addText("Model specification", { x: 0.7, y: 1.35, w: 4.9, h: 0.4, fontSize: 14, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "spec title" });
   s.addText(bullets([
     "Scoring engine: Random Forest, 200 fully grown trees, no class weights: the decision threshold handles the imbalance.",
-    "Inputs: all 27 (10 financial attributes, 11 missing-value flags, occupation and loan purpose). Fallback without occupation and purpose: 12 inputs, about a fifth more credit-error cost.",
-    "Decision threshold 0.15, chosen together with the configuration by minimising expected cost on repeated out-of-fold predictions of the training rows (stable for cost ratios 3:1 to 6:1; matches the 0.18 break-even for the stated costs); approve / refer / decline bands keep an underwriter in the loop.",
-    "Explanation layer: a depth-4 surrogate tree fitted to the forest's own decisions reproduces 90% of them; its rules (ratio missing or above 45%, two or more delinquent lines, credit-history length, derogatory reports) supply the ECOA adverse-action reasons.",
+    "Inputs: all 27 (10 financial attributes, 11 missing-value flags, occupation and loan purpose). Fallback without occupation: 21 inputs, about 10% more credit-error cost.",
+    "Decision threshold 0.15, chosen together with the configuration by minimising expected cost on repeated out-of-fold predictions of the training rows (stable for cost ratios 3:1 to 6:1 and across train/test splits); approve / refer / decline bands (about 69% / 7% / 24% of applicants) keep an underwriter in the loop.",
+    "Explanation layer: a depth-4 surrogate tree fitted to the forest's out-of-fold decisions reproduces 93% of them; its rules (ratio missing; ratio above 44%; a delinquent line together with a derogatory report) supply the ECOA adverse-action reasons.",
     "Test set held out before any pre-processing; scored once, after all choices were made on training data.",
   ], 11.5), { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
   stat(s, 6.1, 1.3, 1.65, "93%", "of defaulters caught", C.accent5, 34);
   stat(s, 7.85, 1.3, 1.65, "68%", "of flagged applicants truly default", C.accent1, 34);
   stat(s, 6.1, 2.75, 1.65, "0.96", "ROC-AUC: risk ranking quality", C.accent1, 34);
   stat(s, 7.85, 2.75, 1.65, "90%", "overall accuracy", C.accent1, 34);
-  s.addText("Per 1,000 applicants: about 185 of 200 defaulters flagged in advance, 15 missed, 87 good customers referred or declined.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
-  notes(s, "The proposal. A Random Forest does the scoring; a surrogate decision tree fitted to the forest's own decisions, which reproduces ninety percent of them, provides the plain-language reasons for every decline. On unseen applicants the forest catches 93 percent of defaulters and two out of three flagged applicants really would have defaulted.");
+  s.addText("Per 1,000 applicants: 185 of 200 defaulters flagged in advance, 15 missed, 87 good customers referred or declined; 27% of applicants flagged, 73% approved.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
+  notes(s, "The proposal. A Random Forest does the scoring; a surrogate decision tree fitted to the forest's out-of-fold decisions, which reproduces ninety-three percent of them, provides the plain-language reasons for every decline. On unseen applicants the forest catches 93 percent of defaulters and two out of three flagged applicants really would have defaulted.");
 }
 
 // 11. Threshold choice
@@ -301,8 +301,8 @@ pres.addSection({ title: "Modelling" });
     s.addText(t, { x: 6.1, y: y + 0.1, w: 3.3, h: 0.4, fontSize: 14, bold: true, color: col, margin: 0, isTextBox: true, objectName: `threshold card title ${i + 1}` });
     s.addText(bullets([a, b, c], 12), { x: 6.1, y: y + 0.55, w: 3.3, h: 1.2, valign: "top", margin: 0, isTextBox: true, objectName: `threshold card body ${i + 1}` });
   });
-  s.addText("Curves: out-of-fold predictions on the training rows, which is where the threshold was chosen. Cards: test set, per 1,000 applicants; cost assumes $9,000 per missed defaulter and $2,000 per wrongly declined customer. The optimum stays at 0.15 for cost ratios from 3:1 to 6:1 and matches the textbook break-even (0.18) for these costs.", { x: 0.5, y: 4.92, w: 8.4, h: 0.28, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
-  notes(s, "The model outputs a probability, and 0.5 is only a convention. The cut-off was chosen on out-of-fold predictions of the training data, so the test set played no part. Moving it to 0.15 cuts missed defaulters from 63 to 15 per thousand applicants on the test set, at the price of declining 87 instead of 26 good customers. It is the cheapest operating point for any cost ratio between three and six to one, and it matches the textbook break-even for the stated costs, which tells us the forest's probabilities are meaningful.");
+  s.addText("Curves: out-of-fold predictions on the training rows, which is where the threshold was chosen. Cards: test set, per 1,000 applicants; cost assumes $9,000 per missed defaulter and $2,000 per wrongly declined customer. The optimum stays at 0.15 for cost ratios from 3:1 to 6:1, on a finer grid and on other train/test splits; it sits just below the textbook break-even (0.18) because the scores understate risk.", { x: 0.5, y: 4.92, w: 8.4, h: 0.28, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
+  notes(s, "The model outputs a probability, and 0.5 is only a convention. The cut-off was chosen on out-of-fold predictions of the training data, so the test set played no part. Moving it to 0.15 cuts missed defaulters from 63 to 15 per thousand applicants on the test set, at the price of declining 87 instead of 26 good customers. It is the cheapest operating point for any cost ratio between three and six to one, and it held on a finer grid and on other train/test splits. It sits just below the textbook break-even of 0.18 for a perfectly calibrated score because the forest's scores understate risk in the decision range: applicants scored fifteen to twenty percent defaulted about twenty-three percent of the time.");
 }
 
 // =====================================================================================
@@ -324,7 +324,7 @@ pres.addSection({ title: "Recommendations" });
   s.addText("~$9M", { x: 6.7, y: 1.4, w: 2.8, h: 0.95, fontSize: 40, bold: true, color: C.background1, align: "center", valign: "bottom", margin: 0, isTextBox: true, objectName: "benefit number" });
   s.addText("indicative gross annual benefit; about $8.9M after running costs, $8.5M in year one", { x: 6.7, y: 2.4, w: 2.8, h: 0.9, fontSize: 12, color: C.background2, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: "benefit label" });
   s.addText(bullets([
-    "Assumptions: 6,000 applications a year, defaulted loans average $16,900 with about half recovered ($9,000 per missed defaulter), forgone margin about $2,000 per declined good customer, production performance equal to test performance.",
+    "Assumptions: 6,000 applications a year, defaulted loans average $16,900 with about half recovered ($9,000 per missed defaulter), forgone margin about $2,000 per declined good customer, production performance equal to test performance; measured as an extra screen on the loans the bank approves today, before mandatory income verification.",
     "Costs: roughly $300-400k one-off (pipeline, integration, validation, fairness review, training) and about $100k a year to run and monitor. Pays back within the first year even if only a quarter of the benefit is realised.",
     "Non-financial: faster decisions, consistent treatment, auditable reasons for every decline, verified income and valuation on every application.",
   ], 11), { x: 0.5, y: 3.6, w: 9.1, h: 1.55, valign: "top", margin: 0, isTextBox: true, objectName: "impact bullets" });
@@ -336,8 +336,8 @@ pres.addSection({ title: "Recommendations" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Recommendations" });
   s.addText("Recommendations and implementation roadmap", { placeholder: "title" });
   const phases = [
-    ["Months 0-2: prepare", ["Make income and valuation verification mandatory fields", "Build the scoring pipeline and reason codes", "Calibrate the threshold with real loss and margin figures", "Fairness and model-risk review"]],
-    ["Months 2-4: shadow and pilot", ["Score every application alongside the manual decision", "Compare outcomes, tune the approve / refer / decline bands", "Train underwriters on reason codes and referrals"]],
+    ["Months 0-2: prepare", ["Make income and valuation verification mandatory fields", "Build the scoring pipeline and reason codes", "Confirm the threshold with real loss and margin figures", "Fairness and model-risk review"]],
+    ["Months 2-4: shadow and pilot", ["Score every application alongside the manual decision", "Re-train once verified ratios flow in; tune the approve / refer / decline bands", "Train underwriters on reason codes and referrals"]],
     ["Month 4 onwards: scale", ["Switch on automated approve / decline for clear cases", "Monthly monitoring of recall, precision, approval rate, missing fields", "Yearly re-training; threshold review with finance"]],
   ];
   phases.forEach(([title, items], i) => {
@@ -349,10 +349,10 @@ pres.addSection({ title: "Recommendations" });
   });
   s.addText("Policy rules to adopt now, independent of the model", { x: 0.5, y: 4.0, w: 9.0, h: 0.35, fontSize: 13, bold: true, color: C.accent2, margin: 0, isTextBox: true, objectName: "rules title" });
   s.addText(bullets([
-    "Decline or escalate when the debt-to-income ratio is above 45%, when there are two or more delinquent credit lines, or two or more major derogatory reports.",
+    "Decline or escalate above a 45% debt-to-income ratio; refer to an underwriter with two or more delinquent credit lines or two or more major derogatory reports (45% and 51%+ observed default). Hard rules take precedence over the score.",
     "Treat an application with no verifiable income or property valuation as high risk, never as neutral.",
   ], 11.5), { x: 0.5, y: 4.38, w: 9.0, h: 0.8, valign: "top", margin: 0, isTextBox: true, objectName: "rules bullets" });
-  notes(s, "Implementation in three phases: prepare, shadow and pilot, then scale. And two policy rules the bank can adopt immediately, with or without the model: a debt-to-income limit of 45 percent and a hard look at anyone with two or more delinquencies or derogatory reports.");
+  notes(s, "Implementation in three phases: prepare, shadow and pilot, then scale. And two policy rules the bank can adopt immediately, with or without the model: a debt-to-income limit of 45 percent and a referral to an underwriter for anyone with two or more delinquencies or derogatory reports, cut-offs read straight from the observed default rates.");
 }
 
 // 14. Risks and next steps
@@ -363,9 +363,9 @@ pres.addSection({ title: "Recommendations" });
   s.addText("Risks and mitigations", { x: 0.7, y: 1.4, w: 4.1, h: 0.4, fontSize: 14, bold: true, color: C.accent2, margin: 0, isTextBox: true, objectName: "risks title" });
   s.addText(bullets([
     "Selection bias: the data covers only loans the old process approved. Mitigate with a shadow period on all applications and reject inference.",
-    "The 'ratio missing' signal will change once verification is mandatory. Re-train after the rule is in place.",
+    "The 'ratio missing' signal will change once verification is mandatory: re-train on the verified population before go-live. On applicants with a recorded ratio the model already catches 83% at 80% precision.",
     "Economic drift: monitor monthly, re-train yearly, review the threshold.",
-    "Fair lending: disparate-impact testing before launch and annually; a 12-input fallback without occupation and loan purpose is ready if required.",
+    "Fair lending: the 0.15 cut-off wrongly flags about 11% of creditworthy applicants (3% at 0.5), so disparate-impact testing before launch, annually and whenever the cut-off moves; a 21-input fallback without occupation is ready (about 10% more credit-error cost).",
     "Explainability and automation bias: tree-based reason codes, a referral band, documented overrides.",
   ], 11), { x: 0.7, y: 1.85, w: 4.1, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "risks bullets" });
   card(s, 5.15, 1.3, 4.45, 3.85, { name: "next steps card" });
@@ -416,7 +416,7 @@ pres.addSection({ title: "Appendix" });
     [{ text: "Proposed: RF unweighted, 27 inputs, threshold 0.15", options: { bold: true } }, { text: "0.927", options: { bold: true } }, { text: "0.681", options: { bold: true } }, { text: "0.785", options: { bold: true } }, { text: "0.899", options: { bold: true } }, { text: "0.963", options: { bold: true } }, "-"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [3.3, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.27, valign: "middle", margin: 0.03, align: "left", objectName: "full comparison table" });
-  s.addText("Test set of 1,788 applicants at the 0.5 threshold except the proposed model. Train recall of 1.000 marks un-pruned models that memorised the training data. The proposed model (the default forest with its threshold moved) and its threshold were selected on repeated out-of-fold expected cost (training rows only); its mean out-of-fold ROC-AUC was 0.961 against 0.963 on test.", { x: 0.5, y: 4.95, w: 9.0, h: 0.25, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "table footnote" });
+  s.addText("Test set of 1,788 applicants at the 0.5 threshold except the proposed model. Train recall of 1.000 marks un-pruned models that memorised the training data. The proposed model (the default forest with its threshold moved) and its threshold were selected on repeated out-of-fold expected cost (training rows only) under a rule fixed beforehand: lowest mean cost, simplest set-up among those within one standard error (about $10,500). Mean out-of-fold ROC-AUC 0.961 against 0.963 on test.", { x: 0.5, y: 4.95, w: 9.0, h: 0.25, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "table footnote" });
 }
 
 // A2. Feature importance
@@ -432,7 +432,7 @@ pres.addSection({ title: "Appendix" });
     "The debt-to-income ratio and its missing flag carry a third of the final forest's decision power; with delinquent lines and credit-history length, about half.",
     "Permutation importance (drop in ranking quality when a column is shuffled) ranks the same four at the top, delinquent credit lines first.",
     "Loan, property and mortgage amounts matter in combination, little on their own.",
-    "Occupation, loan purpose and minor flags matter little individually, yet dropping them raised out-of-fold expected cost by about a fifth, so they stay subject to the fair-lending review.",
+    "Occupation, loan purpose and minor flags matter little individually, yet dropping them raised out-of-fold expected cost by about a fifth, and dropping occupation alone by about 10%, so they stay subject to the fair-lending review.",
     "Logistic-regression coefficients, tree rules and the surrogate tree all point to the same drivers.",
   ], 11), { x: 6.4, y: 1.25, w: 3.2, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "importance bullets" });
 }
@@ -442,11 +442,11 @@ pres.addSection({ title: "Appendix" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
   s.addText("Appendix C: the explanation layer, rules of the surrogate tree that follows the forest", { placeholder: "title" });
   const rules = [
-    ["1", "Is the debt-to-income ratio missing?", "Yes: high-risk branch (62% defaulted). Flag, unless there is no delinquent line, no derogatory report and more than about 15 years of credit history."],
-    ["2", "If recorded, is the ratio above about 45%?", "Yes: flag, whatever the credit history (87-100% of these applicants defaulted)."],
-    ["3", "Ratio at or below 45%: two or more delinquent credit lines?", "Yes, with a mortgage balance below about $45,500: flag. None or one: clear; applicants with no delinquent line default only about 4-5% of the time."],
-    ["4", "Unverified ratio: how long is the credit history, any derogatory report?", "A history under about 15 years, or any derogatory report with a longer history, tips an unverified-ratio applicant to flag."],
-    ["5", "What the rules do not use", "Loan size, occupation and loan purpose do not appear: they matter only in combination inside the forest, which supplies the per-applicant reason codes."],
+    ["1", "Is the debt-to-income ratio missing?", "Yes: flag, whatever the credit history (62% of these applicants defaulted). Verify income before approving."],
+    ["2", "If recorded, is the ratio above about 44%?", "Yes: flag (87-100% of applicants above 45% defaulted)."],
+    ["3", "Ratio at or below 44%: a delinquent credit line together with a major derogatory report?", "Yes: flag. Otherwise clear; applicants with no delinquent line default only about 4-5% of the time."],
+    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on unseen applicants (73% for never flagging; kappa 0.82); the forest's own top risk drivers explain the remaining 7%."],
+    ["5", "What the rules do not use", "Loan size, credit-history length, occupation and loan purpose do not change the outcome in the surrogate: they matter only in combination inside the forest, which supplies the per-applicant reason codes."],
   ];
   rules.forEach(([n, q, a], i) => {
     const y = 1.3 + i * 0.76;
@@ -455,7 +455,7 @@ pres.addSection({ title: "Appendix" });
     s.addText(a, { x: 4.8, y, w: 4.8, h: 0.66, fontSize: 12, color: C.text1, margin: 0, isTextBox: true, valign: "middle", objectName: `rule answer ${n}` });
     if (i < rules.length - 1) s.addShape(pres.shapes.LINE, { x: 1.1, y: y + 0.72, w: 8.5, h: 0, line: { color: "E3E3E3", width: 0.75 }, objectName: `rule divider ${n}` });
   });
-  s.addText("Surrogate: depth-4 tree, minimum 20 applicants per leaf, fitted to the forest's flag/clear decisions at threshold 0.15 on the training rows; it agrees with the forest on 90% of test decisions. The stand-alone tuned tree (test recall 82%, precision 53%) found the same drivers.", { x: 0.5, y: 5.0, w: 9.0, h: 0.25, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "tree footnote" });
+  s.addText("Surrogate: depth-4 tree, minimum 20 applicants per leaf, fitted to the forest's out-of-fold flag/clear decisions at threshold 0.15 on the training rows; it agrees with the forest on 93% of test decisions (73% for a rule that never flags). The stand-alone tuned tree (test recall 82%, precision 53%) found the same drivers.", { x: 0.5, y: 5.0, w: 9.0, h: 0.25, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "tree footnote" });
 }
 
 // A4. Pre-processing summary
@@ -470,7 +470,7 @@ pres.addSection({ title: "Appendix" });
     ["Outliers", "IQR capping for the linear model only; DEROG and DELINQ capped at the 99th percentile; tree models use raw values", "Linear models are pulled by extremes (debt-to-income 203%, credit history 97 years); trees split on rank order and keep the 'above 50% always defaults' signal"],
     ["Encoding and scaling", "One-hot encoding of REASON and JOB (drop first); standard scaling of the continuous inputs for the linear model only, flags left as 0/1", "Comparable coefficients, odds ratios for flags read as the effect of the flag"],
     ["Split", "70% train / 30% test, stratified on the target, fixed seed, held out before any statistic was fitted; identical applicants in both data versions", "No leakage from test rows into fences, medians or scaling; results comparable across models"],
-    ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the individual models, then the decision threshold for the final model; no resampling", "Keeps every real applicant; class weights lifted recall by 23 points for logistic regression and 9 for the forest at the 0.5 cut-off, but added nothing once the threshold was chosen on cost, so the final forest is unweighted"],
+    ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the individual models, then the decision threshold for the final model; no resampling", "Keeps every real applicant; class weights lifted recall by 23 points for logistic regression and 9 for the forest at the 0.5 cut-off, but made no measurable difference once the threshold was chosen on cost, so the final forest is unweighted"],
     ["Model inputs", "27 columns: the 10 attributes, 11 missing flags and 6 one-hot indicators (REASON HomeImp; JOB Office, Other, ProfExe, Sales, Self)", "Every input to the final model is named in the notebook's final-pipeline cell, with the imputation values and model settings"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.8, 3.7], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
