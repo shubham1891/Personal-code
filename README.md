@@ -1,16 +1,16 @@
 # Loan Default Prediction - Capstone Project
 
-Capstone project for the MIT Professional Education **Applied AI and Data Science Program** (Practical Data Science track, classification).
+This is the capstone project for the MIT Professional Education **Applied AI and Data Science Program** (Practical Data Science track, classification).
 
-A bank's consumer credit department wants an empirically derived, interpretable model to predict which home equity loan applicants are likely to default, and recommendations on which applicant attributes matter most when approving a loan. The data is the Home Equity (HMEQ) dataset: 5,960 recent loans, 12 input attributes, and a binary target `BAD` (1 = defaulted or seriously delinquent).
+The consumer credit department of a bank wants an empirically derived, interpretable model. The department wants this model to predict which applicants for a home equity loan are likely to default. The department also wants recommendations on which applicant attributes matter most when the bank approves a loan. The data is the Home Equity (HMEQ) dataset: 5,960 recent loans, 12 input attributes, and a binary target `BAD` (1 = defaulted or seriously delinquent).
 
 ## Deliverables
 
-The program grades one of two tracks, chosen on the preference form. Both are provided.
+The program grades one of two tracks. The participant chooses this track on the preference form. This repository provides both tracks.
 
 | Stage | Full-code track | Low-code track |
 |---|---|---|
-| Milestone (20 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` (executed full-code notebook; `.ipynb` alongside) | `reports/Loan_Default_Prediction_Milestone_Report.pdf` (business report; the completed template notebook `notebooks/Loan_Default_Prediction_Low_Code.html` supports it) |
+| Milestone (20 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` (executed full-code notebook, with the `.ipynb` file next to it) | `reports/Loan_Default_Prediction_Milestone_Report.pdf` (business report, supported by the completed template notebook `notebooks/Loan_Default_Prediction_Low_Code.html`) |
 | Final report (40 pts) | `reports/Loan_Default_Prediction_Final_Report.pdf` (Word source alongside) | same |
 | Live presentation (40 pts) | `presentation/Loan_Default_Prediction_Presentation.pdf` (PowerPoint source alongside) | same |
 
@@ -38,8 +38,16 @@ python3 scripts/make_report_figures.py                 # business-labelled chart
 node scripts/build_milestone_report.js && node scripts/build_report.js && node scripts/build_presentation.js
 ```
 
-Each notebook runs end to end in a few minutes on a laptop (the grid searches and the out-of-fold model selection are the slow steps). All random seeds are fixed, so the numbers in the reports and slides are reproducible.
+Each notebook runs end to end in a few minutes on a laptop. The slow steps are the grid searches and the step that chooses the final model on out-of-fold predictions. We fixed all random seeds, so the numbers in the reports and slides are reproducible.
 
-## Approach in one paragraph
+## Approach in brief
 
-Exploratory analysis showed that one in five loans defaults, that a missing debt-to-income ratio is the single strongest risk signal (62% default rate versus 8.6% when present), that debt-to-income above 45% almost always defaults, and that delinquencies, derogatory reports and a short credit history raise risk sharply. A stratified 30% test set was held out before any statistic was fitted; missing values were flagged and imputed with training-row medians and modes; outliers were capped only for the linear model. Logistic Regression, a Decision Tree, a bagged ensemble of trees and a Random Forest were trained, tuned with cross-validated grid search on recall, and compared on recall (primary), precision, F1 and ROC-AUC. The final model's configuration (class weights, tree size, input set) and its decision threshold were then chosen together on repeated out-of-fold expected cost of credit errors using training data only, under a rule fixed in advance, and the test set was scored once: the unweighted Random Forest on all 27 inputs at a 0.15 threshold catches 93% of defaulters at 68% precision. The final pipeline is written out step by step in the notebook so that every input to the scoring model is explicit. A surrogate decision tree fitted to the forest's out-of-fold decisions (93% agreement on unseen applicants) provides the plain-language reasons the Equal Credit Opportunity Act requires.
+Exploratory analysis showed the following. One in five loans defaults. A missing debt-to-income ratio is the single strongest risk signal (62% default rate versus 8.6% when the ratio is present). Loans with debt-to-income above 45% almost always default. Delinquencies, derogatory reports and a short credit history raise risk sharply.
+
+We separated a stratified 30% test set before we fitted any statistic. We flagged missing values and imputed them with training-row medians and modes. We capped outliers only for the linear model.
+
+We trained Logistic Regression, a Decision Tree, a bagged ensemble of trees and a Random Forest. We tuned each model with cross-validated grid search on recall. We compared the models on recall (primary), precision, F1 and ROC-AUC.
+
+We then chose the final model's configuration (class weights, tree size, input set) and its decision threshold together, with training data only. The criterion was the expected cost of credit errors on repeated out-of-fold predictions. We fixed the rule for this choice in advance. We scored the test set once. On the test set, the unweighted Random Forest on all 27 inputs at a 0.15 threshold catches 93% of defaulters at 68% precision.
+
+We wrote the final pipeline step by step in the notebook so that every input to the scoring model is explicit. We fitted a surrogate decision tree to the forest's out-of-fold decisions. It agrees with the forest on 93% of unseen applicants. The surrogate tree provides the plain-language reasons that the Equal Credit Opportunity Act requires.
