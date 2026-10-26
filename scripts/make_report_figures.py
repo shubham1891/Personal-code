@@ -173,6 +173,53 @@ for ax in axes[1:]:
 fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). n = applicants with that count (missing values excluded).", ha="center", fontsize=8, color=GREY)
 fig.tight_layout(); fig.savefig(OUT / "report_credit_history.png", bbox_inches="tight"); plt.close(fig)
 
+# Figure: interactions (multivariate) - default rate for pairs of variables, single-hue sequential scale
+def _band(series, bins, labels):
+    b = pd.cut(series, bins=bins, labels=labels, include_lowest=True).astype(object)
+    return b.where(series.notna(), "Not recorded")
+
+def _grid(rows, cols, row_order, col_order):
+    g = df.groupby([rows, cols])["BAD"]
+    rate = (g.mean() * 100).unstack().reindex(index=row_order, columns=col_order)
+    n = g.size().unstack().reindex(index=row_order, columns=col_order).fillna(0).astype(int)
+    return rate, n
+
+def _heat(ax, rate, n, vmax, xlabel, ylabel, title):
+    im = ax.imshow(rate.values, cmap="Reds", vmin=0, vmax=vmax, aspect="auto")
+    for i in range(rate.shape[0]):
+        for j in range(rate.shape[1]):
+            if n.iat[i, j] == 0:
+                continue
+            v = rate.iat[i, j]
+            ax.text(j, i - 0.12, f"{int(np.floor(v + 0.5))}%", ha="center", va="center", fontsize=9,
+                    color="white" if v > 0.55 * vmax else "#222222", fontweight="bold")
+            ax.text(j, i + 0.22, f"n={n.iat[i, j]:,}", ha="center", va="center", fontsize=6.5,
+                    color="white" if v > 0.55 * vmax else "#333333")
+    ax.set_xticks(range(rate.shape[1])); ax.set_xticklabels(rate.columns, fontsize=8)
+    ax.set_yticks(range(rate.shape[0])); ax.set_yticklabels(rate.index, fontsize=8)
+    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.grid(False)
+    ax.set_title(title, fontsize=10, color=NAVY, loc="left")
+    for edge in ["top", "right", "bottom", "left"]:
+        ax.spines[edge].set_visible(False)
+    ax.set_xticks(np.arange(-0.5, rate.shape[1], 1), minor=True); ax.set_yticks(np.arange(-0.5, rate.shape[0], 1), minor=True)
+    ax.grid(which="minor", color="white", linewidth=2); ax.tick_params(which="minor", length=0)
+    cb = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.03); cb.set_label("Default rate (%)", fontsize=8); cb.ax.tick_params(labelsize=7)
+
+dti_rows = ["Under 30%", "30-35%", "35-40%", "40-45%", "Over 45%", "Not recorded"]
+delinq_cols = ["None", "1", "2 or more", "Not recorded"]
+rate_a, n_a = _grid(_band(df["DEBTINC"], [0, 30, 35, 40, 45, np.inf], dti_rows[:-1]),
+                    _band(df["DELINQ"], [-0.5, 0.5, 1.5, np.inf], delinq_cols[:-1]), dti_rows, delinq_cols)
+job_names = {"Mgr": "Manager", "Office": "Office", "Other": "Other", "ProfExe": "Professional", "Sales": "Sales", "Self": "Self-employed"}
+reason_names = {"DebtCon": "Debt consolidation", "HomeImp": "Home improvement"}
+known = df["JOB"].notna() & df["REASON"].notna()
+rate_b, n_b = _grid(df.loc[known, "JOB"].map(job_names), df.loc[known, "REASON"].map(reason_names),
+                    list(job_names.values()), list(reason_names.values()))
+fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.3), gridspec_kw={"width_ratios": [1.35, 1]})
+_heat(axes[0], rate_a, n_a, 100, "Delinquent credit lines", "Debt-to-income ratio", "Debt burden and repayment history combine")
+_heat(axes[1], rate_b, n_b, 50, "Loan purpose", "Occupation", "Loan purpose matters within some occupations")
+fig.text(0.5, -0.02, "Each cell: default rate and number of applicants. Small cells (n under about 30) are noisy.", ha="center", fontsize=8, color=GREY)
+fig.tight_layout(w_pad=3); fig.savefig(OUT / "report_interactions.png", bbox_inches="tight"); plt.close(fig)
+
 # Figure: model comparison (test set)
 show = [
     ("Logistic Regression (balanced)", "Logistic Regression\n(balanced)"),

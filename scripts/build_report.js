@@ -11,6 +11,8 @@ const {
 
 const ROOT = path.resolve(__dirname, "..");
 const FIG = (name) => fs.readFileSync(path.join(ROOT, "reports", "figures", name));
+// Height of the interaction figure in inches, from the PNG header (width 6.6 in)
+const FIG_H_INTERACTIONS = (() => { const b = FIG("report_interactions.png"); return Math.round(6.6 * b.readUInt32BE(20) / b.readUInt32BE(16) * 100) / 100; })();
 const OUT = path.join(ROOT, "reports", "Loan_Default_Prediction_Final_Report.docx");
 
 const NAVY = "1E2761";
@@ -104,7 +106,7 @@ children.push(
   bullet([bold("A long credit history protects. "), txt("Applicants whose oldest credit line is under five years old default 44% of the time. Above twenty years the rate is about 10%.")]),
   bullet([bold("Small loans are not safe loans. "), txt("Loans under $5,000 default 57% of the time, almost three times the average.")]),
   bullet([bold("Occupation and loan purpose matter little on their own. "), txt("Sales and self-employed applicants default more often (35% and 30%), and office workers default least (13%). At the conventional decision threshold, removing occupation, loan purpose and nine minor flags from the forest changes its performance by about a point. At the cost-optimal threshold, removing occupation alone raises the expected cost of credit errors by about 10%. We therefore keep occupation, subject to the fair-lending review, with a 21-input model without it as the fallback.")]),
-  bullet([bold("Tree-based models beat the linear model. "), txt("The relationships in this data are thresholds and cliffs rather than straight lines. The Random Forest scored 0.96 on risk-ranking quality (ROC-AUC, where 1.0 means every defaulter ranks above every repayer) against 0.91 for logistic regression. At a similar share of defaulters caught, it declined far fewer good applicants. We chose the final model's configuration (class weights, tree size, input set) and its decision threshold together, on the training rows alone. We judged them by the expected cost, in dollars, of their out-of-fold mistakes, under a rule fixed in advance. We then measured performance once on the test set.")]),
+  bullet([bold("Tree-based models beat the linear model. "), txt("The relationships in this data are thresholds and cliffs rather than straight lines, and the main drivers combine (Figure A4). The Random Forest scored 0.96 on risk-ranking quality (ROC-AUC, where 1.0 means every defaulter ranks above every repayer) against 0.91 for logistic regression. At a similar share of defaulters caught, it declined far fewer good applicants. We chose the final model's configuration (class weights, tree size, input set) and its decision threshold together, on the training rows alone. We judged them by the expected cost, in dollars, of their out-of-fold mistakes, under a rule fixed in advance. We then measured performance once on the test set.")]),
 );
 
 children.push(h2("Final proposed model specification"));
@@ -265,6 +267,8 @@ children.push(figure("report_default_rate_bands.png", 6.6, 2.14));
 children.push(caption("Figure A2. Default rate by debt-to-income band, age of oldest credit line and loan amount."));
 children.push(figure("report_credit_history.png", 6.6, 2.14));
 children.push(caption("Figure A3. Default rate by number of derogatory reports, delinquent credit lines and recent credit inquiries."));
+children.push(figure("report_interactions.png", 6.6, FIG_H_INTERACTIONS));
+children.push(caption("Figure A4. Default rate for pairs of variables. At a debt-to-income ratio of 45% or less, two or more delinquent lines raise the default rate from 3-9% to 25-30%. Loan purpose changes the risk within some occupations."));
 children.push(table(
   ["Proposed model on the 1,788 test-set applicants", "Model flags as likely default", "Model clears as likely to repay", "Total"],
   [
