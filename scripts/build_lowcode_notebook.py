@@ -558,7 +558,7 @@ The model can make two kinds of mistakes and they do not cost the same:
 
 | Model says | Reality | Name | Business consequence |
 |---|---|---|---|
-| Will repay (approve) | Defaults | **False Negative** | The bank loses most of the principal plus collection costs: about \$9,000 on a typical \$18,600 loan after recovering collateral. |
+| Will repay (approve) | Defaults | **False Negative** | The bank loses most of the principal plus collection costs: about \$9,000 on a typical \$16,900 defaulted loan after recovering collateral. |
 | Will default (reject) | Would have repaid | **False Positive** | The bank forgoes the interest margin on one good customer: about \$2,000. |
 
 A missed defaulter costs roughly 4.5 times a wrongly rejected good customer, so the **primary metric is Recall on the defaulter class (BAD = 1)**: of all applicants who went on to default, what share did the model flag? Recall alone can be gamed (rejecting everyone gives 100% recall), so **Precision** (how many flagged applicants really default) and **F1** are tracked as guard-rails, with **Accuracy** for completeness. Grid search optimises recall with cross-validation on the training set when the individual models are built; the final model and its threshold are then chosen on the expected cost of the two errors, estimated on repeated out-of-fold predictions of the training rows, so precision is priced in explicitly.
@@ -737,7 +737,7 @@ print("Tree depth:", dt.get_depth(), "| number of leaves:", dt.get_n_leaves())
 """)
 md(122, r"""
 **Insights:**
-- The fully grown tree is a textbook case of **over-fitting**: 100% recall, precision and accuracy on the training data but only about **62% recall** and 73% precision on the test set. It has memorised the training applicants (dozens of levels deep, hundreds of leaves) instead of learning general rules.
+- The fully grown tree is a textbook case of **over-fitting**: 100% recall, precision and accuracy on the training data but only about **62% recall** and 72% precision on the test set. It has memorised the training applicants (dozens of levels deep, hundreds of leaves) instead of learning general rules.
 - The class weights do not help an un-pruned tree: they change which splits are chosen (this is a different tree) but cannot change the fact that a fully grown tree fits every training applicant perfectly, so its test predictions remain those of an over-fitted tree. Class weights only pay off once the tree is constrained (pruned), which the grid search does next.
 """)
 md(123, r"""
@@ -1031,7 +1031,7 @@ plt.show()
 add_after(166, "markdown", r"""
 **Insights (comparison table):**
 - Every un-pruned tree model (the single tree, bagging and the default and class-weighted forests) scores 100% on the training data; only the test columns tell the models apart.
-- On the test set at the 0.5 cut-off the tuned decision tree has the highest recall (82%) but the lowest precision (53%); the class-weighted Random Forest has the best balance (77% recall, 77% precision, 91% accuracy); the default, unweighted forest is the most precise (84%) and ranks applicants best (ROC-AUC 0.96) but misses almost a third of defaulters at this cut-off; the balanced logistic regression reaches 80% recall at 61% precision. Which forest is best for the bank is decided next, on expected cost and training data only.
+- On the test set at the 0.5 cut-off the tuned decision tree has the highest recall (82%) but the lowest precision (53%); the class-weighted Random Forest has the best balance (77% recall, 77% precision, 91% accuracy); the default, unweighted forest is the most precise (84%) and ranks applicants best (ROC-AUC 0.96 in the selection and test cells below) but misses almost a third of defaulters at this cut-off; the balanced logistic regression reaches 80% recall at 61% precision. Which forest is best for the bank is decided next, on expected cost and training data only.
 """)
 add_after(166, "markdown", r"""
 ### **Choosing the final model and its decision threshold on training data only**
@@ -1337,7 +1337,7 @@ md(168, r"""
 
 *Linear vs non-linear.* The balanced logistic regression reaches 80% recall but only 61% precision: the data is made of thresholds (debt-to-income above 45%, any delinquency), which trees capture and a straight line cannot. The linear model remains the most transparent benchmark.
 
-*Single tree vs bagging vs forest.* The tuned decision tree catches the most defaulters at the 0.5 cut-off (82%) but declines almost one good customer for every defaulter it catches (53% precision). Bagging 200 trees shows the value of averaging: at the same recall as a fully grown tree, precision rises to 83%. The class-weighted Random Forest adds feature sub-sampling and class weights and reaches 77% recall at 77% precision, the best balance at 0.5, while the recall-tuned forest reaches 79% recall with lower precision (66%) and, once precision is priced in, a clearly higher expected cost. Which forest is best for the bank is decided by the out-of-fold cost search above, not by this table.
+*Single tree vs bagging vs forest.* The tuned decision tree catches the most defaulters at the 0.5 cut-off (82%) but declines almost one good customer for every defaulter it catches (53% precision). Bagging 200 trees shows the value of averaging: against the single fully grown (class-weighted) tree, precision rises from 72% to 83% and recall from 62% to 68%. The class-weighted Random Forest adds feature sub-sampling and class weights and reaches 77% recall at 77% precision, the best balance at 0.5, while the recall-tuned forest reaches 79% recall with lower precision (66%) and, once precision is priced in, a clearly higher expected cost. Which forest is best for the bank is decided by the out-of-fold cost search above, not by this table.
 
 *Pros and cons.* Logistic regression: fully transparent, trivial to run, but under-fits threshold effects on the raw inputs. Decision tree: a readable rule list, but unstable between re-trainings and the lowest precision. Bagging / Random Forest: the strongest and most robust, explained through feature importances, a surrogate tree and per-applicant reason codes rather than a rule list, and they need model-risk documentation and drift monitoring like any credit model.
 
