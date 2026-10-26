@@ -488,7 +488,7 @@ pd.concat({"DEBTINC_median": data.groupby(["JOB", "BAD"], observed=True)["DEBTIN
 """)
 add_after(76, "markdown", r"""
 **Insights - debt burden and credit history by occupation:**
-- In every occupation, defaulters have a higher median debt-to-income ratio than repayers. The gap is about 1.5 points for office workers (37.6 against 36.1) and about 6.5 points for sales and self-employed applicants (41.0 against 34.4, and 40.9 against 34.5).
+- In every occupation, defaulters have a higher median debt-to-income ratio than repayers. The gap is about 1.5 points for office workers (37.6 against 36.1). It is about 6.5 points for sales and self-employed applicants (41.0 against 34.4, and 40.9 against 34.5).
 - In every occupation, defaulters have a shorter credit history. The median gap is 29 months for professionals (160 against 189) and 57 months for managers (127 against 184).
 - So debt burden and credit-history length work in every occupation. Occupation moves the baseline risk, but it does not replace these two drivers.
 """)
@@ -538,12 +538,12 @@ both_missing
 """)
 add_after(76, "markdown", r"""
 **Insights - interactions between the strongest drivers:**
-- **Debt burden and repayment history add up.** When the ratio is 45% or less, delinquency still decides much of the risk: 3% to 9% defaulted with no delinquent lines, and 25% to 30% defaulted with two or more.
+- **Debt burden and repayment history add up.** When the ratio is 45% or less, delinquency still decides much of the risk. In that group, 3% to 9% defaulted with no delinquent lines, and 25% to 30% defaulted with two or more.
 - Above 45%, 91% to 100% defaulted, whatever the number of delinquent lines. The ratio alone is enough in that group.
-- When the ratio is missing, delinquency adds risk on top of the missing signal: 50% defaulted with no delinquent lines (695 applicants) and 87% with two or more (253 applicants).
-- **A long credit history lowers the risk but does not cancel a derogatory report.** With one or more reports, the default rate rises from 25% to 56% under 10 years of history, from 15% to 48% at 10 to 20 years, and from 8% to 32% at 20 years or more.
+- When the ratio is missing, delinquency adds risk on top of the missing signal. In that group, 50% defaulted with no delinquent lines (695 applicants) and 87% with two or more (253 applicants).
+- **A long credit history lowers the risk but does not cancel a derogatory report.** With one or more reports, the default rate rises from 25% to 56% under 10 years of history. It rises from 15% to 48% at 10 to 20 years, and from 8% to 32% at 20 years or more.
 - **The two missing-value signals compound.** With both fields recorded, 8% defaulted (4,662 applicants). With only the ratio missing, 60% defaulted (1,186 applicants). With only the property value missing, 81% defaulted (31 applicants). With both missing, 99% defaulted (81 applicants).
-- These combined effects are why a tree-based model, which splits on one driver inside another, should beat a model that adds each driver on its own. They also match the surrogate tree we fit later: a high or missing ratio flags an applicant, and repayment history decides among the others.
+- These combined effects suggest that a tree-based model, which splits on one driver inside another, should beat a model that adds each driver alone. They also match the surrogate tree we fit later: a high or missing ratio flags an applicant, and repayment history decides among the others.
 """)
 md(77, r"""
 ### **Think about it**
