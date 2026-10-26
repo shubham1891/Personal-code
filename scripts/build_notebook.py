@@ -1958,7 +1958,7 @@ md(r"""
 md(r"""
 1. **Affordability, and whether the bank can verify it, decides most outcomes.** The debt-to-income ratio and its missing-flag are the top features in every model. An applicant with no verifiable ratio defaulted 62% of the time. One with a ratio above 45% defaulted 87% to 100% of the time. These two checks alone would have caught a large share of historical defaults.
 
-2. **Past repayment behaviour is the next strongest predictor.** Delinquent credit lines, major derogatory reports and recent credit inquiries all raise default risk as they increase. The decision tree's top splits, the forest's importances and the permutation test agree on this.
+2. **Past repayment behaviour is the next most important predictor.** Delinquent credit lines, major derogatory reports and recent credit inquiries all raise default risk as they increase. The decision tree's top splits, the forest's importances and the permutation test agree on this.
 
 3. **Credit history length protects.** Applicants with 20+ years of credit history default about 10% of the time versus 44% for those with under 5 years.
 
