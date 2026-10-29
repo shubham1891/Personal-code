@@ -889,7 +889,7 @@ md(r"""
 Both kinds matter differently for different models:
 
 - **Logistic Regression** is sensitive to extreme values because they pull the fitted line. For the linear model we **cap** each continuous column at the IQR whiskers (Q1 - 1.5 IQR and Q3 + 1.5 IQR). This keeps every row but limits the leverage of extremes. We cap the count variables `DEROG` and `DELINQ` at their 99th percentile instead, because their inter-quartile range is zero. We compute all fences on the training rows.
-- **Decision Trees and Random Forests** split on rank order, so an outlier simply falls into the top bucket. Capping does not change their splits. For the tree models we **keep the original values**, which also preserves information such as "DEBTINC above 50% almost always defaults".
+- **Decision Trees and Random Forests** split on rank order, so an outlier simply falls into the top bucket. Capping does not change their splits. For the tree models we **keep the original values**, because capping would only merge the largest values into one value.
 
 We therefore keep two versions of the data: `df_lr` (outliers capped, for the linear model) and `data` (untreated, for the tree models).
 """)
@@ -1579,7 +1579,7 @@ md(r"""
 md(r"""
 #### Did tuning improve the validation scores?
 
-The grid searches above report only the best cross-validated score. Here we score each untuned baseline on the same folds, so that we can compare before and after tuning on the training rows. The test set plays no part.
+The grid searches above give no cross-validated score for the untuned baselines. Here we score each untuned baseline on the same folds, so that we can compare before and after tuning on the training rows. The test set plays no part.
 """)
 
 code(r"""
@@ -2169,9 +2169,9 @@ md(r"""
 """)
 
 md(r"""
-1. **Affordability, and whether the bank can check it, decides most outcomes.** The missing flag is the first split of the tuned tree and of the surrogate tree. With the ratio itself, it has the two largest impurity importances in both forests. In the linear model it has the second-largest odds ratio (13.1), after a missing valuation (44.6). An applicant with no verifiable ratio defaulted 62% of the time. One with a ratio above 45% defaulted 87% to 100% of the time. These two checks alone would have caught a large share of historical defaults.
+1. **Affordability, and whether the bank can check it, decides most outcomes.** The missing flag of the debt-to-income ratio (`DEBTINC_missing`) is the first split of the tuned tree and of the surrogate tree. This flag and the ratio itself have the two largest impurity importances in the recall-tuned forest (0.287 and 0.244). They also lead in the final forest (0.186 and 0.140). In the linear model the flag has the second-largest odds ratio (13.1), after a missing valuation (44.6). An applicant with no verifiable ratio defaulted 62% of the time. One with a ratio above 45% defaulted 87% to 100% of the time. These two checks alone would have caught a large share of historical defaults.
 
-2. **Past repayment behaviour is the next most important predictor.** Delinquent credit lines, major derogatory reports and recent credit inquiries all raise default risk as they increase. The decision tree's top splits, the forest's importances and the permutation test agree on this.
+2. **Past repayment behaviour is the next most important predictor.** Delinquent credit lines, major derogatory reports and recent credit inquiries all raise default risk as they increase. The linear model agrees: all three raise the odds of default (2.42, 1.49 and 1.19 per standard deviation). The tuned tree and the surrogate tree split on delinquent lines and derogatory reports near the top. In the final forest, delinquent lines give the largest permutation drop (0.038). But derogatory reports (0.010) and inquiries (0.012) give smaller drops than the loan amount (0.014).
 
 3. **Credit history length protects.** Applicants with 20+ years of credit history default about 10% of the time versus 44% for those with under 5 years.
 
@@ -2197,7 +2197,7 @@ md(r"""
 **Is the model good enough for production? Yes, with conditions.**
 - *Evidence.* On the 1,788 unseen test applicants the model catches 92.7% of defaulters at 68.1% precision (ROC-AUC 0.963). This agrees with the out-of-fold estimate (recall 94%, precision 65%, cost \$317,000 against \$304,000 per 1,000 applicants on the test set). Under the indicative costs it cuts the cost of credit errors by about 83%.
 - *Limits.* The data holds only loans that the old process approved. Two thirds of the defaulters have no recorded debt-to-income ratio, and mandatory income verification will shrink that group. The cost figures are indicative.
-- *Verdict.* The performance is good enough for production. But the model must not affect real decisions until the bank completes two steps. First, it builds the per-applicant risk drivers. Second, it meets the guard-rails at the end of this cell. The most important are the shadow run, the fairness review and the test on applicants with a recorded ratio (83% recall, 80% precision on the test set).
+- *Verdict.* The performance is good enough for production. But the model must not affect real decisions until the bank completes two steps. First, it builds the per-applicant risk drivers. Second, it meets the three guard-rails for the time before go-live, listed at the end of this cell. These are the shadow run, the fairness review and the test on applicants with a recorded ratio (83% recall, 80% precision on the test set). The other guard-rails apply after go-live.
 
 **Model specification**
 - `RandomForestClassifier` with 200 fully grown trees and **no class weights**. The configuration search showed that class weights add nothing once we choose the threshold on cost. The 0.3/0.7 and 0.2/0.8 weightings lie within one standard error of the unweighted forest. The balanced and 0.1/0.9 weightings cost about \$13,000 and \$27,000 more per 1,000 applicants. We train the forest on the untreated data with the 27 model inputs listed in the final-pipeline cell. These are the ten financial attributes, the eleven missing-value flags and the six occupation and loan-purpose indicators. Pre-processing: a missing flag per column, plus median/mode imputation learned on the training rows. There is no outlier capping and no scaling.
@@ -2243,7 +2243,7 @@ md(r"""
 | # | Question | Answer |
 |---|---|---|
 | 1 | Range of LOAN | \$1,100 to \$89,900. Median \$16,300. Right-skewed |
-| 2 | Distribution of YOJ | Right-skewed. Most applicants 0-5 years, median 7, tail to 41 |
+| 2 | Distribution of YOJ | Right-skewed. The most common values are 0-5 years (41%). Median 7, tail to 41 |
 | 3 | Unique categories in REASON | 2 (DebtCon 69%, HomeImp 31%) |
 | 4 | Most common JOB | "Other" (42%), then ProfExe (22%) and Office (17%) |
 | 5 | REASON vs default | Weak but statistically significant relationship: HomeImp 22.2% vs DebtCon 19.0% (chi-square p = 0.005) |
