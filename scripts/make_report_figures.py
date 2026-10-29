@@ -288,5 +288,32 @@ ax.set_xlabel("Share of the model's decision power (%)"); ax.set_xlim(0, 24)
 ax.set_title("What the final Random Forest relies on most", fontsize=11, color=NAVY, loc="left")
 fig.tight_layout(); fig.savefig(OUT / "report_feature_importance.png"); plt.close(fig)
 
+# Figure: input-set reduction - seed-averaged out-of-fold cost against the number of inputs, with the one-standard-error band
+red_key = "reduction = pd.DataFrame(rows)"
+rows = styler_table(red_key)
+red = pd.DataFrame([r[1:] for r in rows[2:]], index=[int(r[0]) for r in rows[2:]], columns=rows[0][1:])
+red_cost = red["Mean OOF expected cost per 1,000 ($)"].str.replace(",", "").astype(float) / 1000
+red_txt = "".join("".join(o["text"]) for o in cell_outputs(red_key) if o.get("output_type") == "stream")
+one_se_k = float(re.search(r"one standard error: \$([0-9,]+)", red_txt).group(1).replace(",", "")) / 1000
+sel_n = int(re.search(r"Selected input set: (\d+) inputs", red_txt).group(1))
+low_k = red_cost.min()
+fig, ax = plt.subplots(figsize=(8.5, 3.6))
+ax.axhspan(low_k, low_k + one_se_k, color="#DDEBDD", zorder=0)
+ax.text(20.6, low_k + one_se_k / 2, "Within one standard error of the lowest cost", fontsize=8, color="#333333", va="center")
+ax.plot(red_cost.index, red_cost.values, marker="o", markersize=5, linewidth=2, color=NAVY, zorder=3)
+ax.plot([sel_n], [red_cost[sel_n]], marker="o", markersize=13, markerfacecolor="none", markeredgecolor=RED, markeredgewidth=2, zorder=4)
+for n in [27, sel_n, 21, 16, 10]:
+    dy = -14 if n == sel_n else 9
+    ax.text(n, red_cost[n] + dy, f"${r0(red_cost[n])}k", ha="center", fontsize=8, color="#333333")
+ax.annotate(f"Selected: {sel_n} inputs\n(5 minor missing flags removed)", xy=(sel_n, red_cost[sel_n]), xytext=(26.6, red_cost[sel_n] + 45),
+            fontsize=8, color="#333333", arrowprops={"arrowstyle": "-", "color": GREY, "linewidth": 0.8})
+ax.text(10, red_cost[10] - 9, "Occupation\nremoved", fontsize=8, color="#333333", ha="center", va="top")
+ax.invert_xaxis(); ax.set_xticks(red_cost.index)
+ax.set_xlim(27.6, 9.2); ax.set_ylim(low_k - 30, red_cost.max() + 25)
+ax.set_xlabel("Number of inputs (the weakest input is removed first)")
+ax.set_ylabel("$ thousand per\n1,000 applicants")
+ax.set_title("Expected cost of credit errors as the weakest inputs are removed (out-of-fold, training rows)", fontsize=11, color=NAVY, loc="left")
+fig.tight_layout(); fig.savefig(OUT / "report_input_reduction.png"); plt.close(fig)
+
 print("wrote", sorted(p.name for p in OUT.glob("report_*.png")))
 print("check: base rate %.2f%%, best threshold %.2f, top importance %s, n_imp %d" % (base_rate, best, items[-1], len(items)))
