@@ -48,8 +48,8 @@ Exploratory analysis showed the following. One in five loans defaults. A missing
 
 We separated a stratified 30% test set before we fitted any statistic. We flagged missing values and imputed them with training-row medians and modes. We capped outliers only for the linear model.
 
-We trained Logistic Regression, a Decision Tree, a bagged ensemble of trees and a Random Forest. We tuned each model with cross-validated grid search on recall. We compared the models on recall (primary), precision, F1 and ROC-AUC.
+We trained Logistic Regression, a Decision Tree, a bagged ensemble of trees and a Random Forest. We tuned the Logistic Regression, the Decision Tree and the Random Forest with cross-validated grid search on recall. We compared the models on recall (primary), precision, F1 and ROC-AUC.
 
 We then chose the final model's configuration (class weights, tree size, input set) and its decision threshold together, with training data only. The criterion was the expected cost of credit errors on repeated out-of-fold predictions. We fixed the rule for this choice in advance. We scored the test set once. On the test set, the unweighted Random Forest on all 27 inputs at a 0.15 threshold catches 93% of defaulters at 68% precision.
 
-We wrote the final pipeline step by step in the notebook so that every input to the scoring model is explicit. We fitted a surrogate decision tree to the forest's out-of-fold decisions. It agrees with the forest on 93% of unseen applicants. The surrogate tree provides the plain-language reasons that the Equal Credit Opportunity Act requires.
+We wrote the final pipeline step by step in the notebook so that every input to the scoring model is explicit. We fitted a surrogate decision tree to the forest's out-of-fold decisions. It agrees with the forest on 93% of unseen applicants and gives the plain-language summary of how the model decides. The bank builds per-applicant risk drivers from the forest (for example SHAP values) in the first two months, before the shadow run. These drivers give the reason for each decline that the Equal Credit Opportunity Act requires.

@@ -229,7 +229,7 @@ pres.addSection({ title: "Modelling" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
   s.addText("Measure of success: the two mistakes do not cost the same", { placeholder: "title" });
   const colW = 4.4;
-  [["Missed defaulter", "The model says 'will repay'. The customer defaults.", "The bank loses most of the principal plus collection cost: about $9,000 on an average $16,900 defaulted loan.", C.accent2],
+  [["Missed defaulter", "The model says 'will repay'. The customer defaults.", "The bank loses a large part of the principal plus collection cost: about $9,000 on an average $16,900 defaulted loan.", C.accent2],
    ["Wrongly declined", "The model says 'will default'. The customer is creditworthy.", "The bank forgoes the interest margin on one good applicant: about $2,000.", C.accent3]].forEach(([t, d, c, col], i) => {
     const x = 0.5 + i * (colW + 0.2);
     card(s, x, 1.3, colW, 2.2, { name: `error card ${i + 1}` });
@@ -243,7 +243,7 @@ pres.addSection({ title: "Modelling" });
     "Guard-rails: Precision (how many flagged applicants really default) and F1, so the model does not simply decline everyone. ROC-AUC measures how well the model ranks applicants by risk, which matters when the threshold moves.",
     "We tune individual models by cross-validated grid search on recall. We choose the final model and its threshold on out-of-fold expected cost, training rows only. We score the 30% test set once.",
   ], 12.5), { x: 0.5, y: 3.7, w: 9.0, h: 1.45, valign: "top", margin: 0, isTextBox: true, objectName: "metric bullets" });
-  notes(s, "Before comparing models, the yardstick. Approving a future defaulter costs the bank most of the principal. Declining a good customer costs only the margin. So the primary metric is recall, the share of defaulters we catch, with precision as the guard-rail against declining everyone.");
+  notes(s, "Before comparing models, the yardstick. Approving a future defaulter costs the bank a large part of the principal. Declining a good customer costs only the margin. So the primary metric is recall, the share of defaulters we catch, with precision as the guard-rail against declining everyone.");
 }
 
 // 9. Model comparison
@@ -263,7 +263,7 @@ pres.addSection({ title: "Modelling" });
     "The class-weighted forest: 77% recall at 77% precision, ROC-AUC 0.96, among the best at ranking applicants by risk.",
     "Final choice on the expected cost of mistakes (training rows only), by a rule fixed beforehand: lowest mean cost, simplest if within noise. Three forests tied. The plain forest at 0.15 catches 93% at 68% precision on test.",
   ], 12), { x: 6.45, y: 1.25, w: 3.15, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "comparison bullets" });
-  notes(s, "We built eleven model variants. These six tell the story. At the usual threshold the forest with class weights has the best balance and ranks applicants among the best. We then chose the final configuration and its threshold together on repeated out-of-fold expected cost, using training rows only. We fixed the rule beforehand: lowest mean cost of mistakes, and the simplest set-up when several are within run-to-run noise. Three forests tied within that noise, so class weights added nothing once we tune the threshold. We chose the plain forest at a 0.15 threshold. On the test set it catches 93 percent of defaulters, and two thirds of the flagged applicants really defaulted. At their own best thresholds the logistic regression and the tree cost 550 and 607 thousand dollars per thousand applicants. The forest costs 317 thousand, so it also wins on the cost yardstick.");
+  notes(s, "We built eleven model variants. These six tell the story. At the usual threshold the forest with class weights has the best balance and ranks applicants among the best. We then chose the final configuration and its threshold together on repeated out-of-fold expected cost, using training rows only. We fixed the rule beforehand: lowest mean cost of mistakes, and the simplest set-up when several are within run-to-run noise. Three forests tied within that noise, so class weights added nothing once we chose the threshold on cost. We chose the plain forest at a 0.15 threshold. On the test set it catches 93 percent of defaulters, and two thirds of the flagged applicants really defaulted. At their own best thresholds the bagged trees, the logistic regression and the tree cost 390, 550 and 607 thousand dollars per thousand applicants. The forest costs 317 thousand, so it also wins on the cost yardstick.");
 }
 
 // 10. Proposed solution
@@ -326,7 +326,7 @@ pres.addSection({ title: "Recommendations" });
   s.addTable(rows, { x: 0.5, y: 1.3, w: 5.8, colW: [2.4, 1.5, 1.9], fontSize: 11.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.42, valign: "middle", margin: 0.06, objectName: "impact table" });
   card(s, 6.6, 1.3, 3.0, 2.1, { fill: C.accent1, line: C.accent1, name: "benefit card" });
   s.addText("~$9M", { x: 6.7, y: 1.4, w: 2.8, h: 0.95, fontSize: 40, bold: true, color: C.background1, align: "center", valign: "bottom", margin: 0, isTextBox: true, objectName: "benefit number" });
-  s.addText("indicative gross annual benefit. About $8.9M after running costs, $8.5M in year one", { x: 6.7, y: 2.4, w: 2.8, h: 0.9, fontSize: 12, color: C.background2, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: "benefit label" });
+  s.addText("indicative gross annual benefit. About $8.9M after running costs, $8.5M in year one", { x: 6.7, y: 2.4, w: 2.8, h: 0.9, fontSize: 11, color: C.background2, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: "benefit label" });
   s.addText(bullets([
     "Assumptions: 6,000 applications a year. Defaulted loans average $16,900 with about half recovered ($9,000 per missed defaulter). Forgone margin about $2,000 per declined good customer. Production performance equal to test performance. Measured as an extra screen on the loans the bank approves today, before mandatory income verification.",
     "Costs: roughly $300-400k one-off (pipeline, integration, validation, fairness review, training) and about $100k a year to run and monitor. It repays its cost within year one even if the bank gets only a quarter of the benefit.",
@@ -341,8 +341,8 @@ pres.addSection({ title: "Recommendations" });
   s.addText("Recommendations and implementation roadmap", { placeholder: "title" });
   const phases = [
     ["Months 0-2: prepare", ["Make income and valuation verification mandatory fields", "Build the scoring pipeline and per-applicant risk drivers", "Check the threshold with real loss and margin figures", "Review fairness and model risk"]],
-    ["Months 2-4: shadow run", ["Score every application alongside the manual decision", "Test the model on applicants with a recorded ratio. Tune the approve / refer / decline bands", "Train underwriters on risk drivers and referrals"]],
-    ["Month 4 onwards: scale", ["Start automated approve / decline for clear cases", "Monitor monthly: recall, precision, approval rate, missing fields", "Re-train once 12+ months of verified outcomes exist, then yearly. Threshold review with finance"]],
+    ["Months 2-4: shadow run", ["Score every application alongside the manual decision", "Test on past applicants with a recorded ratio. Tune the approve / refer / decline bands", "Train underwriters on risk drivers and referrals"]],
+    ["Month 4 onwards: scale", ["Start automated approve / decline for clear cases", "Monthly: approval rate, missing fields. As outcomes arrive: recall, precision", "Re-train once 12+ months of verified outcomes exist, then yearly. Threshold review with finance"]],
   ];
   phases.forEach(([title, items], i) => {
     const x = 0.5 + i * 3.05;
@@ -356,7 +356,7 @@ pres.addSection({ title: "Recommendations" });
     "Decline or escalate above a 45% debt-to-income ratio. Refer to an underwriter with two or more delinquent credit lines or two or more major derogatory reports. Observed default: 45% and 51%+. Where a rule and the score disagree, the stricter outcome applies.",
     "Treat an application with no verifiable income or property valuation as high risk, never as neutral.",
   ], 11.5), { x: 0.5, y: 4.38, w: 9.0, h: 0.8, valign: "top", margin: 0, isTextBox: true, objectName: "rules bullets" });
-  notes(s, "The roadmap has three phases: prepare, shadow run, then scale. There are three policy rules the bank can adopt immediately, with or without the model. First, set a debt-to-income limit of 45 percent. Second, refer anyone with two or more delinquencies or derogatory reports to an underwriter. Third, treat a missing income or valuation as high risk and require verification. We read the first two thresholds straight from the observed default rates. Where a rule and the score disagree, the stricter outcome applies.");
+  notes(s, "The roadmap has three phases: prepare, shadow run, then scale. There are three policy rules the bank can adopt immediately, with or without the model. First, set a debt-to-income limit of 45 percent. Second, refer anyone with two or more delinquencies or derogatory reports to an underwriter. Third, treat a missing income or valuation as high risk and require verification. We read the first two thresholds straight from the observed default rates. Where a rule and the score disagree, the stricter outcome applies. The slide 10 band shares exclude these referrals.");
 }
 
 // 14. Risks and next steps
@@ -367,10 +367,10 @@ pres.addSection({ title: "Recommendations" });
   s.addText("Risks and mitigations", { x: 0.7, y: 1.4, w: 4.1, h: 0.4, fontSize: 14, bold: true, color: C.accent2, margin: 0, isTextBox: true, objectName: "risks title" });
   s.addText(bullets([
     "Selection bias: the data covers only loans the old process approved. Mitigate with a shadow period on all applications and reject inference.",
-    "The 'ratio missing' signal will change once verification is mandatory. Before go-live, test the model on applicants with a recorded ratio (83% caught at 80% precision). Re-train after 12+ months of verified outcomes.",
+    "The 'ratio missing' signal will change once verification is mandatory. Before go-live, test on past applicants with a recorded ratio (83% caught at 80% precision). Re-train after 12+ months of verified outcomes.",
     "Economic drift: monitor monthly, re-train yearly, review the threshold.",
     "Fair lending: the 0.15 threshold wrongly flags about 11% of creditworthy applicants (3% at 0.5). Test for disparate impact before go-live, yearly and at each threshold change. A fallback without occupation is ready (about 10% more cost).",
-    "Explainability and automation bias: per-applicant risk drivers (built in months 0-2), a referral band, documented overrides.",
+    "Explainability and automation bias: per-applicant risk drivers, a referral band, documented overrides.",
   ], 11), { x: 0.7, y: 1.85, w: 4.1, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "risks bullets" });
   card(s, 5.15, 1.3, 4.45, 3.85, { name: "next steps card" });
   s.addText("Further analysis", { x: 5.35, y: 1.4, w: 4.1, h: 0.4, fontSize: 14, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "next title" });
@@ -472,7 +472,7 @@ pres.addSection({ title: "Appendix" });
     [hdr("Step"), hdr("What we did"), hdr("Why")],
     ["Duplicates", "None found. No rows removed", "5,960 loans retained, including 2 with only the loan amount recorded"],
     ["Missing values", "A 0/1 'was missing' flag per column, then median (numeric) or mode (categorical) imputation learned on the training rows", "Missingness of debt-to-income and property value is the strongest default signal. Removing rows would lose 44% of the data"],
-    ["Outliers", "IQR capping for the linear model only. DEROG and DELINQ capped at the 99th percentile. Tree models use raw values", "Extreme values pull linear models (debt-to-income 203%, credit history 97 years). Trees split on rank order and keep the 'above 50% always defaults' signal"],
+    ["Outliers", "IQR capping for the linear model only. DEROG and DELINQ capped at the 99th percentile. Tree models use raw values", "Extreme values pull linear models (debt-to-income 203%, credit history 97 years). Trees split on rank order, so extreme values do not distort them"],
     ["Encoding and scaling", "One-hot encoding of REASON and JOB (drop first). Standard scaling of the continuous inputs for the linear model only, flags left as 0/1", "Comparable coefficients, odds ratios for flags read as the effect of the flag"],
     ["Split", "70% train / 30% test, stratified on the target, fixed seed, reserved before we fitted any statistic. Identical applicants in both data versions", "No leakage from test rows into fences, medians or scaling. Results comparable across models"],
     ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the individual models, then the decision threshold for the final model. No resampling", "Keeps each real applicant. Class weights lifted recall by 23 points for logistic regression and 9 for the forest at the 0.5 threshold. They added nothing once we chose the threshold on cost, so the final forest is unweighted"],

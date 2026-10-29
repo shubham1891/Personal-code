@@ -115,9 +115,9 @@ def bar_with_labels(ax, labels, values, color, counts=None, fmt="{:.0f}%", ymax=
     fmt_n = lambda n: f"{n/1000:.1f}k" if n >= 1000 else f"{n}"
     ticks = [f"{l}\n{n_prefix}{fmt_n(n)}" for l, n in zip(labels, counts)] if counts is not None else list(labels)
     bars = ax.bar(ticks, values, color=color, width=0.65)
-    ax.tick_params(axis="x", labelsize=6.5)
+    ax.tick_params(axis="x", labelsize=8.5)
     for b, v in zip(bars, values):
-        ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{r0(v)}%", ha="center", va="bottom", fontsize=7.5,
+        ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{r0(v)}%", ha="center", va="bottom", fontsize=9.5,
                 bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.4}, zorder=4)
     ax.axhline(base_rate, color="#555555", linestyle="--", linewidth=0.8, zorder=1)
     ax.set_ylim(0, ymax or max(values) * 1.25)
@@ -155,14 +155,14 @@ specs = [
 ]
 for ax, (col, bins, labels, xlabel, color) in zip(axes, specs):
     r, n = rate_by_band(col, bins, labels)
-    bar_with_labels(ax, labels, r.values, color, counts=n.values, ymax=118)
+    bar_with_labels(ax, labels, r.values, color, counts=n.values, ymax=118, n_prefix="")
     ax.set_xlabel(xlabel)
 axes[0].set_title("By debt burden", fontsize=10, color=NAVY, loc="left")
 axes[1].set_title("By length of credit history", fontsize=10, color=NAVY, loc="left")
 axes[2].set_title("By loan size", fontsize=10, color=NAVY, loc="left")
 for ax in axes[1:]:
     ax.set_ylabel("")
-fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). n = applicants in the band (missing values excluded).", ha="center", fontsize=8, color=GREY)
+fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). Second line under each bar: applicants in the band (missing values excluded).", ha="center", fontsize=10, color=GREY)
 fig.tight_layout(); fig.savefig(OUT / "report_default_rate_bands.png", bbox_inches="tight"); plt.close(fig)
 
 # Figure: credit-history counts
@@ -176,7 +176,7 @@ for ax, (col, cap, xlabel) in zip(axes, [("DEROG", 5, "Major derogatory reports"
     ax.set_xlabel(xlabel); ax.set_title(f"By {xlabel.lower()}", fontsize=10, color=NAVY, loc="left")
 for ax in axes[1:]:
     ax.set_ylabel("")
-fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). Second line under each bar: applicants with that count (missing values excluded).", ha="center", fontsize=8, color=GREY)
+fig.text(0.5, -0.02, f"Dashed line: overall default rate ({base_rate:.1f}%). Second line under each bar: applicants with that count (missing values excluded).", ha="center", fontsize=10, color=GREY)
 fig.tight_layout(); fig.savefig(OUT / "report_credit_history.png", bbox_inches="tight"); plt.close(fig)
 
 # Figure: interactions (multivariate) - default rate for pairs of variables, single-hue sequential scale
@@ -199,7 +199,7 @@ def _heat(ax, rate, n, vmax, xlabel, ylabel, title):
             v = rate.iat[i, j]
             ax.text(j, i - 0.12, f"{int(np.floor(v + 0.5))}%", ha="center", va="center", fontsize=9,
                     color="white" if v > 0.55 * vmax else "#222222", fontweight="bold")
-            ax.text(j, i + 0.22, f"n={n.iat[i, j]:,}", ha="center", va="center", fontsize=6.5,
+            ax.text(j, i + 0.22, f"n={n.iat[i, j]:,}", ha="center", va="center", fontsize=8.5,
                     color="white" if v > 0.55 * vmax else "#333333")
     ax.set_xticks(range(rate.shape[1])); ax.set_xticklabels(rate.columns, fontsize=8)
     ax.set_yticks(range(rate.shape[0])); ax.set_yticklabels(rate.index, fontsize=8)
@@ -279,7 +279,7 @@ fig.suptitle("Moving the decision threshold of the selected Random Forest (out-o
 fig.tight_layout(); fig.savefig(OUT / "report_threshold.png"); plt.close(fig)
 
 # Figure: feature importance (top 12, plain names)
-items = sorted(imp.items(), key=lambda kv: kv[1])
+items = list(imp.items())[::-1]   # keep the notebook order (sorted on unrounded values), lowest bar first
 fig, ax = plt.subplots(figsize=(7.5, 3.8))
 ax.barh([NAMES.get(k, k) for k, _ in items], [v * 100 for _, v in items], color=[RED if "missing" in k or k == "DEBTINC" else NAVY for k, _ in items])
 for i, (k, v) in enumerate(items):

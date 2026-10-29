@@ -7796,7 +7796,7 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook tex2jax_ignore" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66aaed9c">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=96d7f3f4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7809,7 +7809,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b6fd8ab0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=720880cc">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7817,7 +7817,7 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Problem-Definition"><strong>Problem Definition</strong><a class="anchor-link" href="#Problem-Definition">¶</a></h2><h3 id="The-Context:"><strong>The Context:</strong><a class="anchor-link" href="#The-Context:">¶</a></h3><p>A large share of a retail bank's profit comes from the interest it earns on home loans and home equity lines of credit. The single biggest threat to that profit is the applicant who does not repay the loan. Every loan that becomes a non-performing asset (NPA) cancels the interest that the bank earned on many good loans. The bank therefore has to be judicious about whom it approves.</p>
 <p>Today an underwriter studies each application by hand and decides whether to approve it. That process is slow, expensive, inconsistent from one underwriter to another, and vulnerable to human error and bias. Earlier attempts to automate the process used hand-written heuristics. The bank now has data on past loans and their outcomes. With that data, the bank can <strong>learn</strong> the approval decision from evidence instead of opinion. At the same time, the bank can make sure that the new model does not simply replicate the biases of the old manual process.</p>
-<p><strong>Some facts that size the problem.</strong> In the bank's own recent book of 5,960 home equity loans, <strong>1,189 (19.9%) ended in default or serious delinquency</strong>. The current process approved all of them. Those defaulted loans averaged about $16,900 each, so roughly $20 million of principal was at risk. If the bank recovers about half through the collateral, the bank lost roughly $10 million on this book alone. Every ten defaulters that the bank declines saves about $90,000 at the $9,000 per defaulter that we use throughout. Every good applicant that the bank wrongly declines costs only the interest margin on one loan, about $2,000.</p>
+<p><strong>Some facts that size the problem.</strong> In the bank's own recent book of 5,960 home equity loans, <strong>1,189 (19.9%) ended in default or serious delinquency</strong>. The current process approved all of them. Those defaulted loans averaged about $16,900 each, so roughly $20 million of principal was at risk. We assume that the bank recovers about half through the collateral. On that assumption, the bank lost roughly $10 million on this book alone. Every ten defaulters that the bank declines saves about $90,000 at the $9,000 per defaulter that we use throughout. Every good applicant that the bank wrongly declines costs only the interest margin on one loan, about $2,000.</p>
 <p><strong>Advantages of solving it.</strong> A reliable, explainable scoring model has four advantages:</p>
 <ol>
 <li>It cuts credit losses because it stops likely defaulters at the door.</li>
@@ -7847,14 +7847,14 @@ a.anchor-link {
 <li>train a linear model (Logistic Regression) and non-linear models (Decision Tree, Bagging, Random Forest).</li>
 <li>tune the Logistic Regression, the Decision Tree and the Random Forest with cross-validated grid search.</li>
 <li>compare all models on a metric that we choose from the business cost of each type of error. The primary metric is <strong>Recall on the defaulter class</strong>. Precision and F1 are guard-rails so that the bank does not decline too many good applicants.</li>
-<li>choose the final configuration and its decision threshold on the expected cost of the two errors, with repeated out-of-fold predictions on the training rows. The model scores each application before the bank approves it, and the threshold turns that score into a flag.</li>
+<li>choose the final configuration and its decision threshold on the expected cost of the two errors, with repeated out-of-fold predictions on the training rows. The model scores each application before the bank approves it, and the threshold converts that score into a flag.</li>
 <li>propose a final solution design with approve / refer / decline bands around the threshold and an explanation layer that gives a reason for each adverse decision.</li>
 </ul>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=00ccd6ee">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a9d7af01">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7893,7 +7893,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d8e8ad38">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=196ef342">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7903,7 +7903,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8d664bca">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=502cde1a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7951,7 +7951,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6280d861">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=a82f7d18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7970,7 +7970,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f48a1efc">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=820e3934">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7981,7 +7981,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cb7708c3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=328a0eed">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7997,7 +7997,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e68faee3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1d288329">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8140,7 +8140,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b01b4101">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4d8aedb4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8283,7 +8283,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1bc31517">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=942aa352">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8311,7 +8311,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1c294b86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7e1a1cb8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8359,7 +8359,7 @@ memory usage: 605.4 KB
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a7063809">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0f635064">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8375,7 +8375,7 @@ memory usage: 605.4 KB
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e7c33b42">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=669e1794">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8496,7 +8496,7 @@ memory usage: 605.4 KB
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ae9f2475">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f9ecd1e4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8529,7 +8529,7 @@ memory usage: 605.4 KB
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8d841922">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=785561da">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8545,7 +8545,7 @@ memory usage: 605.4 KB
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=390e8c39">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4ca4b127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8577,7 +8577,7 @@ Rows where every input except LOAN is blank : 2
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5720a302">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bddfcdb1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8606,7 +8606,7 @@ Rows where every input except LOAN is blank : 2
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4184b3c4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cb8250d6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8621,7 +8621,7 @@ Rows where every input except LOAN is blank : 2
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=291353b7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=83d8762f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8665,7 +8665,7 @@ dtype: object</pre>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89bde773">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c9146a04">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8675,7 +8675,7 @@ dtype: object</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d78ef2cd">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3a1d3069">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8843,7 +8843,7 @@ dtype: object</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b22c15eb">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=34377b2b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8918,7 +8918,7 @@ dtype: object</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=584252ce">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ea19c568">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8968,7 +8968,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f94d5022">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2a4efb7b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9007,7 +9007,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f8794b4b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=af022be8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9018,7 +9018,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a3b5f0e3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0113817e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9034,7 +9034,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6ade026d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=434c7068">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9056,7 +9056,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=489f1c25">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7f5e05f7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9066,7 +9066,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9573c4a0">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f7a5424e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9093,7 +9093,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3cadac91">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=38b25492">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9130,7 +9130,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94007610">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=777d78fb">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9144,7 +9144,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=64930a38">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7efd79df">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9172,7 +9172,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b54b9cbf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d9eed98f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9187,7 +9187,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b2af9716">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e548774e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9214,7 +9214,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d2d16bb7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=744e94cd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9242,7 +9242,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dec147c3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c43335fa">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9256,7 +9256,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=976afe2d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0462927e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9283,7 +9283,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bd2b29f3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7806f8ae">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9311,7 +9311,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7ed73dbf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18037e65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9325,7 +9325,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ec44710f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4218fdce">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9353,7 +9353,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f74a0886">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3bd93bb1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9367,7 +9367,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=833bb684">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13239ac4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9377,7 +9377,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8e1182b3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=10ade302">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9419,7 +9419,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a54d0a1a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14911aaf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9427,14 +9427,14 @@ Sales      1.920
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>Insights - DEROG, DELINQ, NINQ:</strong></p>
 <ul>
-<li><strong>86% of applicants have zero major derogatory reports</strong> and 78% have zero delinquent credit lines. The minority with one or more is small but, as the bivariate analysis will show, carries a very high default rate.</li>
-<li>Recent credit inquiries are more dispersed: 46% have none, 25% have one, 14% have two, and a tail have five or more. Many recent inquiries can signal an applicant who actively seeks credit under financial stress.</li>
+<li><strong>Among applicants with a record, 86% have zero major derogatory reports</strong> and 78% have zero delinquent credit lines. The minority with one or more is small but, as the bivariate analysis will show, carries a very high default rate.</li>
+<li>Recent credit inquiries are more dispersed. Of applicants with a record, 46% have none, 25% have one, 14% have two, and a tail have five or more. Many recent inquiries can signal an applicant who actively seeks credit under financial stress.</li>
 </ul>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8cc9b1cf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94c17a2b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9444,7 +9444,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a33b3bc6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6d0441ac">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9480,7 +9480,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f4a8a0d4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e5065831">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9496,7 +9496,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=698d22e5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3a1192ee">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9507,7 +9507,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cf4d5edf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=152583aa">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9517,7 +9517,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=25201460">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=cf631f1a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9552,7 +9552,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=cfeccfb0">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=be8fb36e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9716,7 +9716,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b7d472fb">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=277da42a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9736,7 +9736,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=fe9ec091">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3b156a68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9769,73 +9769,73 @@ Sales      1.920
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
 </style>
-<table id="T_e1de4">
+<table id="T_46b39">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_e1de4_level0_col0">variable</th>
-<th class="col_heading level0 col1" id="T_e1de4_level0_col1">median_defaulters</th>
-<th class="col_heading level0 col2" id="T_e1de4_level0_col2">median_repayers</th>
-<th class="col_heading level0 col3" id="T_e1de4_level0_col3">test</th>
-<th class="col_heading level0 col4" id="T_e1de4_level0_col4">p_value</th>
+<th class="col_heading level0 col0" id="T_46b39_level0_col0">variable</th>
+<th class="col_heading level0 col1" id="T_46b39_level0_col1">median_defaulters</th>
+<th class="col_heading level0 col2" id="T_46b39_level0_col2">median_repayers</th>
+<th class="col_heading level0 col3" id="T_46b39_level0_col3">test</th>
+<th class="col_heading level0 col4" id="T_46b39_level0_col4">p_value</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_e1de4_level0_row0">0</th>
-<td class="data row0 col0" id="T_e1de4_row0_col0">LOAN</td>
-<td class="data row0 col1" id="T_e1de4_row0_col1">14,900.0</td>
-<td class="data row0 col2" id="T_e1de4_row0_col2">16,900.0</td>
-<td class="data row0 col3" id="T_e1de4_row0_col3">Mann-Whitney U</td>
-<td class="data row0 col4" id="T_e1de4_row0_col4">5.87e-17</td>
+<th class="row_heading level0 row0" id="T_46b39_level0_row0">0</th>
+<td class="data row0 col0" id="T_46b39_row0_col0">LOAN</td>
+<td class="data row0 col1" id="T_46b39_row0_col1">14,900.0</td>
+<td class="data row0 col2" id="T_46b39_row0_col2">16,900.0</td>
+<td class="data row0 col3" id="T_46b39_row0_col3">Mann-Whitney U</td>
+<td class="data row0 col4" id="T_46b39_row0_col4">5.87e-17</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_e1de4_level0_row1">1</th>
-<td class="data row1 col0" id="T_e1de4_row1_col0">MORTDUE</td>
-<td class="data row1 col1" id="T_e1de4_row1_col1">60,279.0</td>
-<td class="data row1 col2" id="T_e1de4_row1_col2">66,839.0</td>
-<td class="data row1 col3" id="T_e1de4_row1_col3">Mann-Whitney U</td>
-<td class="data row1 col4" id="T_e1de4_row1_col4">1.61e-08</td>
+<th class="row_heading level0 row1" id="T_46b39_level0_row1">1</th>
+<td class="data row1 col0" id="T_46b39_row1_col0">MORTDUE</td>
+<td class="data row1 col1" id="T_46b39_row1_col1">60,279.0</td>
+<td class="data row1 col2" id="T_46b39_row1_col2">66,839.0</td>
+<td class="data row1 col3" id="T_46b39_row1_col3">Mann-Whitney U</td>
+<td class="data row1 col4" id="T_46b39_row1_col4">1.61e-08</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_e1de4_level0_row2">2</th>
-<td class="data row2 col0" id="T_e1de4_row2_col0">VALUE</td>
-<td class="data row2 col1" id="T_e1de4_row2_col1">82,000.0</td>
-<td class="data row2 col2" id="T_e1de4_row2_col2">90,659.0</td>
-<td class="data row2 col3" id="T_e1de4_row2_col3">Mann-Whitney U</td>
-<td class="data row2 col4" id="T_e1de4_row2_col4">4.45e-09</td>
+<th class="row_heading level0 row2" id="T_46b39_level0_row2">2</th>
+<td class="data row2 col0" id="T_46b39_row2_col0">VALUE</td>
+<td class="data row2 col1" id="T_46b39_row2_col1">82,000.0</td>
+<td class="data row2 col2" id="T_46b39_row2_col2">90,659.0</td>
+<td class="data row2 col3" id="T_46b39_row2_col3">Mann-Whitney U</td>
+<td class="data row2 col4" id="T_46b39_row2_col4">4.45e-09</td>
 </tr>
 <tr>
-<th class="row_heading level0 row3" id="T_e1de4_level0_row3">3</th>
-<td class="data row3 col0" id="T_e1de4_row3_col0">DEBTINC</td>
-<td class="data row3 col1" id="T_e1de4_row3_col1">38.1</td>
-<td class="data row3 col2" id="T_e1de4_row3_col2">34.5</td>
-<td class="data row3 col3" id="T_e1de4_row3_col3">Mann-Whitney U</td>
-<td class="data row3 col4" id="T_e1de4_row3_col4">1.11e-23</td>
+<th class="row_heading level0 row3" id="T_46b39_level0_row3">3</th>
+<td class="data row3 col0" id="T_46b39_row3_col0">DEBTINC</td>
+<td class="data row3 col1" id="T_46b39_row3_col1">38.1</td>
+<td class="data row3 col2" id="T_46b39_row3_col2">34.5</td>
+<td class="data row3 col3" id="T_46b39_row3_col3">Mann-Whitney U</td>
+<td class="data row3 col4" id="T_46b39_row3_col4">1.11e-23</td>
 </tr>
 <tr>
-<th class="row_heading level0 row4" id="T_e1de4_level0_row4">4</th>
-<td class="data row4 col0" id="T_e1de4_row4_col0">CLAGE</td>
-<td class="data row4 col1" id="T_e1de4_row4_col1">132.9</td>
-<td class="data row4 col2" id="T_e1de4_row4_col2">180.4</td>
-<td class="data row4 col3" id="T_e1de4_row4_col3">Mann-Whitney U</td>
-<td class="data row4 col4" id="T_e1de4_row4_col4">1.45e-44</td>
+<th class="row_heading level0 row4" id="T_46b39_level0_row4">4</th>
+<td class="data row4 col0" id="T_46b39_row4_col0">CLAGE</td>
+<td class="data row4 col1" id="T_46b39_row4_col1">132.9</td>
+<td class="data row4 col2" id="T_46b39_row4_col2">180.4</td>
+<td class="data row4 col3" id="T_46b39_row4_col3">Mann-Whitney U</td>
+<td class="data row4 col4" id="T_46b39_row4_col4">1.45e-44</td>
 </tr>
 <tr>
-<th class="row_heading level0 row5" id="T_e1de4_level0_row5">5</th>
-<td class="data row5 col0" id="T_e1de4_row5_col0">REASON</td>
-<td class="data row5 col1" id="T_e1de4_row5_col1">nan</td>
-<td class="data row5 col2" id="T_e1de4_row5_col2">nan</td>
-<td class="data row5 col3" id="T_e1de4_row5_col3">Chi-square</td>
-<td class="data row5 col4" id="T_e1de4_row5_col4">4.58e-03</td>
+<th class="row_heading level0 row5" id="T_46b39_level0_row5">5</th>
+<td class="data row5 col0" id="T_46b39_row5_col0">REASON</td>
+<td class="data row5 col1" id="T_46b39_row5_col1">nan</td>
+<td class="data row5 col2" id="T_46b39_row5_col2">nan</td>
+<td class="data row5 col3" id="T_46b39_row5_col3">Chi-square</td>
+<td class="data row5 col4" id="T_46b39_row5_col4">4.58e-03</td>
 </tr>
 <tr>
-<th class="row_heading level0 row6" id="T_e1de4_level0_row6">6</th>
-<td class="data row6 col0" id="T_e1de4_row6_col0">JOB</td>
-<td class="data row6 col1" id="T_e1de4_row6_col1">nan</td>
-<td class="data row6 col2" id="T_e1de4_row6_col2">nan</td>
-<td class="data row6 col3" id="T_e1de4_row6_col3">Chi-square</td>
-<td class="data row6 col4" id="T_e1de4_row6_col4">3.31e-16</td>
+<th class="row_heading level0 row6" id="T_46b39_level0_row6">6</th>
+<td class="data row6 col0" id="T_46b39_row6_col0">JOB</td>
+<td class="data row6 col1" id="T_46b39_row6_col1">nan</td>
+<td class="data row6 col2" id="T_46b39_row6_col2">nan</td>
+<td class="data row6 col3" id="T_46b39_row6_col3">Chi-square</td>
+<td class="data row6 col4" id="T_46b39_row6_col4">3.31e-16</td>
 </tr>
 </tbody>
 </table>
@@ -9844,7 +9844,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a965e425">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6426f8db">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9859,7 +9859,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6241645f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a766388f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9910,7 +9910,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=503143e3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50aee4a4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9926,7 +9926,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18bd49ee">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=828f34ec">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9936,7 +9936,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78d73ae9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19ad4b06">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9963,7 +9963,7 @@ Sales      1.920
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=28b5319f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=42a611b1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10003,7 +10003,7 @@ All      4567  1141  5708
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6aa3d267">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3530d638">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10016,7 +10016,7 @@ All      4567  1141  5708
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4f21dc4f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7639353f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10060,7 +10060,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1da2fd96">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7e696fb7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10074,7 +10074,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a2d8efae">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b21f4539">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10114,7 +10114,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=12e986c3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3d026b2d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10131,7 +10131,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b7b72e0b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=030247fd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10141,7 +10141,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=dd6ad2cf">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=10c55424">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10283,7 +10283,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=54765d31">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=65025279">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10319,7 +10319,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21a39a64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d86927e7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10337,7 +10337,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2c63bcb2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52c0c533">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10347,7 +10347,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8c3996b7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f573df81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10382,7 +10382,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6b2e43fd">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51c9f746">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10397,7 +10397,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f511ba02">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=eecba027">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10407,7 +10407,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4b88e7f3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3052f33f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10442,7 +10442,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d103f0fb">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7ba394b4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10457,7 +10457,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6ead4332">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=fcb68422">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10489,7 +10489,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7278855c">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2563e3a8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10504,7 +10504,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5e0caf88">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f540ea51">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10514,7 +10514,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=962b5a82">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=501095b3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10645,7 +10645,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7cdf5f41">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=be33e3d1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10662,7 +10662,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48a7e2c8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=73a19127">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10672,7 +10672,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d2743263">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2c00e565">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10802,7 +10802,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f8bfab75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57220513">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10818,7 +10818,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a6ceb78f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43b9eaf5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10828,7 +10828,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=21f40d11">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5e29e716">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10952,7 +10952,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3b75da00">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=08de88a3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10971,7 +10971,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11b956a3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6a1dc113">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -10981,7 +10981,7 @@ All      4515  1166  5681
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1e80997a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ae81a99b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11013,7 +11013,7 @@ Default rate - train: 0.199, test: 0.200
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4179f7a6">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=183d0ea8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11024,7 +11024,7 @@ Default rate - train: 0.199, test: 0.200
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d3897534">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49407f8b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11044,7 +11044,7 @@ Default rate - train: 0.199, test: 0.200
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5dcb04d3">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bfac6c18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11185,7 +11185,7 @@ Default rate - train: 0.199, test: 0.200
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dd2d69ca">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62ea3eca">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11201,7 +11201,7 @@ Default rate - train: 0.199, test: 0.200
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9b4d7602">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92fa2d63">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11212,7 +11212,7 @@ Default rate - train: 0.199, test: 0.200
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1bbe5e79">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64d1110a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11227,7 +11227,7 @@ Default rate - train: 0.199, test: 0.200
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=cb2f66f8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1fdcece4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11279,7 +11279,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b697bbe5">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d1936703">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11489,7 +11489,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92105b7f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d2c78783">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11500,7 +11500,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48ee25b3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3aed15a2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11543,7 +11543,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6e742de8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84a14e8c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11564,7 +11564,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60f6bdb4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18d0974b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11606,7 +11606,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=75817e55">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58c06d84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11646,7 +11646,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0021a9b2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=201ff08a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11660,7 +11660,7 @@ Flag columns added: ['MORTDUE_missing', 'VALUE_missing', 'REASON_missing', 'JOB_
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71b0210d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=48855067">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11707,7 +11707,7 @@ Train shape: (4172, 27), Test shape: (1788, 27)
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f2c8c03f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=37348331">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11729,7 +11729,7 @@ Train shape: (4172, 27), Test shape: (1788, 27)
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4e0f5acd">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=883a094d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11740,7 +11740,7 @@ Train shape: (4172, 27), Test shape: (1788, 27)
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=43a6dc80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c46254d6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11755,7 +11755,7 @@ Train shape: (4172, 27), Test shape: (1788, 27)
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e6ddc433">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6832354d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11827,7 +11827,7 @@ weighted avg      0.874     0.880     0.873      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e690a58e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f73649f9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11911,7 +11911,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2a98b29b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=312a8112">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -11928,7 +11928,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2a5c1d80">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2f37c8e4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12191,7 +12191,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70b12447">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60b53539">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12199,7 +12199,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>Insights - what the linear model says drives default:</strong></p>
 <ul>
-<li><strong>Risk-increasing (positive coefficients):</strong> the missing-value flags dominate (these flags are 0/1, so the odds ratios are the full effect of the flag). An application with <strong>no property valuation has odds of default about 45 times higher</strong>, all else equal. An application with <strong>no debt-to-income ratio has odds about 13 times higher</strong>, all else equal. The model also gives <code>CLNO_missing</code> a large odds ratio (11.2). Do not read this flag on its own. Every applicant with a blank <code>CLNO</code> also has blank <code>DEROG</code>, <code>DELINQ</code>, <code>CLAGE</code> and <code>NINQ</code>. The five flag coefficients partly cancel, and together they give an odds ratio of about 3. The EDA shows only 23.9% default when <code>CLNO</code> is missing, against 19.8% when it is present. Among the continuous inputs, <code>DELINQ</code> (odds ratio about 2.4 per standard deviation) and <code>DEBTINC</code> (about 1.8) matter most, followed by <code>DEROG</code> and <code>NINQ</code>. The <code>JOB_Sales</code> indicator roughly triples the odds relative to a manager.</li>
+<li><strong>Risk-increasing (positive coefficients):</strong> the missing-value flags dominate (these flags are 0/1, so the odds ratios are the full effect of the flag). An application with <strong>no property valuation has odds of default about 45 times higher</strong>, all else equal. An application with <strong>no debt-to-income ratio has odds about 13 times higher</strong>, all else equal. The model also gives <code>CLNO_missing</code> a large odds ratio (11.2). Do not read this flag on its own. Every applicant with a missing <code>CLNO</code> also has missing <code>DEROG</code>, <code>DELINQ</code>, <code>CLAGE</code> and <code>NINQ</code>. The five flag coefficients partly cancel, and together they give an odds ratio of about 3. The EDA shows only 23.9% default when <code>CLNO</code> is missing, against 19.8% when it is present. Among the continuous inputs, <code>DELINQ</code> (odds ratio about 2.4 per standard deviation) and <code>DEBTINC</code> (about 1.8) matter most, followed by <code>DEROG</code> and <code>NINQ</code>. The <code>JOB_Sales</code> indicator roughly triples the odds relative to a manager.</li>
 <li><strong>Risk-decreasing (negative coefficients):</strong> <code>CLAGE</code> (longer credit history, odds ratio about 0.6 per standard deviation), <code>YOJ</code> (job tenure) and <code>JOB_Office</code> lower the odds. The <code>DEROG</code>, <code>JOB</code>, <code>YOJ</code> and <code>DELINQ</code> missing flags also lower the odds: in the EDA, the groups with these fields blank defaulted less often.</li>
 <li><code>LOAN</code> has almost no linear effect once the model includes the other variables. Its relationship with default is non-linear (small loans are riskier, large loans are not), and a straight line cannot represent this.</li>
 <li><code>MORTDUE</code> and <code>VALUE</code> have opposite signs, the classic symptom of their 0.88 correlation. We should not over-interpret these two coefficients individually.</li>
@@ -12209,7 +12209,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66b7a5cf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=529aa90a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12219,7 +12219,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d050e334">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9ce143bc">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12330,7 +12330,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=521deb36">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=da099830">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12345,7 +12345,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0dff3ae9">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79ccf24f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12356,14 +12356,14 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ff68aeac">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=285e3768">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>A decision tree learns a sequence of yes/no questions ("Is DEBTINC above 43.7%?") that split the applicants into increasingly pure groups. It captures the threshold effects seen in the EDA directly and produces rules that the bank can read to an applicant or a regulator.</p>
-<p>We train the tree models on the <strong>untreated data</strong> (<code>X_train</code>, <code>X_test</code>). Outliers do not distort tree splits, and the real values keep information such as "DEBTINC above 50% almost always defaults".</p>
+<p>We train the tree models on the <strong>untreated data</strong> (<code>X_train</code>, <code>X_test</code>). Outliers do not distort tree splits, and capping would only merge the largest values into one value.</p>
 <p>We proceed in three steps:</p>
 <ol>
 <li>Start with a fully grown tree to establish a baseline.</li>
@@ -12373,7 +12373,7 @@ weighted avg      0.878     0.857     0.864      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d27b2f76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=618f7dc4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12454,7 +12454,7 @@ weighted avg      0.879     0.880     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b460f0b3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=02b990a9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12468,7 +12468,7 @@ weighted avg      0.879     0.880     0.880      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1d1efba7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=55ca5ecb">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12541,7 +12541,7 @@ weighted avg      0.870     0.875     0.872      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a6ff7747">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bcf1fbd4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12556,7 +12556,7 @@ weighted avg      0.870     0.875     0.872      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0abb9ca5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69e36156">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12580,7 +12580,7 @@ weighted avg      0.870     0.875     0.872      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=62e0ee4f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f8ad1707">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12622,7 +12622,7 @@ Best CV recall  : 0.826
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=671045a7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=593696ee">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12700,7 +12700,7 @@ weighted avg      0.865     0.819     0.832      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9137b782">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=eceb5c1f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12715,7 +12715,7 @@ weighted avg      0.865     0.819     0.832      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=89170c75">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e4e52c07">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12746,7 +12746,7 @@ weighted avg      0.865     0.819     0.832      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=18be435a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=606a91e0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12819,7 +12819,7 @@ weighted avg      0.865     0.819     0.832      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=eb7323e2">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4a55ba89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12901,7 +12901,7 @@ weighted avg      0.865     0.819     0.832      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f18f71ac">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48f3fa24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12921,7 +12921,7 @@ weighted avg      0.865     0.819     0.832      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=769ae66f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=176bb3d2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12932,7 +12932,7 @@ weighted avg      0.865     0.819     0.832      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=12127860">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=95490623">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -12963,13 +12963,7 @@ weighted avg      0.865     0.819     0.832      1788
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Train performance - Bagging (200 trees)
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>              precision    recall  f1-score   support
+              precision    recall  f1-score   support
 
            0      1.000     1.000     1.000      3340
            1      1.000     1.000     1.000       832
@@ -12991,13 +12985,7 @@ weighted avg      1.000     1.000     1.000      4172
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Test performance - Bagging (200 trees)
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>              precision    recall  f1-score   support
+              precision    recall  f1-score   support
 
            0      0.924     0.964     0.944      1431
            1      0.827     0.683     0.748       357
@@ -13017,7 +13005,7 @@ weighted avg      0.905     0.908     0.905      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a679efb7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a9399128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13117,7 +13105,7 @@ weighted avg      0.905     0.908     0.905      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=265b7267">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a6cd4d58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13134,7 +13122,7 @@ weighted avg      0.905     0.908     0.905      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cd6875aa">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7853359a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13146,7 +13134,7 @@ weighted avg      0.905     0.908     0.905      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=dfdf0cf6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d12ef390">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13225,7 +13213,7 @@ weighted avg      0.909     0.912     0.908      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=886dc83e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78ebccea">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13240,7 +13228,7 @@ weighted avg      0.909     0.912     0.908      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c19dc105">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67051d6e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13250,7 +13238,7 @@ weighted avg      0.909     0.912     0.908      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=196f1056">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=30bebcc0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13330,7 +13318,7 @@ weighted avg      0.908     0.908     0.908      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c6992f98">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9d2214e8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13346,7 +13334,7 @@ weighted avg      0.908     0.908     0.908      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ba4872d4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e31053b0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13356,7 +13344,7 @@ weighted avg      0.908     0.908     0.908      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=603e91f7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=afc7ca10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13399,7 +13387,7 @@ Best CV recall  : 0.811
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=306c6565">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4a9b5790">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13448,13 +13436,7 @@ weighted avg      0.922     0.905     0.909      4172
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Test performance - Random Forest (tuned for recall)
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>              precision    recall  f1-score   support
+              precision    recall  f1-score   support
 
            0      0.945     0.897     0.920      1431
            1      0.656     0.790     0.717       357
@@ -13475,7 +13457,7 @@ weighted avg      0.887     0.875     0.879      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ca05ff1d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2cfd7e4e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13490,7 +13472,7 @@ weighted avg      0.887     0.875     0.879      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9dfcda7b">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1a560e43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13603,7 +13585,7 @@ weighted avg      0.887     0.875     0.879      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c2044985">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=532325a8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13619,7 +13601,7 @@ weighted avg      0.887     0.875     0.879      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ec9b728e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bf884830">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13629,7 +13611,7 @@ weighted avg      0.887     0.875     0.879      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=fd897eae">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8bcbc7d4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13692,7 +13674,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dd85dfe8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=af187e6c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13707,7 +13689,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a0ef05e0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36001f8b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13717,7 +13699,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2bf301d6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7d1988ca">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13839,7 +13821,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48c790b3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44626cc9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13847,7 +13829,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>Observations - validation scores before and after tuning:</strong></p>
 <ul>
-<li>Tuning raises the cross-validated recall of each tuned technique. Logistic regression rises from 0.626 to 0.814, almost all from the balanced class weights (the grid above shows that <code>C</code> moves it by less than two points). The decision tree rises from 0.644 to 0.826. The random forest rises from 0.703 to 0.811 (0.790 with class weights alone).</li>
+<li>Tuning raises the cross-validated recall of each tuned technique. Logistic regression rises from 0.626 to 0.814, almost all from the balanced class weights. The grid above shows that <code>C</code> moves it by less than two points. The decision tree rises from 0.644 to 0.826. The random forest rises from 0.703 to 0.811 (0.790 with class weights alone).</li>
 <li>The test set shows the same direction (0.566 to 0.796, 0.686 to 0.821 and 0.686 to 0.790). So the gains do not come from one lucky split.</li>
 <li>Recall-only tuning costs precision in every case (0.789 to 0.598, 0.663 to 0.533 and 0.829 to 0.640). It also lowers the forest's cross-validated ROC-AUC from 0.954 to 0.921. This is why we choose the final configuration and its threshold on expected cost in the selection section below.</li>
 </ul>
@@ -13855,7 +13837,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7ebe2631">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3798eed6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13866,7 +13848,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=07557a80">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79cadb0e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13879,7 +13861,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=fabab4a6">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e92b54a6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -13903,164 +13885,164 @@ weighted avg      0.887     0.876     0.880      1788
 <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[68]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
-#T_f12cd_row0_col1, #T_f12cd_row3_col8, #T_f12cd_row4_col3, #T_f12cd_row4_col5 {
+#T_69f49_row0_col1, #T_69f49_row3_col8, #T_69f49_row4_col3, #T_69f49_row4_col5 {
   background-color: #f7fbff;
   color: #000000;
 }
-#T_f12cd_row0_col3 {
+#T_69f49_row0_col3 {
   background-color: #1a68ae;
   color: #f1f1f1;
 }
-#T_f12cd_row0_col5 {
+#T_69f49_row0_col5 {
   background-color: #e9f2fa;
   color: #000000;
 }
-#T_f12cd_row0_col8 {
+#T_69f49_row0_col8 {
   background-color: #2f7fbc;
   color: #f1f1f1;
 }
-#T_f12cd_row1_col1 {
+#T_69f49_row1_col1 {
   background-color: #084a91;
   color: #f1f1f1;
 }
-#T_f12cd_row1_col3 {
+#T_69f49_row1_col3 {
   background-color: #c7dbef;
   color: #000000;
 }
-#T_f12cd_row1_col5 {
+#T_69f49_row1_col5 {
   background-color: #a5cde3;
   color: #000000;
 }
-#T_f12cd_row1_col8 {
+#T_69f49_row1_col8 {
   background-color: #3080bd;
   color: #f1f1f1;
 }
-#T_f12cd_row2_col1, #T_f12cd_row7_col1 {
+#T_69f49_row2_col1, #T_69f49_row7_col1 {
   background-color: #77b5d9;
   color: #000000;
 }
-#T_f12cd_row2_col3 {
+#T_69f49_row2_col3 {
   background-color: #56a0ce;
   color: #f1f1f1;
 }
-#T_f12cd_row2_col5 {
+#T_69f49_row2_col5 {
   background-color: #91c3de;
   color: #000000;
 }
-#T_f12cd_row2_col8 {
+#T_69f49_row2_col8 {
   background-color: #d8e7f5;
   color: #000000;
 }
-#T_f12cd_row3_col1 {
+#T_69f49_row3_col1 {
   background-color: #d0e2f2;
   color: #000000;
 }
-#T_f12cd_row3_col3 {
+#T_69f49_row3_col3 {
   background-color: #4997c9;
   color: #f1f1f1;
 }
-#T_f12cd_row3_col5 {
+#T_69f49_row3_col5 {
   background-color: #d9e8f5;
   color: #000000;
 }
-#T_f12cd_row4_col1, #T_f12cd_row7_col3, #T_f12cd_row7_col8, #T_f12cd_row8_col5 {
+#T_69f49_row4_col1, #T_69f49_row7_col3, #T_69f49_row7_col8, #T_69f49_row8_col5 {
   background-color: #08306b;
   color: #f1f1f1;
 }
-#T_f12cd_row4_col8 {
+#T_69f49_row4_col8 {
   background-color: #5fa6d1;
   color: #f1f1f1;
 }
-#T_f12cd_row5_col1 {
+#T_69f49_row5_col1 {
   background-color: #7ab6d9;
   color: #000000;
 }
-#T_f12cd_row5_col3 {
+#T_69f49_row5_col3 {
   background-color: #083c7d;
   color: #f1f1f1;
 }
-#T_f12cd_row5_col5 {
+#T_69f49_row5_col5 {
   background-color: #125ea6;
   color: #f1f1f1;
 }
-#T_f12cd_row5_col8 {
+#T_69f49_row5_col8 {
   background-color: #084990;
   color: #f1f1f1;
 }
-#T_f12cd_row6_col1 {
+#T_69f49_row6_col1 {
   background-color: #dfecf7;
   color: #000000;
 }
-#T_f12cd_row6_col3 {
+#T_69f49_row6_col3 {
   background-color: #084b93;
   color: #f1f1f1;
 }
-#T_f12cd_row6_col5 {
+#T_69f49_row6_col5 {
   background-color: #aacfe5;
   color: #000000;
 }
-#T_f12cd_row6_col8 {
+#T_69f49_row6_col8 {
   background-color: #08478d;
   color: #f1f1f1;
 }
-#T_f12cd_row7_col5 {
+#T_69f49_row7_col5 {
   background-color: #084e98;
   color: #f1f1f1;
 }
-#T_f12cd_row8_col1, #T_f12cd_row10_col8 {
+#T_69f49_row8_col1, #T_69f49_row10_col8 {
   background-color: #1460a8;
   color: #f1f1f1;
 }
-#T_f12cd_row8_col3 {
+#T_69f49_row8_col3 {
   background-color: #1e6db2;
   color: #f1f1f1;
 }
-#T_f12cd_row8_col8 {
+#T_69f49_row8_col8 {
   background-color: #083674;
   color: #f1f1f1;
 }
-#T_f12cd_row9_col1 {
+#T_69f49_row9_col1 {
   background-color: #084f99;
   color: #f1f1f1;
 }
-#T_f12cd_row9_col3 {
+#T_69f49_row9_col3 {
   background-color: #94c4df;
   color: #000000;
 }
-#T_f12cd_row9_col5 {
+#T_69f49_row9_col5 {
   background-color: #549fcd;
   color: #f1f1f1;
 }
-#T_f12cd_row9_col8 {
+#T_69f49_row9_col8 {
   background-color: #105ba4;
   color: #f1f1f1;
 }
-#T_f12cd_row10_col1 {
+#T_69f49_row10_col1 {
   background-color: #0b559f;
   color: #f1f1f1;
 }
-#T_f12cd_row10_col3 {
+#T_69f49_row10_col3 {
   background-color: #8dc1dd;
   color: #000000;
 }
-#T_f12cd_row10_col5 {
+#T_69f49_row10_col5 {
   background-color: #539ecd;
   color: #f1f1f1;
 }
 </style>
-<table id="T_f12cd">
+<table id="T_69f49">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_f12cd_level0_col0">Train Recall</th>
-<th class="col_heading level0 col1" id="T_f12cd_level0_col1">Test Recall</th>
-<th class="col_heading level0 col2" id="T_f12cd_level0_col2">Train Precision</th>
-<th class="col_heading level0 col3" id="T_f12cd_level0_col3">Test Precision</th>
-<th class="col_heading level0 col4" id="T_f12cd_level0_col4">Train F1</th>
-<th class="col_heading level0 col5" id="T_f12cd_level0_col5">Test F1</th>
-<th class="col_heading level0 col6" id="T_f12cd_level0_col6">Train Accuracy</th>
-<th class="col_heading level0 col7" id="T_f12cd_level0_col7">Test Accuracy</th>
-<th class="col_heading level0 col8" id="T_f12cd_level0_col8">Test ROC-AUC</th>
+<th class="col_heading level0 col0" id="T_69f49_level0_col0">Train Recall</th>
+<th class="col_heading level0 col1" id="T_69f49_level0_col1">Test Recall</th>
+<th class="col_heading level0 col2" id="T_69f49_level0_col2">Train Precision</th>
+<th class="col_heading level0 col3" id="T_69f49_level0_col3">Test Precision</th>
+<th class="col_heading level0 col4" id="T_69f49_level0_col4">Train F1</th>
+<th class="col_heading level0 col5" id="T_69f49_level0_col5">Test F1</th>
+<th class="col_heading level0 col6" id="T_69f49_level0_col6">Train Accuracy</th>
+<th class="col_heading level0 col7" id="T_69f49_level0_col7">Test Accuracy</th>
+<th class="col_heading level0 col8" id="T_69f49_level0_col8">Test ROC-AUC</th>
 </tr>
 <tr>
 <th class="index_name level0">Model</th>
@@ -14077,136 +14059,136 @@ weighted avg      0.887     0.876     0.880      1788
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_f12cd_level0_row0">Logistic Regression (plain)</th>
-<td class="data row0 col0" id="T_f12cd_row0_col0">0.635</td>
-<td class="data row0 col1" id="T_f12cd_row0_col1">0.566</td>
-<td class="data row0 col2" id="T_f12cd_row0_col2">0.799</td>
-<td class="data row0 col3" id="T_f12cd_row0_col3">0.774</td>
-<td class="data row0 col4" id="T_f12cd_row0_col4">0.707</td>
-<td class="data row0 col5" id="T_f12cd_row0_col5">0.654</td>
-<td class="data row0 col6" id="T_f12cd_row0_col6">0.895</td>
-<td class="data row0 col7" id="T_f12cd_row0_col7">0.880</td>
-<td class="data row0 col8" id="T_f12cd_row0_col8">0.907</td>
+<th class="row_heading level0 row0" id="T_69f49_level0_row0">Logistic Regression (plain)</th>
+<td class="data row0 col0" id="T_69f49_row0_col0">0.635</td>
+<td class="data row0 col1" id="T_69f49_row0_col1">0.566</td>
+<td class="data row0 col2" id="T_69f49_row0_col2">0.799</td>
+<td class="data row0 col3" id="T_69f49_row0_col3">0.774</td>
+<td class="data row0 col4" id="T_69f49_row0_col4">0.707</td>
+<td class="data row0 col5" id="T_69f49_row0_col5">0.654</td>
+<td class="data row0 col6" id="T_69f49_row0_col6">0.895</td>
+<td class="data row0 col7" id="T_69f49_row0_col7">0.880</td>
+<td class="data row0 col8" id="T_69f49_row0_col8">0.907</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_f12cd_level0_row1">Logistic Regression (balanced)</th>
-<td class="data row1 col0" id="T_f12cd_row1_col0">0.821</td>
-<td class="data row1 col1" id="T_f12cd_row1_col1">0.796</td>
-<td class="data row1 col2" id="T_f12cd_row1_col2">0.598</td>
-<td class="data row1 col3" id="T_f12cd_row1_col3">0.608</td>
-<td class="data row1 col4" id="T_f12cd_row1_col4">0.692</td>
-<td class="data row1 col5" id="T_f12cd_row1_col5">0.689</td>
-<td class="data row1 col6" id="T_f12cd_row1_col6">0.854</td>
-<td class="data row1 col7" id="T_f12cd_row1_col7">0.857</td>
-<td class="data row1 col8" id="T_f12cd_row1_col8">0.906</td>
+<th class="row_heading level0 row1" id="T_69f49_level0_row1">Logistic Regression (balanced)</th>
+<td class="data row1 col0" id="T_69f49_row1_col0">0.821</td>
+<td class="data row1 col1" id="T_69f49_row1_col1">0.796</td>
+<td class="data row1 col2" id="T_69f49_row1_col2">0.598</td>
+<td class="data row1 col3" id="T_69f49_row1_col3">0.608</td>
+<td class="data row1 col4" id="T_69f49_row1_col4">0.692</td>
+<td class="data row1 col5" id="T_69f49_row1_col5">0.689</td>
+<td class="data row1 col6" id="T_69f49_row1_col6">0.854</td>
+<td class="data row1 col7" id="T_69f49_row1_col7">0.857</td>
+<td class="data row1 col8" id="T_69f49_row1_col8">0.906</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_f12cd_level0_row2">Decision Tree (default)</th>
-<td class="data row2 col0" id="T_f12cd_row2_col0">1.000</td>
-<td class="data row2 col1" id="T_f12cd_row2_col1">0.686</td>
-<td class="data row2 col2" id="T_f12cd_row2_col2">1.000</td>
-<td class="data row2 col3" id="T_f12cd_row2_col3">0.706</td>
-<td class="data row2 col4" id="T_f12cd_row2_col4">1.000</td>
-<td class="data row2 col5" id="T_f12cd_row2_col5">0.696</td>
-<td class="data row2 col6" id="T_f12cd_row2_col6">1.000</td>
-<td class="data row2 col7" id="T_f12cd_row2_col7">0.880</td>
-<td class="data row2 col8" id="T_f12cd_row2_col8">0.807</td>
+<th class="row_heading level0 row2" id="T_69f49_level0_row2">Decision Tree (default)</th>
+<td class="data row2 col0" id="T_69f49_row2_col0">1.000</td>
+<td class="data row2 col1" id="T_69f49_row2_col1">0.686</td>
+<td class="data row2 col2" id="T_69f49_row2_col2">1.000</td>
+<td class="data row2 col3" id="T_69f49_row2_col3">0.706</td>
+<td class="data row2 col4" id="T_69f49_row2_col4">1.000</td>
+<td class="data row2 col5" id="T_69f49_row2_col5">0.696</td>
+<td class="data row2 col6" id="T_69f49_row2_col6">1.000</td>
+<td class="data row2 col7" id="T_69f49_row2_col7">0.880</td>
+<td class="data row2 col8" id="T_69f49_row2_col8">0.807</td>
 </tr>
 <tr>
-<th class="row_heading level0 row3" id="T_f12cd_level0_row3">Decision Tree (class weights)</th>
-<td class="data row3 col0" id="T_f12cd_row3_col0">1.000</td>
-<td class="data row3 col1" id="T_f12cd_row3_col1">0.616</td>
-<td class="data row3 col2" id="T_f12cd_row3_col2">1.000</td>
-<td class="data row3 col3" id="T_f12cd_row3_col3">0.719</td>
-<td class="data row3 col4" id="T_f12cd_row3_col4">1.000</td>
-<td class="data row3 col5" id="T_f12cd_row3_col5">0.664</td>
-<td class="data row3 col6" id="T_f12cd_row3_col6">1.000</td>
-<td class="data row3 col7" id="T_f12cd_row3_col7">0.875</td>
-<td class="data row3 col8" id="T_f12cd_row3_col8">0.778</td>
+<th class="row_heading level0 row3" id="T_69f49_level0_row3">Decision Tree (class weights)</th>
+<td class="data row3 col0" id="T_69f49_row3_col0">1.000</td>
+<td class="data row3 col1" id="T_69f49_row3_col1">0.616</td>
+<td class="data row3 col2" id="T_69f49_row3_col2">1.000</td>
+<td class="data row3 col3" id="T_69f49_row3_col3">0.719</td>
+<td class="data row3 col4" id="T_69f49_row3_col4">1.000</td>
+<td class="data row3 col5" id="T_69f49_row3_col5">0.664</td>
+<td class="data row3 col6" id="T_69f49_row3_col6">1.000</td>
+<td class="data row3 col7" id="T_69f49_row3_col7">0.875</td>
+<td class="data row3 col8" id="T_69f49_row3_col8">0.778</td>
 </tr>
 <tr>
-<th class="row_heading level0 row4" id="T_f12cd_level0_row4">Decision Tree (tuned)</th>
-<td class="data row4 col0" id="T_f12cd_row4_col0">0.921</td>
-<td class="data row4 col1" id="T_f12cd_row4_col1">0.821</td>
-<td class="data row4 col2" id="T_f12cd_row4_col2">0.569</td>
-<td class="data row4 col3" id="T_f12cd_row4_col3">0.531</td>
-<td class="data row4 col4" id="T_f12cd_row4_col4">0.703</td>
-<td class="data row4 col5" id="T_f12cd_row4_col5">0.645</td>
-<td class="data row4 col6" id="T_f12cd_row4_col6">0.845</td>
-<td class="data row4 col7" id="T_f12cd_row4_col7">0.819</td>
-<td class="data row4 col8" id="T_f12cd_row4_col8">0.877</td>
+<th class="row_heading level0 row4" id="T_69f49_level0_row4">Decision Tree (tuned)</th>
+<td class="data row4 col0" id="T_69f49_row4_col0">0.921</td>
+<td class="data row4 col1" id="T_69f49_row4_col1">0.821</td>
+<td class="data row4 col2" id="T_69f49_row4_col2">0.569</td>
+<td class="data row4 col3" id="T_69f49_row4_col3">0.531</td>
+<td class="data row4 col4" id="T_69f49_row4_col4">0.703</td>
+<td class="data row4 col5" id="T_69f49_row4_col5">0.645</td>
+<td class="data row4 col6" id="T_69f49_row4_col6">0.845</td>
+<td class="data row4 col7" id="T_69f49_row4_col7">0.819</td>
+<td class="data row4 col8" id="T_69f49_row4_col8">0.877</td>
 </tr>
 <tr>
-<th class="row_heading level0 row5" id="T_f12cd_level0_row5">Bagging (200 trees)</th>
-<td class="data row5 col0" id="T_f12cd_row5_col0">1.000</td>
-<td class="data row5 col1" id="T_f12cd_row5_col1">0.683</td>
-<td class="data row5 col2" id="T_f12cd_row5_col2">1.000</td>
-<td class="data row5 col3" id="T_f12cd_row5_col3">0.827</td>
-<td class="data row5 col4" id="T_f12cd_row5_col4">1.000</td>
-<td class="data row5 col5" id="T_f12cd_row5_col5">0.748</td>
-<td class="data row5 col6" id="T_f12cd_row5_col6">1.000</td>
-<td class="data row5 col7" id="T_f12cd_row5_col7">0.908</td>
-<td class="data row5 col8" id="T_f12cd_row5_col8">0.945</td>
+<th class="row_heading level0 row5" id="T_69f49_level0_row5">Bagging (200 trees)</th>
+<td class="data row5 col0" id="T_69f49_row5_col0">1.000</td>
+<td class="data row5 col1" id="T_69f49_row5_col1">0.683</td>
+<td class="data row5 col2" id="T_69f49_row5_col2">1.000</td>
+<td class="data row5 col3" id="T_69f49_row5_col3">0.827</td>
+<td class="data row5 col4" id="T_69f49_row5_col4">1.000</td>
+<td class="data row5 col5" id="T_69f49_row5_col5">0.748</td>
+<td class="data row5 col6" id="T_69f49_row5_col6">1.000</td>
+<td class="data row5 col7" id="T_69f49_row5_col7">0.908</td>
+<td class="data row5 col8" id="T_69f49_row5_col8">0.945</td>
 </tr>
 <tr>
-<th class="row_heading level0 row6" id="T_f12cd_level0_row6">Bagging (class-weighted trees)</th>
-<td class="data row6 col0" id="T_f12cd_row6_col0">1.000</td>
-<td class="data row6 col1" id="T_f12cd_row6_col1">0.597</td>
-<td class="data row6 col2" id="T_f12cd_row6_col2">1.000</td>
-<td class="data row6 col3" id="T_f12cd_row6_col3">0.810</td>
-<td class="data row6 col4" id="T_f12cd_row6_col4">1.000</td>
-<td class="data row6 col5" id="T_f12cd_row6_col5">0.687</td>
-<td class="data row6 col6" id="T_f12cd_row6_col6">1.000</td>
-<td class="data row6 col7" id="T_f12cd_row6_col7">0.891</td>
-<td class="data row6 col8" id="T_f12cd_row6_col8">0.946</td>
+<th class="row_heading level0 row6" id="T_69f49_level0_row6">Bagging (class-weighted trees)</th>
+<td class="data row6 col0" id="T_69f49_row6_col0">1.000</td>
+<td class="data row6 col1" id="T_69f49_row6_col1">0.597</td>
+<td class="data row6 col2" id="T_69f49_row6_col2">1.000</td>
+<td class="data row6 col3" id="T_69f49_row6_col3">0.810</td>
+<td class="data row6 col4" id="T_69f49_row6_col4">1.000</td>
+<td class="data row6 col5" id="T_69f49_row6_col5">0.687</td>
+<td class="data row6 col6" id="T_69f49_row6_col6">1.000</td>
+<td class="data row6 col7" id="T_69f49_row6_col7">0.891</td>
+<td class="data row6 col8" id="T_69f49_row6_col8">0.946</td>
 </tr>
 <tr>
-<th class="row_heading level0 row7" id="T_f12cd_level0_row7">Random Forest (default)</th>
-<td class="data row7 col0" id="T_f12cd_row7_col0">1.000</td>
-<td class="data row7 col1" id="T_f12cd_row7_col1">0.686</td>
-<td class="data row7 col2" id="T_f12cd_row7_col2">1.000</td>
-<td class="data row7 col3" id="T_f12cd_row7_col3">0.842</td>
-<td class="data row7 col4" id="T_f12cd_row7_col4">1.000</td>
-<td class="data row7 col5" id="T_f12cd_row7_col5">0.756</td>
-<td class="data row7 col6" id="T_f12cd_row7_col6">1.000</td>
-<td class="data row7 col7" id="T_f12cd_row7_col7">0.912</td>
-<td class="data row7 col8" id="T_f12cd_row7_col8">0.963</td>
+<th class="row_heading level0 row7" id="T_69f49_level0_row7">Random Forest (default)</th>
+<td class="data row7 col0" id="T_69f49_row7_col0">1.000</td>
+<td class="data row7 col1" id="T_69f49_row7_col1">0.686</td>
+<td class="data row7 col2" id="T_69f49_row7_col2">1.000</td>
+<td class="data row7 col3" id="T_69f49_row7_col3">0.842</td>
+<td class="data row7 col4" id="T_69f49_row7_col4">1.000</td>
+<td class="data row7 col5" id="T_69f49_row7_col5">0.756</td>
+<td class="data row7 col6" id="T_69f49_row7_col6">1.000</td>
+<td class="data row7 col7" id="T_69f49_row7_col7">0.912</td>
+<td class="data row7 col8" id="T_69f49_row7_col8">0.963</td>
 </tr>
 <tr>
-<th class="row_heading level0 row8" id="T_f12cd_level0_row8">Random Forest (class weights)</th>
-<td class="data row8 col0" id="T_f12cd_row8_col0">1.000</td>
-<td class="data row8 col1" id="T_f12cd_row8_col1">0.773</td>
-<td class="data row8 col2" id="T_f12cd_row8_col2">0.993</td>
-<td class="data row8 col3" id="T_f12cd_row8_col3">0.769</td>
-<td class="data row8 col4" id="T_f12cd_row8_col4">0.996</td>
-<td class="data row8 col5" id="T_f12cd_row8_col5">0.771</td>
-<td class="data row8 col6" id="T_f12cd_row8_col6">0.999</td>
-<td class="data row8 col7" id="T_f12cd_row8_col7">0.908</td>
-<td class="data row8 col8" id="T_f12cd_row8_col8">0.959</td>
+<th class="row_heading level0 row8" id="T_69f49_level0_row8">Random Forest (class weights)</th>
+<td class="data row8 col0" id="T_69f49_row8_col0">1.000</td>
+<td class="data row8 col1" id="T_69f49_row8_col1">0.773</td>
+<td class="data row8 col2" id="T_69f49_row8_col2">0.993</td>
+<td class="data row8 col3" id="T_69f49_row8_col3">0.769</td>
+<td class="data row8 col4" id="T_69f49_row8_col4">0.996</td>
+<td class="data row8 col5" id="T_69f49_row8_col5">0.771</td>
+<td class="data row8 col6" id="T_69f49_row8_col6">0.999</td>
+<td class="data row8 col7" id="T_69f49_row8_col7">0.908</td>
+<td class="data row8 col8" id="T_69f49_row8_col8">0.959</td>
 </tr>
 <tr>
-<th class="row_heading level0 row9" id="T_f12cd_level0_row9">Random Forest (tuned, recall)</th>
-<td class="data row9 col0" id="T_f12cd_row9_col0">0.918</td>
-<td class="data row9 col1" id="T_f12cd_row9_col1">0.790</td>
-<td class="data row9 col2" id="T_f12cd_row9_col2">0.699</td>
-<td class="data row9 col3" id="T_f12cd_row9_col3">0.656</td>
-<td class="data row9 col4" id="T_f12cd_row9_col4">0.794</td>
-<td class="data row9 col5" id="T_f12cd_row9_col5">0.717</td>
-<td class="data row9 col6" id="T_f12cd_row9_col6">0.905</td>
-<td class="data row9 col7" id="T_f12cd_row9_col7">0.875</td>
-<td class="data row9 col8" id="T_f12cd_row9_col8">0.932</td>
+<th class="row_heading level0 row9" id="T_69f49_level0_row9">Random Forest (tuned, recall)</th>
+<td class="data row9 col0" id="T_69f49_row9_col0">0.918</td>
+<td class="data row9 col1" id="T_69f49_row9_col1">0.790</td>
+<td class="data row9 col2" id="T_69f49_row9_col2">0.699</td>
+<td class="data row9 col3" id="T_69f49_row9_col3">0.656</td>
+<td class="data row9 col4" id="T_69f49_row9_col4">0.794</td>
+<td class="data row9 col5" id="T_69f49_row9_col5">0.717</td>
+<td class="data row9 col6" id="T_69f49_row9_col6">0.905</td>
+<td class="data row9 col7" id="T_69f49_row9_col7">0.875</td>
+<td class="data row9 col8" id="T_69f49_row9_col8">0.932</td>
 </tr>
 <tr>
-<th class="row_heading level0 row10" id="T_f12cd_level0_row10">Random Forest (tuned, reduced features)</th>
-<td class="data row10 col0" id="T_f12cd_row10_col0">0.916</td>
-<td class="data row10 col1" id="T_f12cd_row10_col1">0.784</td>
-<td class="data row10 col2" id="T_f12cd_row10_col2">0.712</td>
-<td class="data row10 col3" id="T_f12cd_row10_col3">0.660</td>
-<td class="data row10 col4" id="T_f12cd_row10_col4">0.801</td>
-<td class="data row10 col5" id="T_f12cd_row10_col5">0.717</td>
-<td class="data row10 col6" id="T_f12cd_row10_col6">0.909</td>
-<td class="data row10 col7" id="T_f12cd_row10_col7">0.876</td>
-<td class="data row10 col8" id="T_f12cd_row10_col8">0.929</td>
+<th class="row_heading level0 row10" id="T_69f49_level0_row10">Random Forest (tuned, reduced features)</th>
+<td class="data row10 col0" id="T_69f49_row10_col0">0.916</td>
+<td class="data row10 col1" id="T_69f49_row10_col1">0.784</td>
+<td class="data row10 col2" id="T_69f49_row10_col2">0.712</td>
+<td class="data row10 col3" id="T_69f49_row10_col3">0.660</td>
+<td class="data row10 col4" id="T_69f49_row10_col4">0.801</td>
+<td class="data row10 col5" id="T_69f49_row10_col5">0.717</td>
+<td class="data row10 col6" id="T_69f49_row10_col6">0.909</td>
+<td class="data row10 col7" id="T_69f49_row10_col7">0.876</td>
+<td class="data row10 col8" id="T_69f49_row10_col8">0.929</td>
 </tr>
 </tbody>
 </table>
@@ -14214,7 +14196,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=376a0a83">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8c389aa6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14247,7 +14229,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6b43484e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=21e8317a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14287,7 +14269,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8b8060f6">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13295cec">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14302,13 +14284,13 @@ weighted avg      0.887     0.876     0.880      1788
 <ol>
 <li><strong>Threshold tuning</strong> on the chosen forest (next section) moves recall above 90% at a controlled precision cost, because the forest's AUC is high.</li>
 <li><strong>Feature engineering</strong> such as a loan-to-value ratio ((LOAN + MORTDUE) / VALUE), binned debt-to-income or interaction terms. The trees approximate these features but could use them directly. These features would also help the linear model.</li>
-<li><strong>Gradient boosting and probability calibration.</strong> Gradient boosting builds trees one after another, and each new tree corrects the errors of the earlier trees. It keeps what makes trees fit this data (thresholds, interactions and blank fields). On tabular data like this it often ranks applicants better than a random forest. Calibration matters because the forest's scores understate risk in the decision range (see the calibration check below). Both were outside the scope of this milestone, and we list them as next steps.</li>
+<li><strong>Gradient boosting and probability calibration.</strong> Gradient boosting builds trees one after another, and each new tree corrects the errors of the earlier trees. It keeps what makes trees fit this data (thresholds, combined risk factors and blank fields). On tabular data like this it often ranks applicants better than a random forest. Calibration matters because the forest's scores understate risk in the decision range (see the calibration check below). Both were outside the scope of this milestone, and we list them as next steps.</li>
 </ol>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ff79c06a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5a51cc5c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14366,7 +14348,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a4e0985d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=caed3b8b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14379,11 +14361,11 @@ weighted avg      0.887     0.876     0.880      1788
 <p>The search runs in two stages:</p>
 <p><strong>(1)</strong> The forest's class weights and minimum leaf size, on all 27 inputs. These are the two dials the course material and the earlier grid search used. The number of trees and the features tried per split stay at their defaults, 200 and the square root of the input count.</p>
 <p><strong>(2)</strong> The winning configuration against the recall-tuned grid winner, each on all 27 inputs and on the 12-feature set. Stage 2 also includes the winning configuration without any occupation information (21 inputs), which is the fallback a fair-lending review might require.</p>
-<p>For completeness on the chosen yardstick, we score the balanced logistic regression and the recall-tuned decision tree the same way at their own cost-minimising thresholds.</p>
+<p>For completeness on the chosen yardstick, we score three more techniques the same way at their own cost-minimising thresholds. These are the bagged trees, the balanced logistic regression and the recall-tuned decision tree.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bf4c04f8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=fb140c11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14463,21 +14445,21 @@ weighted avg      0.887     0.876     0.880      1788
 <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[71]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
-#T_16255_row0_col4 {
+#T_e587b_row0_col4 {
   background-color: #c6efce;
 }
 </style>
-<table id="T_16255">
+<table id="T_e587b">
 <thead>
 <tr>
 <th class="blank"> </th>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_16255_level0_col0">Mean OOF ROC-AUC</th>
-<th class="col_heading level0 col1" id="T_16255_level0_col1">Best threshold</th>
-<th class="col_heading level0 col2" id="T_16255_level0_col2">OOF recall at best</th>
-<th class="col_heading level0 col3" id="T_16255_level0_col3">OOF precision at best</th>
-<th class="col_heading level0 col4" id="T_16255_level0_col4">Mean OOF expected cost per 1,000 ($)</th>
-<th class="col_heading level0 col5" id="T_16255_level0_col5">Fold-to-fold SD of cost ($)</th>
+<th class="col_heading level0 col0" id="T_e587b_level0_col0">Mean OOF ROC-AUC</th>
+<th class="col_heading level0 col1" id="T_e587b_level0_col1">Best threshold</th>
+<th class="col_heading level0 col2" id="T_e587b_level0_col2">OOF recall at best</th>
+<th class="col_heading level0 col3" id="T_e587b_level0_col3">OOF precision at best</th>
+<th class="col_heading level0 col4" id="T_e587b_level0_col4">Mean OOF expected cost per 1,000 ($)</th>
+<th class="col_heading level0 col5" id="T_e587b_level0_col5">Fold-to-fold SD of cost ($)</th>
 </tr>
 <tr>
 <th class="index_name level0">Class weights</th>
@@ -14492,144 +14474,144 @@ weighted avg      0.887     0.876     0.880      1788
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_16255_level0_row0" rowspan="3">none</th>
-<th class="row_heading level1 row0" id="T_16255_level1_row0">1</th>
-<td class="data row0 col0" id="T_16255_row0_col0">0.961</td>
-<td class="data row0 col1" id="T_16255_row0_col1">0.15</td>
-<td class="data row0 col2" id="T_16255_row0_col2">0.937</td>
-<td class="data row0 col3" id="T_16255_row0_col3">0.647</td>
-<td class="data row0 col4" id="T_16255_row0_col4">317,354</td>
-<td class="data row0 col5" id="T_16255_row0_col5">40,675</td>
+<th class="row_heading level0 row0" id="T_e587b_level0_row0" rowspan="3">none</th>
+<th class="row_heading level1 row0" id="T_e587b_level1_row0">1</th>
+<td class="data row0 col0" id="T_e587b_row0_col0">0.961</td>
+<td class="data row0 col1" id="T_e587b_row0_col1">0.15</td>
+<td class="data row0 col2" id="T_e587b_row0_col2">0.937</td>
+<td class="data row0 col3" id="T_e587b_row0_col3">0.647</td>
+<td class="data row0 col4" id="T_e587b_row0_col4">317,354</td>
+<td class="data row0 col5" id="T_e587b_row0_col5">40,675</td>
 </tr>
 <tr>
-<th class="row_heading level1 row1" id="T_16255_level1_row1">5</th>
-<td class="data row1 col0" id="T_16255_row1_col0">0.942</td>
-<td class="data row1 col1" id="T_16255_row1_col1">0.20</td>
-<td class="data row1 col2" id="T_16255_row1_col2">0.878</td>
-<td class="data row1 col3" id="T_16255_row1_col3">0.610</td>
-<td class="data row1 col4" id="T_16255_row1_col4">442,873</td>
-<td class="data row1 col5" id="T_16255_row1_col5">44,418</td>
+<th class="row_heading level1 row1" id="T_e587b_level1_row1">5</th>
+<td class="data row1 col0" id="T_e587b_row1_col0">0.942</td>
+<td class="data row1 col1" id="T_e587b_row1_col1">0.20</td>
+<td class="data row1 col2" id="T_e587b_row1_col2">0.878</td>
+<td class="data row1 col3" id="T_e587b_row1_col3">0.610</td>
+<td class="data row1 col4" id="T_e587b_row1_col4">442,873</td>
+<td class="data row1 col5" id="T_e587b_row1_col5">44,418</td>
 </tr>
 <tr>
-<th class="row_heading level1 row2" id="T_16255_level1_row2">10</th>
-<td class="data row2 col0" id="T_16255_row2_col0">0.931</td>
-<td class="data row2 col1" id="T_16255_row2_col1">0.20</td>
-<td class="data row2 col2" id="T_16255_row2_col2">0.865</td>
-<td class="data row2 col3" id="T_16255_row2_col3">0.586</td>
-<td class="data row2 col4" id="T_16255_row2_col4">484,979</td>
-<td class="data row2 col5" id="T_16255_row2_col5">47,511</td>
+<th class="row_heading level1 row2" id="T_e587b_level1_row2">10</th>
+<td class="data row2 col0" id="T_e587b_row2_col0">0.931</td>
+<td class="data row2 col1" id="T_e587b_row2_col1">0.20</td>
+<td class="data row2 col2" id="T_e587b_row2_col2">0.865</td>
+<td class="data row2 col3" id="T_e587b_row2_col3">0.586</td>
+<td class="data row2 col4" id="T_e587b_row2_col4">484,979</td>
+<td class="data row2 col5" id="T_e587b_row2_col5">47,511</td>
 </tr>
 <tr>
-<th class="row_heading level0 row3" id="T_16255_level0_row3" rowspan="3">balanced</th>
-<th class="row_heading level1 row3" id="T_16255_level1_row3">1</th>
-<td class="data row3 col0" id="T_16255_row3_col0">0.957</td>
-<td class="data row3 col1" id="T_16255_row3_col1">0.25</td>
-<td class="data row3 col2" id="T_16255_row3_col2">0.927</td>
-<td class="data row3 col3" id="T_16255_row3_col3">0.650</td>
-<td class="data row3 col4" id="T_16255_row3_col4">330,297</td>
-<td class="data row3 col5" id="T_16255_row3_col5">35,648</td>
+<th class="row_heading level0 row3" id="T_e587b_level0_row3" rowspan="3">balanced</th>
+<th class="row_heading level1 row3" id="T_e587b_level1_row3">1</th>
+<td class="data row3 col0" id="T_e587b_row3_col0">0.957</td>
+<td class="data row3 col1" id="T_e587b_row3_col1">0.25</td>
+<td class="data row3 col2" id="T_e587b_row3_col2">0.927</td>
+<td class="data row3 col3" id="T_e587b_row3_col3">0.650</td>
+<td class="data row3 col4" id="T_e587b_row3_col4">330,297</td>
+<td class="data row3 col5" id="T_e587b_row3_col5">35,648</td>
 </tr>
 <tr>
-<th class="row_heading level1 row4" id="T_16255_level1_row4">5</th>
-<td class="data row4 col0" id="T_16255_row4_col0">0.938</td>
-<td class="data row4 col1" id="T_16255_row4_col1">0.35</td>
-<td class="data row4 col2" id="T_16255_row4_col2">0.897</td>
-<td class="data row4 col3" id="T_16255_row4_col3">0.586</td>
-<td class="data row4 col4" id="T_16255_row4_col4">437,919</td>
-<td class="data row4 col5" id="T_16255_row4_col5">45,538</td>
+<th class="row_heading level1 row4" id="T_e587b_level1_row4">5</th>
+<td class="data row4 col0" id="T_e587b_row4_col0">0.938</td>
+<td class="data row4 col1" id="T_e587b_row4_col1">0.35</td>
+<td class="data row4 col2" id="T_e587b_row4_col2">0.897</td>
+<td class="data row4 col3" id="T_e587b_row4_col3">0.586</td>
+<td class="data row4 col4" id="T_e587b_row4_col4">437,919</td>
+<td class="data row4 col5" id="T_e587b_row4_col5">45,538</td>
 </tr>
 <tr>
-<th class="row_heading level1 row5" id="T_16255_level1_row5">10</th>
-<td class="data row5 col0" id="T_16255_row5_col0">0.927</td>
-<td class="data row5 col1" id="T_16255_row5_col1">0.35</td>
-<td class="data row5 col2" id="T_16255_row5_col2">0.899</td>
-<td class="data row5 col3" id="T_16255_row5_col3">0.539</td>
-<td class="data row5 col4" id="T_16255_row5_col4">488,175</td>
-<td class="data row5 col5" id="T_16255_row5_col5">52,478</td>
+<th class="row_heading level1 row5" id="T_e587b_level1_row5">10</th>
+<td class="data row5 col0" id="T_e587b_row5_col0">0.927</td>
+<td class="data row5 col1" id="T_e587b_row5_col1">0.35</td>
+<td class="data row5 col2" id="T_e587b_row5_col2">0.899</td>
+<td class="data row5 col3" id="T_e587b_row5_col3">0.539</td>
+<td class="data row5 col4" id="T_e587b_row5_col4">488,175</td>
+<td class="data row5 col5" id="T_e587b_row5_col5">52,478</td>
 </tr>
 <tr>
-<th class="row_heading level0 row6" id="T_16255_level0_row6" rowspan="3">0.3/0.7</th>
-<th class="row_heading level1 row6" id="T_16255_level1_row6">1</th>
-<td class="data row6 col0" id="T_16255_row6_col0">0.959</td>
-<td class="data row6 col1" id="T_16255_row6_col1">0.20</td>
-<td class="data row6 col2" id="T_16255_row6_col2">0.940</td>
-<td class="data row6 col3" id="T_16255_row6_col3">0.640</td>
-<td class="data row6 col4" id="T_16255_row6_col4">319,671</td>
-<td class="data row6 col5" id="T_16255_row6_col5">33,818</td>
+<th class="row_heading level0 row6" id="T_e587b_level0_row6" rowspan="3">0.3/0.7</th>
+<th class="row_heading level1 row6" id="T_e587b_level1_row6">1</th>
+<td class="data row6 col0" id="T_e587b_row6_col0">0.959</td>
+<td class="data row6 col1" id="T_e587b_row6_col1">0.20</td>
+<td class="data row6 col2" id="T_e587b_row6_col2">0.940</td>
+<td class="data row6 col3" id="T_e587b_row6_col3">0.640</td>
+<td class="data row6 col4" id="T_e587b_row6_col4">319,671</td>
+<td class="data row6 col5" id="T_e587b_row6_col5">33,818</td>
 </tr>
 <tr>
-<th class="row_heading level1 row7" id="T_16255_level1_row7">5</th>
-<td class="data row7 col0" id="T_16255_row7_col0">0.940</td>
-<td class="data row7 col1" id="T_16255_row7_col1">0.30</td>
-<td class="data row7 col2" id="T_16255_row7_col2">0.885</td>
-<td class="data row7 col3" id="T_16255_row7_col3">0.609</td>
-<td class="data row7 col4" id="T_16255_row7_col4">432,966</td>
-<td class="data row7 col5" id="T_16255_row7_col5">44,984</td>
+<th class="row_heading level1 row7" id="T_e587b_level1_row7">5</th>
+<td class="data row7 col0" id="T_e587b_row7_col0">0.940</td>
+<td class="data row7 col1" id="T_e587b_row7_col1">0.30</td>
+<td class="data row7 col2" id="T_e587b_row7_col2">0.885</td>
+<td class="data row7 col3" id="T_e587b_row7_col3">0.609</td>
+<td class="data row7 col4" id="T_e587b_row7_col4">432,966</td>
+<td class="data row7 col5" id="T_e587b_row7_col5">44,984</td>
 </tr>
 <tr>
-<th class="row_heading level1 row8" id="T_16255_level1_row8">10</th>
-<td class="data row8 col0" id="T_16255_row8_col0">0.929</td>
-<td class="data row8 col1" id="T_16255_row8_col1">0.30</td>
-<td class="data row8 col2" id="T_16255_row8_col2">0.877</td>
-<td class="data row8 col3" id="T_16255_row8_col3">0.577</td>
-<td class="data row8 col4" id="T_16255_row8_col4">476,910</td>
-<td class="data row8 col5" id="T_16255_row8_col5">54,611</td>
+<th class="row_heading level1 row8" id="T_e587b_level1_row8">10</th>
+<td class="data row8 col0" id="T_e587b_row8_col0">0.929</td>
+<td class="data row8 col1" id="T_e587b_row8_col1">0.30</td>
+<td class="data row8 col2" id="T_e587b_row8_col2">0.877</td>
+<td class="data row8 col3" id="T_e587b_row8_col3">0.577</td>
+<td class="data row8 col4" id="T_e587b_row8_col4">476,910</td>
+<td class="data row8 col5" id="T_e587b_row8_col5">54,611</td>
 </tr>
 <tr>
-<th class="row_heading level0 row9" id="T_16255_level0_row9" rowspan="3">0.2/0.8</th>
-<th class="row_heading level1 row9" id="T_16255_level1_row9">1</th>
-<td class="data row9 col0" id="T_16255_row9_col0">0.957</td>
-<td class="data row9 col1" id="T_16255_row9_col1">0.25</td>
-<td class="data row9 col2" id="T_16255_row9_col2">0.932</td>
-<td class="data row9 col3" id="T_16255_row9_col3">0.651</td>
-<td class="data row9 col4" id="T_16255_row9_col4">321,189</td>
-<td class="data row9 col5" id="T_16255_row9_col5">38,680</td>
+<th class="row_heading level0 row9" id="T_e587b_level0_row9" rowspan="3">0.2/0.8</th>
+<th class="row_heading level1 row9" id="T_e587b_level1_row9">1</th>
+<td class="data row9 col0" id="T_e587b_row9_col0">0.957</td>
+<td class="data row9 col1" id="T_e587b_row9_col1">0.25</td>
+<td class="data row9 col2" id="T_e587b_row9_col2">0.932</td>
+<td class="data row9 col3" id="T_e587b_row9_col3">0.651</td>
+<td class="data row9 col4" id="T_e587b_row9_col4">321,189</td>
+<td class="data row9 col5" id="T_e587b_row9_col5">38,680</td>
 </tr>
 <tr>
-<th class="row_heading level1 row10" id="T_16255_level1_row10">5</th>
-<td class="data row10 col0" id="T_16255_row10_col0">0.938</td>
-<td class="data row10 col1" id="T_16255_row10_col1">0.35</td>
-<td class="data row10 col2" id="T_16255_row10_col2">0.895</td>
-<td class="data row10 col3" id="T_16255_row10_col3">0.587</td>
-<td class="data row10 col4" id="T_16255_row10_col4">438,559</td>
-<td class="data row10 col5" id="T_16255_row10_col5">42,386</td>
+<th class="row_heading level1 row10" id="T_e587b_level1_row10">5</th>
+<td class="data row10 col0" id="T_e587b_row10_col0">0.938</td>
+<td class="data row10 col1" id="T_e587b_row10_col1">0.35</td>
+<td class="data row10 col2" id="T_e587b_row10_col2">0.895</td>
+<td class="data row10 col3" id="T_e587b_row10_col3">0.587</td>
+<td class="data row10 col4" id="T_e587b_row10_col4">438,559</td>
+<td class="data row10 col5" id="T_e587b_row10_col5">42,386</td>
 </tr>
 <tr>
-<th class="row_heading level1 row11" id="T_16255_level1_row11">10</th>
-<td class="data row11 col0" id="T_16255_row11_col0">0.927</td>
-<td class="data row11 col1" id="T_16255_row11_col1">0.40</td>
-<td class="data row11 col2" id="T_16255_row11_col2">0.865</td>
-<td class="data row11 col3" id="T_16255_row11_col3">0.586</td>
-<td class="data row11 col4" id="T_16255_row11_col4">486,018</td>
-<td class="data row11 col5" id="T_16255_row11_col5">52,191</td>
+<th class="row_heading level1 row11" id="T_e587b_level1_row11">10</th>
+<td class="data row11 col0" id="T_e587b_row11_col0">0.927</td>
+<td class="data row11 col1" id="T_e587b_row11_col1">0.40</td>
+<td class="data row11 col2" id="T_e587b_row11_col2">0.865</td>
+<td class="data row11 col3" id="T_e587b_row11_col3">0.586</td>
+<td class="data row11 col4" id="T_e587b_row11_col4">486,018</td>
+<td class="data row11 col5" id="T_e587b_row11_col5">52,191</td>
 </tr>
 <tr>
-<th class="row_heading level0 row12" id="T_16255_level0_row12" rowspan="3">0.1/0.9</th>
-<th class="row_heading level1 row12" id="T_16255_level1_row12">1</th>
-<td class="data row12 col0" id="T_16255_row12_col0">0.952</td>
-<td class="data row12 col1" id="T_16255_row12_col1">0.30</td>
-<td class="data row12 col2" id="T_16255_row12_col2">0.935</td>
-<td class="data row12 col3" id="T_16255_row12_col3">0.620</td>
-<td class="data row12 col4" id="T_16255_row12_col4">344,839</td>
-<td class="data row12 col5" id="T_16255_row12_col5">37,995</td>
+<th class="row_heading level0 row12" id="T_e587b_level0_row12" rowspan="3">0.1/0.9</th>
+<th class="row_heading level1 row12" id="T_e587b_level1_row12">1</th>
+<td class="data row12 col0" id="T_e587b_row12_col0">0.952</td>
+<td class="data row12 col1" id="T_e587b_row12_col1">0.30</td>
+<td class="data row12 col2" id="T_e587b_row12_col2">0.935</td>
+<td class="data row12 col3" id="T_e587b_row12_col3">0.620</td>
+<td class="data row12 col4" id="T_e587b_row12_col4">344,839</td>
+<td class="data row12 col5" id="T_e587b_row12_col5">37,995</td>
 </tr>
 <tr>
-<th class="row_heading level1 row13" id="T_16255_level1_row13">5</th>
-<td class="data row13 col0" id="T_16255_row13_col0">0.932</td>
-<td class="data row13 col1" id="T_16255_row13_col1">0.50</td>
-<td class="data row13 col2" id="T_16255_row13_col2">0.876</td>
-<td class="data row13 col3" id="T_16255_row13_col3">0.598</td>
-<td class="data row13 col4" id="T_16255_row13_col4">458,134</td>
-<td class="data row13 col5" id="T_16255_row13_col5">53,464</td>
+<th class="row_heading level1 row13" id="T_e587b_level1_row13">5</th>
+<td class="data row13 col0" id="T_e587b_row13_col0">0.932</td>
+<td class="data row13 col1" id="T_e587b_row13_col1">0.50</td>
+<td class="data row13 col2" id="T_e587b_row13_col2">0.876</td>
+<td class="data row13 col3" id="T_e587b_row13_col3">0.598</td>
+<td class="data row13 col4" id="T_e587b_row13_col4">458,134</td>
+<td class="data row13 col5" id="T_e587b_row13_col5">53,464</td>
 </tr>
 <tr>
-<th class="row_heading level1 row14" id="T_16255_level1_row14">10</th>
-<td class="data row14 col0" id="T_16255_row14_col0">0.922</td>
-<td class="data row14 col1" id="T_16255_row14_col1">0.50</td>
-<td class="data row14 col2" id="T_16255_row14_col2">0.890</td>
-<td class="data row14 col3" id="T_16255_row14_col3">0.537</td>
-<td class="data row14 col4" id="T_16255_row14_col4">503,276</td>
-<td class="data row14 col5" id="T_16255_row14_col5">54,321</td>
+<th class="row_heading level1 row14" id="T_e587b_level1_row14">10</th>
+<td class="data row14 col0" id="T_e587b_row14_col0">0.922</td>
+<td class="data row14 col1" id="T_e587b_row14_col1">0.50</td>
+<td class="data row14 col2" id="T_e587b_row14_col2">0.890</td>
+<td class="data row14 col3" id="T_e587b_row14_col3">0.537</td>
+<td class="data row14 col4" id="T_e587b_row14_col4">503,276</td>
+<td class="data row14 col5" id="T_e587b_row14_col5">54,321</td>
 </tr>
 </tbody>
 </table>
@@ -14637,7 +14619,7 @@ weighted avg      0.887     0.876     0.880      1788
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d05b24fa">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=901c9f5f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14678,14 +14660,14 @@ Configurations within one standard error of the lowest cost:
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
 </style>
-<table id="T_57fe6">
+<table id="T_a5465">
 <thead>
 <tr>
 <th class="blank"> </th>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_57fe6_level0_col0">Mean OOF expected cost per 1,000 ($)</th>
-<th class="col_heading level0 col1" id="T_57fe6_level0_col1">Best threshold</th>
-<th class="col_heading level0 col2" id="T_57fe6_level0_col2">non-default settings</th>
+<th class="col_heading level0 col0" id="T_a5465_level0_col0">Mean OOF expected cost per 1,000 ($)</th>
+<th class="col_heading level0 col1" id="T_a5465_level0_col1">Best threshold</th>
+<th class="col_heading level0 col2" id="T_a5465_level0_col2">non-default settings</th>
 </tr>
 <tr>
 <th class="index_name level0">Class weights</th>
@@ -14697,25 +14679,25 @@ Configurations within one standard error of the lowest cost:
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_57fe6_level0_row0">none</th>
-<th class="row_heading level1 row0" id="T_57fe6_level1_row0">1</th>
-<td class="data row0 col0" id="T_57fe6_row0_col0">317,354</td>
-<td class="data row0 col1" id="T_57fe6_row0_col1">0.15</td>
-<td class="data row0 col2" id="T_57fe6_row0_col2">0</td>
+<th class="row_heading level0 row0" id="T_a5465_level0_row0">none</th>
+<th class="row_heading level1 row0" id="T_a5465_level1_row0">1</th>
+<td class="data row0 col0" id="T_a5465_row0_col0">317,354</td>
+<td class="data row0 col1" id="T_a5465_row0_col1">0.15</td>
+<td class="data row0 col2" id="T_a5465_row0_col2">0</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_57fe6_level0_row1">0.3/0.7</th>
-<th class="row_heading level1 row1" id="T_57fe6_level1_row1">1</th>
-<td class="data row1 col0" id="T_57fe6_row1_col0">319,671</td>
-<td class="data row1 col1" id="T_57fe6_row1_col1">0.20</td>
-<td class="data row1 col2" id="T_57fe6_row1_col2">1</td>
+<th class="row_heading level0 row1" id="T_a5465_level0_row1">0.3/0.7</th>
+<th class="row_heading level1 row1" id="T_a5465_level1_row1">1</th>
+<td class="data row1 col0" id="T_a5465_row1_col0">319,671</td>
+<td class="data row1 col1" id="T_a5465_row1_col1">0.20</td>
+<td class="data row1 col2" id="T_a5465_row1_col2">1</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_57fe6_level0_row2">0.2/0.8</th>
-<th class="row_heading level1 row2" id="T_57fe6_level1_row2">1</th>
-<td class="data row2 col0" id="T_57fe6_row2_col0">321,189</td>
-<td class="data row2 col1" id="T_57fe6_row2_col1">0.25</td>
-<td class="data row2 col2" id="T_57fe6_row2_col2">1</td>
+<th class="row_heading level0 row2" id="T_a5465_level0_row2">0.2/0.8</th>
+<th class="row_heading level1 row2" id="T_a5465_level1_row2">1</th>
+<td class="data row2 col0" id="T_a5465_row2_col0">321,189</td>
+<td class="data row2 col1" id="T_a5465_row2_col1">0.25</td>
+<td class="data row2 col2" id="T_a5465_row2_col2">1</td>
 </tr>
 </tbody>
 </table>
@@ -14732,7 +14714,7 @@ Stage 1 choice: class weights = none, min. applicants per leaf = 1
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88ea378c">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c4baece3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14747,7 +14729,7 @@ Stage 1 choice: class weights = none, min. applicants per leaf = 1
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f7000960">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=84f39d2f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14773,6 +14755,7 @@ Stage 1 choice: class weights = none, min. applicants per leaf = 1
 <span class="c1"># The other techniques at their own cost-minimising thresholds, so that the comparison on the chosen yardstick is complete</span>
 <span class="c1"># (the logistic regression is evaluated on its own capped and scaled data version)</span>
 <span class="n">other_techniques</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Bagging (200 trees), own threshold"</span><span class="p">:</span> <span class="p">(</span><span class="n">clone</span><span class="p">(</span><span class="n">bag</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">X_train</span><span class="p">),</span>
     <span class="s2">"Logistic Regression (balanced, C tuned), own threshold"</span><span class="p">:</span> <span class="p">(</span><span class="n">clone</span><span class="p">(</span><span class="n">lr_bal</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">X_train_lr_s</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">X_train_lr_s</span><span class="p">),</span>
     <span class="s2">"Decision Tree (recall-tuned), own threshold"</span><span class="p">:</span> <span class="p">(</span><span class="n">clone</span><span class="p">(</span><span class="n">dt_tuned</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">X_train</span><span class="p">),</span>
 <span class="p">}</span>
@@ -14818,21 +14801,21 @@ Selected threshold (from out-of-fold cost): 0.15
 <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[73]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
-#T_03211_row0_col4 {
+#T_3fec7_row0_col4 {
   background-color: #c6efce;
 }
 </style>
-<table id="T_03211">
+<table id="T_3fec7">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_03211_level0_col0">Mean OOF ROC-AUC</th>
-<th class="col_heading level0 col1" id="T_03211_level0_col1">Best threshold</th>
-<th class="col_heading level0 col2" id="T_03211_level0_col2">OOF recall at best</th>
-<th class="col_heading level0 col3" id="T_03211_level0_col3">OOF precision at best</th>
-<th class="col_heading level0 col4" id="T_03211_level0_col4">Mean OOF expected cost per 1,000 ($)</th>
-<th class="col_heading level0 col5" id="T_03211_level0_col5">Fold-to-fold SD of cost ($)</th>
-<th class="col_heading level0 col6" id="T_03211_level0_col6">Inputs</th>
+<th class="col_heading level0 col0" id="T_3fec7_level0_col0">Mean OOF ROC-AUC</th>
+<th class="col_heading level0 col1" id="T_3fec7_level0_col1">Best threshold</th>
+<th class="col_heading level0 col2" id="T_3fec7_level0_col2">OOF recall at best</th>
+<th class="col_heading level0 col3" id="T_3fec7_level0_col3">OOF precision at best</th>
+<th class="col_heading level0 col4" id="T_3fec7_level0_col4">Mean OOF expected cost per 1,000 ($)</th>
+<th class="col_heading level0 col5" id="T_3fec7_level0_col5">Fold-to-fold SD of cost ($)</th>
+<th class="col_heading level0 col6" id="T_3fec7_level0_col6">Inputs</th>
 </tr>
 <tr>
 <th class="index_name level0">Candidate</th>
@@ -14847,74 +14830,84 @@ Selected threshold (from out-of-fold cost): 0.15
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_03211_level0_row0">RF class weights none, leaf 1, 27 inputs</th>
-<td class="data row0 col0" id="T_03211_row0_col0">0.961</td>
-<td class="data row0 col1" id="T_03211_row0_col1">0.15</td>
-<td class="data row0 col2" id="T_03211_row0_col2">0.937</td>
-<td class="data row0 col3" id="T_03211_row0_col3">0.647</td>
-<td class="data row0 col4" id="T_03211_row0_col4">317,354</td>
-<td class="data row0 col5" id="T_03211_row0_col5">40,675</td>
-<td class="data row0 col6" id="T_03211_row0_col6">27</td>
+<th class="row_heading level0 row0" id="T_3fec7_level0_row0">RF class weights none, leaf 1, 27 inputs</th>
+<td class="data row0 col0" id="T_3fec7_row0_col0">0.961</td>
+<td class="data row0 col1" id="T_3fec7_row0_col1">0.15</td>
+<td class="data row0 col2" id="T_3fec7_row0_col2">0.937</td>
+<td class="data row0 col3" id="T_3fec7_row0_col3">0.647</td>
+<td class="data row0 col4" id="T_3fec7_row0_col4">317,354</td>
+<td class="data row0 col5" id="T_3fec7_row0_col5">40,675</td>
+<td class="data row0 col6" id="T_3fec7_row0_col6">27</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_03211_level0_row1">RF class weights none, leaf 1, 21 inputs (no occupation)</th>
-<td class="data row1 col0" id="T_03211_row1_col0">0.955</td>
-<td class="data row1 col1" id="T_03211_row1_col1">0.15</td>
-<td class="data row1 col2" id="T_03211_row1_col2">0.923</td>
-<td class="data row1 col3" id="T_03211_row1_col3">0.633</td>
-<td class="data row1 col4" id="T_03211_row1_col4">350,671</td>
-<td class="data row1 col5" id="T_03211_row1_col5">38,948</td>
-<td class="data row1 col6" id="T_03211_row1_col6">21</td>
+<th class="row_heading level0 row1" id="T_3fec7_level0_row1">RF class weights none, leaf 1, 21 inputs (no occupation)</th>
+<td class="data row1 col0" id="T_3fec7_row1_col0">0.955</td>
+<td class="data row1 col1" id="T_3fec7_row1_col1">0.15</td>
+<td class="data row1 col2" id="T_3fec7_row1_col2">0.923</td>
+<td class="data row1 col3" id="T_3fec7_row1_col3">0.633</td>
+<td class="data row1 col4" id="T_3fec7_row1_col4">350,671</td>
+<td class="data row1 col5" id="T_3fec7_row1_col5">38,948</td>
+<td class="data row1 col6" id="T_3fec7_row1_col6">21</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_03211_level0_row2">RF class weights none, leaf 1, 12 inputs</th>
-<td class="data row2 col0" id="T_03211_row2_col0">0.948</td>
-<td class="data row2 col1" id="T_03211_row2_col1">0.15</td>
-<td class="data row2 col2" id="T_03211_row2_col2">0.913</td>
-<td class="data row2 col3" id="T_03211_row2_col3">0.621</td>
-<td class="data row2 col4" id="T_03211_row2_col4">377,597</td>
-<td class="data row2 col5" id="T_03211_row2_col5">37,659</td>
-<td class="data row2 col6" id="T_03211_row2_col6">12</td>
+<th class="row_heading level0 row2" id="T_3fec7_level0_row2">RF class weights none, leaf 1, 12 inputs</th>
+<td class="data row2 col0" id="T_3fec7_row2_col0">0.948</td>
+<td class="data row2 col1" id="T_3fec7_row2_col1">0.15</td>
+<td class="data row2 col2" id="T_3fec7_row2_col2">0.913</td>
+<td class="data row2 col3" id="T_3fec7_row2_col3">0.621</td>
+<td class="data row2 col4" id="T_3fec7_row2_col4">377,597</td>
+<td class="data row2 col5" id="T_3fec7_row2_col5">37,659</td>
+<td class="data row2 col6" id="T_3fec7_row2_col6">12</td>
 </tr>
 <tr>
-<th class="row_heading level0 row3" id="T_03211_level0_row3">RF recall-tuned grid winner, 27 inputs</th>
-<td class="data row3 col0" id="T_03211_row3_col0">0.927</td>
-<td class="data row3 col1" id="T_03211_row3_col1">0.35</td>
-<td class="data row3 col2" id="T_03211_row3_col2">0.897</td>
-<td class="data row3 col3" id="T_03211_row3_col3">0.540</td>
-<td class="data row3 col4" id="T_03211_row3_col4">489,613</td>
-<td class="data row3 col5" id="T_03211_row3_col5">52,035</td>
-<td class="data row3 col6" id="T_03211_row3_col6">27</td>
+<th class="row_heading level0 row3" id="T_3fec7_level0_row3">RF recall-tuned grid winner, 27 inputs</th>
+<td class="data row3 col0" id="T_3fec7_row3_col0">0.927</td>
+<td class="data row3 col1" id="T_3fec7_row3_col1">0.35</td>
+<td class="data row3 col2" id="T_3fec7_row3_col2">0.897</td>
+<td class="data row3 col3" id="T_3fec7_row3_col3">0.540</td>
+<td class="data row3 col4" id="T_3fec7_row3_col4">489,613</td>
+<td class="data row3 col5" id="T_3fec7_row3_col5">52,035</td>
+<td class="data row3 col6" id="T_3fec7_row3_col6">27</td>
 </tr>
 <tr>
-<th class="row_heading level0 row4" id="T_03211_level0_row4">RF recall-tuned grid winner, 12 inputs</th>
-<td class="data row4 col0" id="T_03211_row4_col0">0.921</td>
-<td class="data row4 col1" id="T_03211_row4_col1">0.35</td>
-<td class="data row4 col2" id="T_03211_row4_col2">0.883</td>
-<td class="data row4 col3" id="T_03211_row4_col3">0.537</td>
-<td class="data row4 col4" id="T_03211_row4_col4">512,544</td>
-<td class="data row4 col5" id="T_03211_row4_col5">47,688</td>
-<td class="data row4 col6" id="T_03211_row4_col6">12</td>
+<th class="row_heading level0 row4" id="T_3fec7_level0_row4">RF recall-tuned grid winner, 12 inputs</th>
+<td class="data row4 col0" id="T_3fec7_row4_col0">0.921</td>
+<td class="data row4 col1" id="T_3fec7_row4_col1">0.35</td>
+<td class="data row4 col2" id="T_3fec7_row4_col2">0.883</td>
+<td class="data row4 col3" id="T_3fec7_row4_col3">0.537</td>
+<td class="data row4 col4" id="T_3fec7_row4_col4">512,544</td>
+<td class="data row4 col5" id="T_3fec7_row4_col5">47,688</td>
+<td class="data row4 col6" id="T_3fec7_row4_col6">12</td>
 </tr>
 <tr>
-<th class="row_heading level0 row5" id="T_03211_level0_row5">Logistic Regression (balanced, C tuned), own threshold</th>
-<td class="data row5 col0" id="T_03211_row5_col0">0.907</td>
-<td class="data row5 col1" id="T_03211_row5_col1">0.50</td>
-<td class="data row5 col2" id="T_03211_row5_col2">0.815</td>
-<td class="data row5 col3" id="T_03211_row5_col3">0.599</td>
-<td class="data row5 col4" id="T_03211_row5_col4">550,176</td>
-<td class="data row5 col5" id="T_03211_row5_col5">58,089</td>
-<td class="data row5 col6" id="T_03211_row5_col6">27</td>
+<th class="row_heading level0 row5" id="T_3fec7_level0_row5">Bagging (200 trees), own threshold</th>
+<td class="data row5 col0" id="T_3fec7_row5_col0">0.944</td>
+<td class="data row5 col1" id="T_3fec7_row5_col1">0.15</td>
+<td class="data row5 col2" id="T_3fec7_row5_col2">0.901</td>
+<td class="data row5 col3" id="T_3fec7_row5_col3">0.629</td>
+<td class="data row5 col4" id="T_3fec7_row5_col4">389,821</td>
+<td class="data row5 col5" id="T_3fec7_row5_col5">53,643</td>
+<td class="data row5 col6" id="T_3fec7_row5_col6">27</td>
 </tr>
 <tr>
-<th class="row_heading level0 row6" id="T_03211_level0_row6">Decision Tree (recall-tuned), own threshold</th>
-<td class="data row6 col0" id="T_03211_row6_col0">0.880</td>
-<td class="data row6 col1" id="T_03211_row6_col1">0.55</td>
-<td class="data row6 col2" id="T_03211_row6_col2">0.800</td>
-<td class="data row6 col3" id="T_03211_row6_col3">0.563</td>
-<td class="data row6 col4" id="T_03211_row6_col4">607,223</td>
-<td class="data row6 col5" id="T_03211_row6_col5">73,679</td>
-<td class="data row6 col6" id="T_03211_row6_col6">27</td>
+<th class="row_heading level0 row6" id="T_3fec7_level0_row6">Logistic Regression (balanced, C tuned), own threshold</th>
+<td class="data row6 col0" id="T_3fec7_row6_col0">0.907</td>
+<td class="data row6 col1" id="T_3fec7_row6_col1">0.50</td>
+<td class="data row6 col2" id="T_3fec7_row6_col2">0.815</td>
+<td class="data row6 col3" id="T_3fec7_row6_col3">0.599</td>
+<td class="data row6 col4" id="T_3fec7_row6_col4">550,176</td>
+<td class="data row6 col5" id="T_3fec7_row6_col5">58,089</td>
+<td class="data row6 col6" id="T_3fec7_row6_col6">27</td>
+</tr>
+<tr>
+<th class="row_heading level0 row7" id="T_3fec7_level0_row7">Decision Tree (recall-tuned), own threshold</th>
+<td class="data row7 col0" id="T_3fec7_row7_col0">0.880</td>
+<td class="data row7 col1" id="T_3fec7_row7_col1">0.55</td>
+<td class="data row7 col2" id="T_3fec7_row7_col2">0.800</td>
+<td class="data row7 col3" id="T_3fec7_row7_col3">0.563</td>
+<td class="data row7 col4" id="T_3fec7_row7_col4">607,223</td>
+<td class="data row7 col5" id="T_3fec7_row7_col5">73,679</td>
+<td class="data row7 col6" id="T_3fec7_row7_col6">27</td>
 </tr>
 </tbody>
 </table>
@@ -14922,7 +14915,7 @@ Selected threshold (from out-of-fold cost): 0.15
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78f4233d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d1882d10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -14966,163 +14959,163 @@ Selected threshold (from out-of-fold cost): 0.15
 <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[74]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
-#T_c2ae2_row2_col6 {
+#T_a3c43_row2_col6 {
   background-color: #c6efce;
 }
 </style>
-<table id="T_c2ae2">
+<table id="T_a3c43">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_c2ae2_level0_col0">threshold</th>
-<th class="col_heading level0 col1" id="T_c2ae2_level0_col1">recall</th>
-<th class="col_heading level0 col2" id="T_c2ae2_level0_col2">precision</th>
-<th class="col_heading level0 col3" id="T_c2ae2_level0_col3">accuracy</th>
-<th class="col_heading level0 col4" id="T_c2ae2_level0_col4">missed_defaulters_per_1000</th>
-<th class="col_heading level0 col5" id="T_c2ae2_level0_col5">good_customers_declined_per_1000</th>
-<th class="col_heading level0 col6" id="T_c2ae2_level0_col6">expected_cost_per_1000_$</th>
+<th class="col_heading level0 col0" id="T_a3c43_level0_col0">threshold</th>
+<th class="col_heading level0 col1" id="T_a3c43_level0_col1">recall</th>
+<th class="col_heading level0 col2" id="T_a3c43_level0_col2">precision</th>
+<th class="col_heading level0 col3" id="T_a3c43_level0_col3">accuracy</th>
+<th class="col_heading level0 col4" id="T_a3c43_level0_col4">missed_defaulters_per_1000</th>
+<th class="col_heading level0 col5" id="T_a3c43_level0_col5">good_customers_declined_per_1000</th>
+<th class="col_heading level0 col6" id="T_a3c43_level0_col6">expected_cost_per_1000_$</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_c2ae2_level0_row0">0</th>
-<td class="data row0 col0" id="T_c2ae2_row0_col0">0.050000</td>
-<td class="data row0 col1" id="T_c2ae2_row0_col1">0.986</td>
-<td class="data row0 col2" id="T_c2ae2_row0_col2">0.446</td>
-<td class="data row0 col3" id="T_c2ae2_row0_col3">0.753</td>
-<td class="data row0 col4" id="T_c2ae2_row0_col4">2.8</td>
-<td class="data row0 col5" id="T_c2ae2_row0_col5">243.8</td>
-<td class="data row0 col6" id="T_c2ae2_row0_col6">512,864</td>
+<th class="row_heading level0 row0" id="T_a3c43_level0_row0">0</th>
+<td class="data row0 col0" id="T_a3c43_row0_col0">0.050000</td>
+<td class="data row0 col1" id="T_a3c43_row0_col1">0.986</td>
+<td class="data row0 col2" id="T_a3c43_row0_col2">0.446</td>
+<td class="data row0 col3" id="T_a3c43_row0_col3">0.753</td>
+<td class="data row0 col4" id="T_a3c43_row0_col4">2.8</td>
+<td class="data row0 col5" id="T_a3c43_row0_col5">243.8</td>
+<td class="data row0 col6" id="T_a3c43_row0_col6">512,864</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_c2ae2_level0_row1">1</th>
-<td class="data row1 col0" id="T_c2ae2_row1_col0">0.100000</td>
-<td class="data row1 col1" id="T_c2ae2_row1_col1">0.964</td>
-<td class="data row1 col2" id="T_c2ae2_row1_col2">0.571</td>
-<td class="data row1 col3" id="T_c2ae2_row1_col3">0.848</td>
-<td class="data row1 col4" id="T_c2ae2_row1_col4">7.3</td>
-<td class="data row1 col5" id="T_c2ae2_row1_col5">144.5</td>
-<td class="data row1 col6" id="T_c2ae2_row1_col6">354,346</td>
+<th class="row_heading level0 row1" id="T_a3c43_level0_row1">1</th>
+<td class="data row1 col0" id="T_a3c43_row1_col0">0.100000</td>
+<td class="data row1 col1" id="T_a3c43_row1_col1">0.964</td>
+<td class="data row1 col2" id="T_a3c43_row1_col2">0.571</td>
+<td class="data row1 col3" id="T_a3c43_row1_col3">0.848</td>
+<td class="data row1 col4" id="T_a3c43_row1_col4">7.3</td>
+<td class="data row1 col5" id="T_a3c43_row1_col5">144.5</td>
+<td class="data row1 col6" id="T_a3c43_row1_col6">354,346</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_c2ae2_level0_row2">2</th>
-<td class="data row2 col0" id="T_c2ae2_row2_col0">0.150000</td>
-<td class="data row2 col1" id="T_c2ae2_row2_col1">0.937</td>
-<td class="data row2 col2" id="T_c2ae2_row2_col2">0.647</td>
-<td class="data row2 col3" id="T_c2ae2_row2_col3">0.886</td>
-<td class="data row2 col4" id="T_c2ae2_row2_col4">12.6</td>
-<td class="data row2 col5" id="T_c2ae2_row2_col5">101.9</td>
-<td class="data row2 col6" id="T_c2ae2_row2_col6">317,354</td>
+<th class="row_heading level0 row2" id="T_a3c43_level0_row2">2</th>
+<td class="data row2 col0" id="T_a3c43_row2_col0">0.150000</td>
+<td class="data row2 col1" id="T_a3c43_row2_col1">0.937</td>
+<td class="data row2 col2" id="T_a3c43_row2_col2">0.647</td>
+<td class="data row2 col3" id="T_a3c43_row2_col3">0.886</td>
+<td class="data row2 col4" id="T_a3c43_row2_col4">12.6</td>
+<td class="data row2 col5" id="T_a3c43_row2_col5">101.9</td>
+<td class="data row2 col6" id="T_a3c43_row2_col6">317,354</td>
 </tr>
 <tr>
-<th class="row_heading level0 row3" id="T_c2ae2_level0_row3">3</th>
-<td class="data row3 col0" id="T_c2ae2_row3_col0">0.200000</td>
-<td class="data row3 col1" id="T_c2ae2_row3_col1">0.904</td>
-<td class="data row3 col2" id="T_c2ae2_row3_col2">0.685</td>
-<td class="data row3 col3" id="T_c2ae2_row3_col3">0.898</td>
-<td class="data row3 col4" id="T_c2ae2_row3_col4">19.2</td>
-<td class="data row3 col5" id="T_c2ae2_row3_col5">82.9</td>
-<td class="data row3 col6" id="T_c2ae2_row3_col6">338,447</td>
+<th class="row_heading level0 row3" id="T_a3c43_level0_row3">3</th>
+<td class="data row3 col0" id="T_a3c43_row3_col0">0.200000</td>
+<td class="data row3 col1" id="T_a3c43_row3_col1">0.904</td>
+<td class="data row3 col2" id="T_a3c43_row3_col2">0.685</td>
+<td class="data row3 col3" id="T_a3c43_row3_col3">0.898</td>
+<td class="data row3 col4" id="T_a3c43_row3_col4">19.2</td>
+<td class="data row3 col5" id="T_a3c43_row3_col5">82.9</td>
+<td class="data row3 col6" id="T_a3c43_row3_col6">338,447</td>
 </tr>
 <tr>
-<th class="row_heading level0 row4" id="T_c2ae2_level0_row4">4</th>
-<td class="data row4 col0" id="T_c2ae2_row4_col0">0.250000</td>
-<td class="data row4 col1" id="T_c2ae2_row4_col1">0.871</td>
-<td class="data row4 col2" id="T_c2ae2_row4_col2">0.711</td>
-<td class="data row4 col3" id="T_c2ae2_row4_col3">0.904</td>
-<td class="data row4 col4" id="T_c2ae2_row4_col4">25.7</td>
-<td class="data row4 col5" id="T_c2ae2_row4_col5">70.7</td>
-<td class="data row4 col6" id="T_c2ae2_row4_col6">372,963</td>
+<th class="row_heading level0 row4" id="T_a3c43_level0_row4">4</th>
+<td class="data row4 col0" id="T_a3c43_row4_col0">0.250000</td>
+<td class="data row4 col1" id="T_a3c43_row4_col1">0.871</td>
+<td class="data row4 col2" id="T_a3c43_row4_col2">0.711</td>
+<td class="data row4 col3" id="T_a3c43_row4_col3">0.904</td>
+<td class="data row4 col4" id="T_a3c43_row4_col4">25.7</td>
+<td class="data row4 col5" id="T_a3c43_row4_col5">70.7</td>
+<td class="data row4 col6" id="T_a3c43_row4_col6">372,963</td>
 </tr>
 <tr>
-<th class="row_heading level0 row5" id="T_c2ae2_level0_row5">5</th>
-<td class="data row5 col0" id="T_c2ae2_row5_col0">0.300000</td>
-<td class="data row5 col1" id="T_c2ae2_row5_col1">0.839</td>
-<td class="data row5 col2" id="T_c2ae2_row5_col2">0.736</td>
-<td class="data row5 col3" id="T_c2ae2_row5_col3">0.908</td>
-<td class="data row5 col4" id="T_c2ae2_row5_col4">32.0</td>
-<td class="data row5 col5" id="T_c2ae2_row5_col5">60.2</td>
-<td class="data row5 col6" id="T_c2ae2_row5_col6">408,677</td>
+<th class="row_heading level0 row5" id="T_a3c43_level0_row5">5</th>
+<td class="data row5 col0" id="T_a3c43_row5_col0">0.300000</td>
+<td class="data row5 col1" id="T_a3c43_row5_col1">0.839</td>
+<td class="data row5 col2" id="T_a3c43_row5_col2">0.736</td>
+<td class="data row5 col3" id="T_a3c43_row5_col3">0.908</td>
+<td class="data row5 col4" id="T_a3c43_row5_col4">32.0</td>
+<td class="data row5 col5" id="T_a3c43_row5_col5">60.2</td>
+<td class="data row5 col6" id="T_a3c43_row5_col6">408,677</td>
 </tr>
 <tr>
-<th class="row_heading level0 row6" id="T_c2ae2_level0_row6">6</th>
-<td class="data row6 col0" id="T_c2ae2_row6_col0">0.350000</td>
-<td class="data row6 col1" id="T_c2ae2_row6_col1">0.808</td>
-<td class="data row6 col2" id="T_c2ae2_row6_col2">0.755</td>
-<td class="data row6 col3" id="T_c2ae2_row6_col3">0.909</td>
-<td class="data row6 col4" id="T_c2ae2_row6_col4">38.4</td>
-<td class="data row6 col5" id="T_c2ae2_row6_col5">52.2</td>
-<td class="data row6 col6" id="T_c2ae2_row6_col6">449,505</td>
+<th class="row_heading level0 row6" id="T_a3c43_level0_row6">6</th>
+<td class="data row6 col0" id="T_a3c43_row6_col0">0.350000</td>
+<td class="data row6 col1" id="T_a3c43_row6_col1">0.808</td>
+<td class="data row6 col2" id="T_a3c43_row6_col2">0.755</td>
+<td class="data row6 col3" id="T_a3c43_row6_col3">0.909</td>
+<td class="data row6 col4" id="T_a3c43_row6_col4">38.4</td>
+<td class="data row6 col5" id="T_a3c43_row6_col5">52.2</td>
+<td class="data row6 col6" id="T_a3c43_row6_col6">449,505</td>
 </tr>
 <tr>
-<th class="row_heading level0 row7" id="T_c2ae2_level0_row7">7</th>
-<td class="data row7 col0" id="T_c2ae2_row7_col0">0.400000</td>
-<td class="data row7 col1" id="T_c2ae2_row7_col1">0.784</td>
-<td class="data row7 col2" id="T_c2ae2_row7_col2">0.781</td>
-<td class="data row7 col3" id="T_c2ae2_row7_col3">0.913</td>
-<td class="data row7 col4" id="T_c2ae2_row7_col4">43.1</td>
-<td class="data row7 col5" id="T_c2ae2_row7_col5">43.9</td>
-<td class="data row7 col6" id="T_c2ae2_row7_col6">476,190</td>
+<th class="row_heading level0 row7" id="T_a3c43_level0_row7">7</th>
+<td class="data row7 col0" id="T_a3c43_row7_col0">0.400000</td>
+<td class="data row7 col1" id="T_a3c43_row7_col1">0.784</td>
+<td class="data row7 col2" id="T_a3c43_row7_col2">0.781</td>
+<td class="data row7 col3" id="T_a3c43_row7_col3">0.913</td>
+<td class="data row7 col4" id="T_a3c43_row7_col4">43.1</td>
+<td class="data row7 col5" id="T_a3c43_row7_col5">43.9</td>
+<td class="data row7 col6" id="T_a3c43_row7_col6">476,190</td>
 </tr>
 <tr>
-<th class="row_heading level0 row8" id="T_c2ae2_level0_row8">8</th>
-<td class="data row8 col0" id="T_c2ae2_row8_col0">0.450000</td>
-<td class="data row8 col1" id="T_c2ae2_row8_col1">0.751</td>
-<td class="data row8 col2" id="T_c2ae2_row8_col2">0.802</td>
-<td class="data row8 col3" id="T_c2ae2_row8_col3">0.913</td>
-<td class="data row8 col4" id="T_c2ae2_row8_col4">49.7</td>
-<td class="data row8 col5" id="T_c2ae2_row8_col5">36.9</td>
-<td class="data row8 col6" id="T_c2ae2_row8_col6">521,093</td>
+<th class="row_heading level0 row8" id="T_a3c43_level0_row8">8</th>
+<td class="data row8 col0" id="T_a3c43_row8_col0">0.450000</td>
+<td class="data row8 col1" id="T_a3c43_row8_col1">0.751</td>
+<td class="data row8 col2" id="T_a3c43_row8_col2">0.802</td>
+<td class="data row8 col3" id="T_a3c43_row8_col3">0.913</td>
+<td class="data row8 col4" id="T_a3c43_row8_col4">49.7</td>
+<td class="data row8 col5" id="T_a3c43_row8_col5">36.9</td>
+<td class="data row8 col6" id="T_a3c43_row8_col6">521,093</td>
 </tr>
 <tr>
-<th class="row_heading level0 row9" id="T_c2ae2_level0_row9">9</th>
-<td class="data row9 col0" id="T_c2ae2_row9_col0">0.500000</td>
-<td class="data row9 col1" id="T_c2ae2_row9_col1">0.714</td>
-<td class="data row9 col2" id="T_c2ae2_row9_col2">0.825</td>
-<td class="data row9 col3" id="T_c2ae2_row9_col3">0.913</td>
-<td class="data row9 col4" id="T_c2ae2_row9_col4">57.1</td>
-<td class="data row9 col5" id="T_c2ae2_row9_col5">30.2</td>
-<td class="data row9 col6" id="T_c2ae2_row9_col6">574,545</td>
+<th class="row_heading level0 row9" id="T_a3c43_level0_row9">9</th>
+<td class="data row9 col0" id="T_a3c43_row9_col0">0.500000</td>
+<td class="data row9 col1" id="T_a3c43_row9_col1">0.714</td>
+<td class="data row9 col2" id="T_a3c43_row9_col2">0.825</td>
+<td class="data row9 col3" id="T_a3c43_row9_col3">0.913</td>
+<td class="data row9 col4" id="T_a3c43_row9_col4">57.1</td>
+<td class="data row9 col5" id="T_a3c43_row9_col5">30.2</td>
+<td class="data row9 col6" id="T_a3c43_row9_col6">574,545</td>
 </tr>
 <tr>
-<th class="row_heading level0 row10" id="T_c2ae2_level0_row10">10</th>
-<td class="data row10 col0" id="T_c2ae2_row10_col0">0.550000</td>
-<td class="data row10 col1" id="T_c2ae2_row10_col1">0.672</td>
-<td class="data row10 col2" id="T_c2ae2_row10_col2">0.856</td>
-<td class="data row10 col3" id="T_c2ae2_row10_col3">0.912</td>
-<td class="data row10 col4" id="T_c2ae2_row10_col4">65.4</td>
-<td class="data row10 col5" id="T_c2ae2_row10_col5">22.5</td>
-<td class="data row10 col6" id="T_c2ae2_row10_col6">633,988</td>
+<th class="row_heading level0 row10" id="T_a3c43_level0_row10">10</th>
+<td class="data row10 col0" id="T_a3c43_row10_col0">0.550000</td>
+<td class="data row10 col1" id="T_a3c43_row10_col1">0.672</td>
+<td class="data row10 col2" id="T_a3c43_row10_col2">0.856</td>
+<td class="data row10 col3" id="T_a3c43_row10_col3">0.912</td>
+<td class="data row10 col4" id="T_a3c43_row10_col4">65.4</td>
+<td class="data row10 col5" id="T_a3c43_row10_col5">22.5</td>
+<td class="data row10 col6" id="T_a3c43_row10_col6">633,988</td>
 </tr>
 <tr>
-<th class="row_heading level0 row11" id="T_c2ae2_level0_row11">11</th>
-<td class="data row11 col0" id="T_c2ae2_row11_col0">0.600000</td>
-<td class="data row11 col1" id="T_c2ae2_row11_col1">0.620</td>
-<td class="data row11 col2" id="T_c2ae2_row11_col2">0.876</td>
-<td class="data row11 col3" id="T_c2ae2_row11_col3">0.907</td>
-<td class="data row11 col4" id="T_c2ae2_row11_col4">75.8</td>
-<td class="data row11 col5" id="T_c2ae2_row11_col5">17.5</td>
-<td class="data row11 col6" id="T_c2ae2_row11_col6">717,402</td>
+<th class="row_heading level0 row11" id="T_a3c43_level0_row11">11</th>
+<td class="data row11 col0" id="T_a3c43_row11_col0">0.600000</td>
+<td class="data row11 col1" id="T_a3c43_row11_col1">0.620</td>
+<td class="data row11 col2" id="T_a3c43_row11_col2">0.876</td>
+<td class="data row11 col3" id="T_a3c43_row11_col3">0.907</td>
+<td class="data row11 col4" id="T_a3c43_row11_col4">75.8</td>
+<td class="data row11 col5" id="T_a3c43_row11_col5">17.5</td>
+<td class="data row11 col6" id="T_a3c43_row11_col6">717,402</td>
 </tr>
 <tr>
-<th class="row_heading level0 row12" id="T_c2ae2_level0_row12">12</th>
-<td class="data row12 col0" id="T_c2ae2_row12_col0">0.650000</td>
-<td class="data row12 col1" id="T_c2ae2_row12_col1">0.553</td>
-<td class="data row12 col2" id="T_c2ae2_row12_col2">0.892</td>
-<td class="data row12 col3" id="T_c2ae2_row12_col3">0.897</td>
-<td class="data row12 col4" id="T_c2ae2_row12_col4">89.2</td>
-<td class="data row12 col5" id="T_c2ae2_row12_col5">13.3</td>
-<td class="data row12 col6" id="T_c2ae2_row12_col6">829,179</td>
+<th class="row_heading level0 row12" id="T_a3c43_level0_row12">12</th>
+<td class="data row12 col0" id="T_a3c43_row12_col0">0.650000</td>
+<td class="data row12 col1" id="T_a3c43_row12_col1">0.553</td>
+<td class="data row12 col2" id="T_a3c43_row12_col2">0.892</td>
+<td class="data row12 col3" id="T_a3c43_row12_col3">0.897</td>
+<td class="data row12 col4" id="T_a3c43_row12_col4">89.2</td>
+<td class="data row12 col5" id="T_a3c43_row12_col5">13.3</td>
+<td class="data row12 col6" id="T_a3c43_row12_col6">829,179</td>
 </tr>
 <tr>
-<th class="row_heading level0 row13" id="T_c2ae2_level0_row13">13</th>
-<td class="data row13 col0" id="T_c2ae2_row13_col0">0.700000</td>
-<td class="data row13 col1" id="T_c2ae2_row13_col1">0.474</td>
-<td class="data row13 col2" id="T_c2ae2_row13_col2">0.915</td>
-<td class="data row13 col3" id="T_c2ae2_row13_col3">0.886</td>
-<td class="data row13 col4" id="T_c2ae2_row13_col4">104.9</td>
-<td class="data row13 col5" id="T_c2ae2_row13_col5">8.8</td>
-<td class="data row13 col6" id="T_c2ae2_row13_col6">961,729</td>
+<th class="row_heading level0 row13" id="T_a3c43_level0_row13">13</th>
+<td class="data row13 col0" id="T_a3c43_row13_col0">0.700000</td>
+<td class="data row13 col1" id="T_a3c43_row13_col1">0.474</td>
+<td class="data row13 col2" id="T_a3c43_row13_col2">0.915</td>
+<td class="data row13 col3" id="T_a3c43_row13_col3">0.886</td>
+<td class="data row13 col4" id="T_a3c43_row13_col4">104.9</td>
+<td class="data row13 col5" id="T_a3c43_row13_col5">8.8</td>
+<td class="data row13 col6" id="T_a3c43_row13_col6">961,729</td>
 </tr>
 </tbody>
 </table>
@@ -15130,7 +15123,7 @@ Selected threshold (from out-of-fold cost): 0.15
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9ce156db">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=62b22cfb">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15237,7 +15230,7 @@ Selected threshold (from out-of-fold cost): 0.15
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6493f309">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=965cfd82">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15485,15 +15478,15 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
 </style>
-<table id="T_5f315">
+<table id="T_8733e">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_5f315_level0_col0">applicants</th>
-<th class="col_heading level0 col1" id="T_5f315_level0_col1">defaulters</th>
-<th class="col_heading level0 col2" id="T_5f315_level0_col2">observed_default_rate</th>
-<th class="col_heading level0 col3" id="T_5f315_level0_col3">share_of_applicants</th>
-<th class="col_heading level0 col4" id="T_5f315_level0_col4">share_of_defaulters</th>
+<th class="col_heading level0 col0" id="T_8733e_level0_col0">applicants</th>
+<th class="col_heading level0 col1" id="T_8733e_level0_col1">defaulters</th>
+<th class="col_heading level0 col2" id="T_8733e_level0_col2">observed_default_rate</th>
+<th class="col_heading level0 col3" id="T_8733e_level0_col3">share_of_applicants</th>
+<th class="col_heading level0 col4" id="T_8733e_level0_col4">share_of_defaulters</th>
 </tr>
 <tr>
 <th class="index_name level0">band</th>
@@ -15506,28 +15499,28 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_5f315_level0_row0">approve (score &lt;= 0.10)</th>
-<td class="data row0 col0" id="T_5f315_row0_col0">2762</td>
-<td class="data row0 col1" id="T_5f315_row0_col1">25</td>
-<td class="data row0 col2" id="T_5f315_row0_col2">0.9%</td>
-<td class="data row0 col3" id="T_5f315_row0_col3">66.2%</td>
-<td class="data row0 col4" id="T_5f315_row0_col4">3.0%</td>
+<th class="row_heading level0 row0" id="T_8733e_level0_row0">approve (score &lt;= 0.10)</th>
+<td class="data row0 col0" id="T_8733e_row0_col0">2762</td>
+<td class="data row0 col1" id="T_8733e_row0_col1">25</td>
+<td class="data row0 col2" id="T_8733e_row0_col2">0.9%</td>
+<td class="data row0 col3" id="T_8733e_row0_col3">66.2%</td>
+<td class="data row0 col4" id="T_8733e_row0_col4">3.0%</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_5f315_level0_row1">refer (0.10 - 0.25)</th>
-<td class="data row1 col0" id="T_5f315_row1_col0">388</td>
-<td class="data row1 col1" id="T_5f315_row1_col1">79</td>
-<td class="data row1 col2" id="T_5f315_row1_col2">20.4%</td>
-<td class="data row1 col3" id="T_5f315_row1_col3">9.3%</td>
-<td class="data row1 col4" id="T_5f315_row1_col4">9.5%</td>
+<th class="row_heading level0 row1" id="T_8733e_level0_row1">refer (0.10 - 0.25)</th>
+<td class="data row1 col0" id="T_8733e_row1_col0">388</td>
+<td class="data row1 col1" id="T_8733e_row1_col1">79</td>
+<td class="data row1 col2" id="T_8733e_row1_col2">20.4%</td>
+<td class="data row1 col3" id="T_8733e_row1_col3">9.3%</td>
+<td class="data row1 col4" id="T_8733e_row1_col4">9.5%</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_5f315_level0_row2">decline (score &gt; 0.25)</th>
-<td class="data row2 col0" id="T_5f315_row2_col0">1022</td>
-<td class="data row2 col1" id="T_5f315_row2_col1">728</td>
-<td class="data row2 col2" id="T_5f315_row2_col2">71.2%</td>
-<td class="data row2 col3" id="T_5f315_row2_col3">24.5%</td>
-<td class="data row2 col4" id="T_5f315_row2_col4">87.5%</td>
+<th class="row_heading level0 row2" id="T_8733e_level0_row2">decline (score &gt; 0.25)</th>
+<td class="data row2 col0" id="T_8733e_row2_col0">1022</td>
+<td class="data row2 col1" id="T_8733e_row2_col1">728</td>
+<td class="data row2 col2" id="T_8733e_row2_col2">71.2%</td>
+<td class="data row2 col3" id="T_8733e_row2_col3">24.5%</td>
+<td class="data row2 col4" id="T_8733e_row2_col4">87.5%</td>
 </tr>
 </tbody>
 </table>
@@ -15552,19 +15545,19 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
 </style>
-<table id="T_ca8b6">
+<table id="T_5de14">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" colspan="2" id="T_ca8b6_level0_col0">best threshold</th>
-<th class="col_heading level0 col2" colspan="2" id="T_ca8b6_level0_col2">OOF cost per 1,000 ($)</th>
+<th class="col_heading level0 col0" colspan="2" id="T_5de14_level0_col0">best threshold</th>
+<th class="col_heading level0 col2" colspan="2" id="T_5de14_level0_col2">OOF cost per 1,000 ($)</th>
 </tr>
 <tr>
 <th class="index_name level1">split seed</th>
-<th class="col_heading level1 col0" id="T_ca8b6_level1_col0">2</th>
-<th class="col_heading level1 col1" id="T_ca8b6_level1_col1">3</th>
-<th class="col_heading level1 col2" id="T_ca8b6_level1_col2">2</th>
-<th class="col_heading level1 col3" id="T_ca8b6_level1_col3">3</th>
+<th class="col_heading level1 col0" id="T_5de14_level1_col0">2</th>
+<th class="col_heading level1 col1" id="T_5de14_level1_col1">3</th>
+<th class="col_heading level1 col2" id="T_5de14_level1_col2">2</th>
+<th class="col_heading level1 col3" id="T_5de14_level1_col3">3</th>
 </tr>
 <tr>
 <th class="index_name level0">class weights</th>
@@ -15576,39 +15569,39 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_ca8b6_level0_row0">none</th>
-<td class="data row0 col0" id="T_ca8b6_row0_col0">0.15</td>
-<td class="data row0 col1" id="T_ca8b6_row0_col1">0.15</td>
-<td class="data row0 col2" id="T_ca8b6_row0_col2">334,372</td>
-<td class="data row0 col3" id="T_ca8b6_row0_col3">330,537</td>
+<th class="row_heading level0 row0" id="T_5de14_level0_row0">none</th>
+<td class="data row0 col0" id="T_5de14_row0_col0">0.15</td>
+<td class="data row0 col1" id="T_5de14_row0_col1">0.15</td>
+<td class="data row0 col2" id="T_5de14_row0_col2">334,372</td>
+<td class="data row0 col3" id="T_5de14_row0_col3">330,537</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_ca8b6_level0_row1">balanced</th>
-<td class="data row1 col0" id="T_ca8b6_row1_col0">0.25</td>
-<td class="data row1 col1" id="T_ca8b6_row1_col1">0.20</td>
-<td class="data row1 col2" id="T_ca8b6_row1_col2">346,596</td>
-<td class="data row1 col3" id="T_ca8b6_row1_col3">340,844</td>
+<th class="row_heading level0 row1" id="T_5de14_level0_row1">balanced</th>
+<td class="data row1 col0" id="T_5de14_row1_col0">0.25</td>
+<td class="data row1 col1" id="T_5de14_row1_col1">0.20</td>
+<td class="data row1 col2" id="T_5de14_row1_col2">346,596</td>
+<td class="data row1 col3" id="T_5de14_row1_col3">340,844</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_ca8b6_level0_row2">0.3/0.7</th>
-<td class="data row2 col0" id="T_ca8b6_row2_col0">0.20</td>
-<td class="data row2 col1" id="T_ca8b6_row2_col1">0.20</td>
-<td class="data row2 col2" id="T_ca8b6_row2_col2">346,117</td>
-<td class="data row2 col3" id="T_ca8b6_row2_col3">337,967</td>
+<th class="row_heading level0 row2" id="T_5de14_level0_row2">0.3/0.7</th>
+<td class="data row2 col0" id="T_5de14_row2_col0">0.20</td>
+<td class="data row2 col1" id="T_5de14_row2_col1">0.20</td>
+<td class="data row2 col2" id="T_5de14_row2_col2">346,117</td>
+<td class="data row2 col3" id="T_5de14_row2_col3">337,967</td>
 </tr>
 <tr>
-<th class="row_heading level0 row3" id="T_ca8b6_level0_row3">0.2/0.8</th>
-<td class="data row3 col0" id="T_ca8b6_row3_col0">0.25</td>
-<td class="data row3 col1" id="T_ca8b6_row3_col1">0.20</td>
-<td class="data row3 col2" id="T_ca8b6_row3_col2">352,349</td>
-<td class="data row3 col3" id="T_ca8b6_row3_col3">336,290</td>
+<th class="row_heading level0 row3" id="T_5de14_level0_row3">0.2/0.8</th>
+<td class="data row3 col0" id="T_5de14_row3_col0">0.25</td>
+<td class="data row3 col1" id="T_5de14_row3_col1">0.20</td>
+<td class="data row3 col2" id="T_5de14_row3_col2">352,349</td>
+<td class="data row3 col3" id="T_5de14_row3_col3">336,290</td>
 </tr>
 <tr>
-<th class="row_heading level0 row4" id="T_ca8b6_level0_row4">0.1/0.9</th>
-<td class="data row4 col0" id="T_ca8b6_row4_col0">0.30</td>
-<td class="data row4 col1" id="T_ca8b6_row4_col1">0.30</td>
-<td class="data row4 col2" id="T_ca8b6_row4_col2">367,929</td>
-<td class="data row4 col3" id="T_ca8b6_row4_col3">356,663</td>
+<th class="row_heading level0 row4" id="T_5de14_level0_row4">0.1/0.9</th>
+<td class="data row4 col0" id="T_5de14_row4_col0">0.30</td>
+<td class="data row4 col1" id="T_5de14_row4_col1">0.30</td>
+<td class="data row4 col2" id="T_5de14_row4_col2">367,929</td>
+<td class="data row4 col3" id="T_5de14_row4_col3">356,663</td>
 </tr>
 </tbody>
 </table>
@@ -15617,7 +15610,7 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5d481a2e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=851a4ccf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15626,9 +15619,9 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 <p><strong>Observations - model and threshold selection:</strong></p>
 <ul>
 <li>On repeated out-of-fold predictions the <strong>unweighted forest on all 27 inputs has the lowest expected cost</strong>, about $317,000 per 1,000 applicants. Removing all occupation information (the five occupation indicators and the occupation-missing flag) costs about 10% more ($351,000), outside one standard error. Occupation carries real signal, so removing it is a policy choice with a measurable price, not a free one. The 12-input version costs about a fifth more ($378,000): occupation, loan purpose and the minor missing flags barely registered at the 0.5 threshold. Together, however, they give a measurable gain at the cost-optimal operating point. As a result, neither simpler model is within one standard error, and we choose neither.</li>
-<li>The recall-tuned grid winner is far worse ($490,000) once precision enters the cost. This shows that recall-only tuning over-shoots. We scored the balanced logistic regression and the recall-tuned decision tree the same way, at their own best thresholds. Both cost far more than any fully grown forest (see the table). The technique choice therefore holds on the chosen yardstick as well as on ranking quality.</li>
+<li>The recall-tuned grid winner is far worse ($490,000) once precision enters the cost. This shows that recall-only tuning over-shoots. We scored the bagged trees, the balanced logistic regression and the recall-tuned decision tree the same way, at their own best thresholds. All three cost more than any fully grown forest ($390,000, $550,000 and $607,000, see the table). The technique choice therefore holds on the chosen yardstick as well as on ranking quality.</li>
 <li>The cost-minimising threshold is <strong>0.15</strong>: flag every applicant whose score exceeds 0.15 (an estimated default risk of roughly one in five, see the calibration check). It stays at 0.15 for any cost ratio between 3:1 and 6:1. At 2:1 it would move to 0.20. It falls to 0.10 once a missed defaulter costs about eight times a wrongly declined applicant. The choice is stable across these assumptions. For a perfectly calibrated score the textbook break-even at the stated costs would be $2,000 / ($9,000 + $2,000) = 0.18. The forest's optimum sits a little below it because its scores understate risk in the decision range, as the calibration check shows.</li>
-<li><strong>Threshold tuning improves the validation cost.</strong> On the same out-of-fold predictions, the unweighted forest at the default 0.5 threshold has recall 0.714, precision 0.825 and a cost of $574,545 per 1,000 applicants. At 0.15 it has recall 0.937, precision 0.647 and a cost of $317,354. That is 45% lower, and we measured it on the training rows only.</li>
+<li><strong>Threshold tuning lowers the out-of-fold expected cost.</strong> On the same out-of-fold predictions at the default 0.5 threshold, the unweighted forest has recall 0.714 and precision 0.825. Its expected cost is $574,545 per 1,000 applicants. At 0.15 it has recall 0.937, precision 0.647 and an expected cost of $317,354. That is 45% lower, and we measured it on the training rows only.</li>
 <li><strong>Robustness of the choice.</strong> A finer 0.01 grid gives the same threshold (0.15, with 0.16 within $500 of it). The paired fold-by-fold comparison with the 0.2/0.8 forest shows that the two are within noise. The mean difference is about $4,000 per 1,000 applicants, with a paired standard error of about $5,000. On two other 70/30 splits the unweighted forest is again the cheapest configuration, and the weighted forests are again within noise of it. The choice is therefore not an artefact of this split.</li>
 <li><strong>Calibration.</strong> The final forest's out-of-fold scores rank applicants well (Brier score 0.062 against 0.160 for the base rate) and rise broadly with the observed default rate. There is one small dip between the 0.2-0.3 and 0.3-0.4 bands. In the decision range the scores understate the default rate: applicants scored 0.15-0.20 defaulted about 23% of the time, and those scored 0.20-0.30 about 40%. The class-weighted forest's scores are much further from the observed rates (applicants it scored 0.15-0.20 defaulted only 7% of the time). That is the concrete reason an unweighted score is easier to explain and govern. Therefore, read a score of 0.15 as "estimated default risk of roughly one in five", not exactly 15%. We list probability calibration under further analysis.</li>
 <li><strong>What the test set can and cannot show.</strong> We fixed the imputation statistics and the 12-feature set on all training rows before the repeated cross-validation, which can only favour the candidates that lost. We also chose the configuration and the threshold on the same out-of-fold predictions. The single test evaluation below is therefore a consistency check of the chosen model's performance. It is not evidence for the choice between configurations. Its cost comes with a standard error of about $28,000 per 1,000 applicants, wider than the differences between the fully grown configurations. The paired fold-by-fold check in the robustness cell is the right evidence for those differences.</li>
@@ -15636,7 +15629,7 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e2e00419">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c3538b62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15689,7 +15682,7 @@ cost  391419  372004  354346  343001  331256  323905  321748  317354  317753  32
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=439f35fc">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4884d25e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15758,39 +15751,39 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
 </style>
-<table id="T_2946a">
+<table id="T_83729">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_2946a_level0_col0">threshold</th>
-<th class="col_heading level0 col1" id="T_2946a_level0_col1">recall</th>
-<th class="col_heading level0 col2" id="T_2946a_level0_col2">precision</th>
-<th class="col_heading level0 col3" id="T_2946a_level0_col3">accuracy</th>
-<th class="col_heading level0 col4" id="T_2946a_level0_col4">missed_defaulters_per_1000</th>
-<th class="col_heading level0 col5" id="T_2946a_level0_col5">good_customers_declined_per_1000</th>
-<th class="col_heading level0 col6" id="T_2946a_level0_col6">expected_cost_per_1000_$</th>
+<th class="col_heading level0 col0" id="T_83729_level0_col0">threshold</th>
+<th class="col_heading level0 col1" id="T_83729_level0_col1">recall</th>
+<th class="col_heading level0 col2" id="T_83729_level0_col2">precision</th>
+<th class="col_heading level0 col3" id="T_83729_level0_col3">accuracy</th>
+<th class="col_heading level0 col4" id="T_83729_level0_col4">missed_defaulters_per_1000</th>
+<th class="col_heading level0 col5" id="T_83729_level0_col5">good_customers_declined_per_1000</th>
+<th class="col_heading level0 col6" id="T_83729_level0_col6">expected_cost_per_1000_$</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_2946a_level0_row0">0</th>
-<td class="data row0 col0" id="T_2946a_row0_col0">0.150000</td>
-<td class="data row0 col1" id="T_2946a_row0_col1">0.927</td>
-<td class="data row0 col2" id="T_2946a_row0_col2">0.681</td>
-<td class="data row0 col3" id="T_2946a_row0_col3">0.899</td>
-<td class="data row0 col4" id="T_2946a_row0_col4">14.5</td>
-<td class="data row0 col5" id="T_2946a_row0_col5">86.7</td>
-<td class="data row0 col6" id="T_2946a_row0_col6">304,251</td>
+<th class="row_heading level0 row0" id="T_83729_level0_row0">0</th>
+<td class="data row0 col0" id="T_83729_row0_col0">0.150000</td>
+<td class="data row0 col1" id="T_83729_row0_col1">0.927</td>
+<td class="data row0 col2" id="T_83729_row0_col2">0.681</td>
+<td class="data row0 col3" id="T_83729_row0_col3">0.899</td>
+<td class="data row0 col4" id="T_83729_row0_col4">14.5</td>
+<td class="data row0 col5" id="T_83729_row0_col5">86.7</td>
+<td class="data row0 col6" id="T_83729_row0_col6">304,251</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_2946a_level0_row1">1</th>
-<td class="data row1 col0" id="T_2946a_row1_col0">0.500000</td>
-<td class="data row1 col1" id="T_2946a_row1_col1">0.686</td>
-<td class="data row1 col2" id="T_2946a_row1_col2">0.842</td>
-<td class="data row1 col3" id="T_2946a_row1_col3">0.912</td>
-<td class="data row1 col4" id="T_2946a_row1_col4">62.6</td>
-<td class="data row1 col5" id="T_2946a_row1_col5">25.7</td>
-<td class="data row1 col6" id="T_2946a_row1_col6">615,213</td>
+<th class="row_heading level0 row1" id="T_83729_level0_row1">1</th>
+<td class="data row1 col0" id="T_83729_row1_col0">0.500000</td>
+<td class="data row1 col1" id="T_83729_row1_col1">0.686</td>
+<td class="data row1 col2" id="T_83729_row1_col2">0.842</td>
+<td class="data row1 col3" id="T_83729_row1_col3">0.912</td>
+<td class="data row1 col4" id="T_83729_row1_col4">62.6</td>
+<td class="data row1 col5" id="T_83729_row1_col5">25.7</td>
+<td class="data row1 col6" id="T_83729_row1_col6">615,213</td>
 </tr>
 </tbody>
 </table>
@@ -15798,7 +15791,7 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=40d8345a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c22d41d1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15830,16 +15823,16 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
 </style>
-<table id="T_e2b23">
+<table id="T_6c0e1">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_e2b23_level0_col0">applicants</th>
-<th class="col_heading level0 col1" id="T_e2b23_level0_col1">defaulters</th>
-<th class="col_heading level0 col2" id="T_e2b23_level0_col2">observed_default_rate</th>
-<th class="col_heading level0 col3" id="T_e2b23_level0_col3">share_of_applicants</th>
-<th class="col_heading level0 col4" id="T_e2b23_level0_col4">share_of_defaulters</th>
-<th class="col_heading level0 col5" id="T_e2b23_level0_col5">per_1000_applicants</th>
+<th class="col_heading level0 col0" id="T_6c0e1_level0_col0">applicants</th>
+<th class="col_heading level0 col1" id="T_6c0e1_level0_col1">defaulters</th>
+<th class="col_heading level0 col2" id="T_6c0e1_level0_col2">observed_default_rate</th>
+<th class="col_heading level0 col3" id="T_6c0e1_level0_col3">share_of_applicants</th>
+<th class="col_heading level0 col4" id="T_6c0e1_level0_col4">share_of_defaulters</th>
+<th class="col_heading level0 col5" id="T_6c0e1_level0_col5">per_1000_applicants</th>
 </tr>
 <tr>
 <th class="index_name level0">band</th>
@@ -15853,31 +15846,31 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_e2b23_level0_row0">approve (score &lt;= 0.10)</th>
-<td class="data row0 col0" id="T_e2b23_row0_col0">1236</td>
-<td class="data row0 col1" id="T_e2b23_row0_col1">15</td>
-<td class="data row0 col2" id="T_e2b23_row0_col2">1.2%</td>
-<td class="data row0 col3" id="T_e2b23_row0_col3">69.1%</td>
-<td class="data row0 col4" id="T_e2b23_row0_col4">4.2%</td>
-<td class="data row0 col5" id="T_e2b23_row0_col5">691</td>
+<th class="row_heading level0 row0" id="T_6c0e1_level0_row0">approve (score &lt;= 0.10)</th>
+<td class="data row0 col0" id="T_6c0e1_row0_col0">1236</td>
+<td class="data row0 col1" id="T_6c0e1_row0_col1">15</td>
+<td class="data row0 col2" id="T_6c0e1_row0_col2">1.2%</td>
+<td class="data row0 col3" id="T_6c0e1_row0_col3">69.1%</td>
+<td class="data row0 col4" id="T_6c0e1_row0_col4">4.2%</td>
+<td class="data row0 col5" id="T_6c0e1_row0_col5">691</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_e2b23_level0_row1">refer to underwriter (0.10 - 0.25)</th>
-<td class="data row1 col0" id="T_e2b23_row1_col0">131</td>
-<td class="data row1 col1" id="T_e2b23_row1_col1">32</td>
-<td class="data row1 col2" id="T_e2b23_row1_col2">24.4%</td>
-<td class="data row1 col3" id="T_e2b23_row1_col3">7.3%</td>
-<td class="data row1 col4" id="T_e2b23_row1_col4">9.0%</td>
-<td class="data row1 col5" id="T_e2b23_row1_col5">73</td>
+<th class="row_heading level0 row1" id="T_6c0e1_level0_row1">refer to underwriter (0.10 - 0.25)</th>
+<td class="data row1 col0" id="T_6c0e1_row1_col0">131</td>
+<td class="data row1 col1" id="T_6c0e1_row1_col1">32</td>
+<td class="data row1 col2" id="T_6c0e1_row1_col2">24.4%</td>
+<td class="data row1 col3" id="T_6c0e1_row1_col3">7.3%</td>
+<td class="data row1 col4" id="T_6c0e1_row1_col4">9.0%</td>
+<td class="data row1 col5" id="T_6c0e1_row1_col5">73</td>
 </tr>
 <tr>
-<th class="row_heading level0 row2" id="T_e2b23_level0_row2">decline (score &gt; 0.25)</th>
-<td class="data row2 col0" id="T_e2b23_row2_col0">421</td>
-<td class="data row2 col1" id="T_e2b23_row2_col1">310</td>
-<td class="data row2 col2" id="T_e2b23_row2_col2">73.6%</td>
-<td class="data row2 col3" id="T_e2b23_row2_col3">23.5%</td>
-<td class="data row2 col4" id="T_e2b23_row2_col4">86.8%</td>
-<td class="data row2 col5" id="T_e2b23_row2_col5">235</td>
+<th class="row_heading level0 row2" id="T_6c0e1_level0_row2">decline (score &gt; 0.25)</th>
+<td class="data row2 col0" id="T_6c0e1_row2_col0">421</td>
+<td class="data row2 col1" id="T_6c0e1_row2_col1">310</td>
+<td class="data row2 col2" id="T_6c0e1_row2_col2">73.6%</td>
+<td class="data row2 col3" id="T_6c0e1_row2_col3">23.5%</td>
+<td class="data row2 col4" id="T_6c0e1_row2_col4">86.8%</td>
+<td class="data row2 col5" id="T_6c0e1_row2_col5">235</td>
 </tr>
 </tbody>
 </table>
@@ -15885,7 +15878,7 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b048d584">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8703e5d4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15918,18 +15911,18 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style type="text/css">
 </style>
-<table id="T_4d82a">
+<table id="T_5b525">
 <thead>
 <tr>
 <th class="blank level0"> </th>
-<th class="col_heading level0 col0" id="T_4d82a_level0_col0">applicants</th>
-<th class="col_heading level0 col1" id="T_4d82a_level0_col1">share_of_applicants</th>
-<th class="col_heading level0 col2" id="T_4d82a_level0_col2">default_rate</th>
-<th class="col_heading level0 col3" id="T_4d82a_level0_col3">share_of_all_defaulters</th>
-<th class="col_heading level0 col4" id="T_4d82a_level0_col4">flagged</th>
-<th class="col_heading level0 col5" id="T_4d82a_level0_col5">recall</th>
-<th class="col_heading level0 col6" id="T_4d82a_level0_col6">precision</th>
-<th class="col_heading level0 col7" id="T_4d82a_level0_col7">ROC-AUC</th>
+<th class="col_heading level0 col0" id="T_5b525_level0_col0">applicants</th>
+<th class="col_heading level0 col1" id="T_5b525_level0_col1">share_of_applicants</th>
+<th class="col_heading level0 col2" id="T_5b525_level0_col2">default_rate</th>
+<th class="col_heading level0 col3" id="T_5b525_level0_col3">share_of_all_defaulters</th>
+<th class="col_heading level0 col4" id="T_5b525_level0_col4">flagged</th>
+<th class="col_heading level0 col5" id="T_5b525_level0_col5">recall</th>
+<th class="col_heading level0 col6" id="T_5b525_level0_col6">precision</th>
+<th class="col_heading level0 col7" id="T_5b525_level0_col7">ROC-AUC</th>
 </tr>
 <tr>
 <th class="index_name level0">group</th>
@@ -15945,26 +15938,26 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </thead>
 <tbody>
 <tr>
-<th class="row_heading level0 row0" id="T_4d82a_level0_row0">ratio recorded</th>
-<td class="data row0 col0" id="T_4d82a_row0_col0">1415</td>
-<td class="data row0 col1" id="T_4d82a_row0_col1">79.1%</td>
-<td class="data row0 col2" id="T_4d82a_row0_col2">8.7%</td>
-<td class="data row0 col3" id="T_4d82a_row0_col3">34.5%</td>
-<td class="data row0 col4" id="T_4d82a_row0_col4">9.0%</td>
-<td class="data row0 col5" id="T_4d82a_row0_col5">0.829</td>
-<td class="data row0 col6" id="T_4d82a_row0_col6">0.803</td>
-<td class="data row0 col7" id="T_4d82a_row0_col7">0.970</td>
+<th class="row_heading level0 row0" id="T_5b525_level0_row0">ratio recorded</th>
+<td class="data row0 col0" id="T_5b525_row0_col0">1415</td>
+<td class="data row0 col1" id="T_5b525_row0_col1">79.1%</td>
+<td class="data row0 col2" id="T_5b525_row0_col2">8.7%</td>
+<td class="data row0 col3" id="T_5b525_row0_col3">34.5%</td>
+<td class="data row0 col4" id="T_5b525_row0_col4">9.0%</td>
+<td class="data row0 col5" id="T_5b525_row0_col5">0.829</td>
+<td class="data row0 col6" id="T_5b525_row0_col6">0.803</td>
+<td class="data row0 col7" id="T_5b525_row0_col7">0.970</td>
 </tr>
 <tr>
-<th class="row_heading level0 row1" id="T_4d82a_level0_row1">ratio missing</th>
-<td class="data row1 col0" id="T_4d82a_row1_col0">373</td>
-<td class="data row1 col1" id="T_4d82a_row1_col1">20.9%</td>
-<td class="data row1 col2" id="T_4d82a_row1_col2">62.7%</td>
-<td class="data row1 col3" id="T_4d82a_row1_col3">65.5%</td>
-<td class="data row1 col4" id="T_4d82a_row1_col4">96.2%</td>
-<td class="data row1 col5" id="T_4d82a_row1_col5">0.979</td>
-<td class="data row1 col6" id="T_4d82a_row1_col6">0.638</td>
-<td class="data row1 col7" id="T_4d82a_row1_col7">0.821</td>
+<th class="row_heading level0 row1" id="T_5b525_level0_row1">ratio missing</th>
+<td class="data row1 col0" id="T_5b525_row1_col0">373</td>
+<td class="data row1 col1" id="T_5b525_row1_col1">20.9%</td>
+<td class="data row1 col2" id="T_5b525_row1_col2">62.7%</td>
+<td class="data row1 col3" id="T_5b525_row1_col3">65.5%</td>
+<td class="data row1 col4" id="T_5b525_row1_col4">96.2%</td>
+<td class="data row1 col5" id="T_5b525_row1_col5">0.979</td>
+<td class="data row1 col6" id="T_5b525_row1_col6">0.638</td>
+<td class="data row1 col7" id="T_5b525_row1_col7">0.821</td>
 </tr>
 </tbody>
 </table>
@@ -15973,7 +15966,7 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=805b7888">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=449a6453">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -15994,7 +15987,7 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8ca34102">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=492f4a5a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16127,7 +16120,7 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15295469">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41f3b409">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16142,7 +16135,7 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c4dce52e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cc270c85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16153,7 +16146,7 @@ Test expected cost per 1,000 applicants: $304,251 (standard error about $28,308)
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96ae5346">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=71684bc7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16252,7 +16245,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d4dee0df">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d4255322">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16268,7 +16261,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4782ef26">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a3db0128">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16381,7 +16374,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e3cfbc5d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90ba866d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16507,7 +16500,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17af1824">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35099aee">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16523,7 +16516,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=999db043">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dedd9acf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16537,7 +16530,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2ecd779a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2110fc4b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16554,9 +16547,9 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </li>
 <li><p><strong>Occupation and loan purpose matter little on their own but are not worthless.</strong> They barely move performance at the 0.5 threshold. Yet removing them (and nine minor missing flags) raised the out-of-fold expected cost of the final model by about a fifth. Removing occupation alone raised it by about 10%. The fair-lending review should clear their use. The 21-input model without occupation is the fallback.</p>
 </li>
-<li><p><strong>The main drivers remain significant after modelling.</strong> The linear coefficients, the tree's rules, the forest's importances and the surrogate tree all give large weight to the same four drivers (see the table "Do the EDA drivers remain significant after modelling?"). Loan purpose does not remain significant on its own. Occupation remains significant only as a group. This agreement gives confidence that the signal is real and stable.</p>
+<li><p><strong>The main drivers remain significant after modelling.</strong> The linear coefficients, the tree's rules, the forest's importances and the surrogate tree all give large weight to the same four drivers. The table "Do the EDA drivers remain significant after modelling?" shows the evidence. Loan purpose does not remain significant on its own. Occupation remains significant only as a group. This agreement gives confidence that the signal is real and stable.</p>
 </li>
-<li><p><strong>The threshold mattered as much as the choice of algorithm.</strong> At the 0.5 threshold, class weights improved recall by about 23 points for the logistic regression and 9 for the forest. Averaging trees (bagging) mainly bought precision and ranking quality. For the final forest, a move of the threshold from 0.5 to 0.15 cuts the out-of-fold cost from about $575,000 to $317,000 per 1,000 applicants. At each model's own best threshold, the forest still costs far less than the logistic regression ($317,000 vs $550,000). Once we chose the threshold on cost, the class weights were no longer necessary.</p>
+<li><p><strong>The threshold mattered as much as the choice of algorithm.</strong> At the 0.5 threshold, class weights improved recall by about 23 points for the logistic regression and 9 for the forest. Averaging trees (bagging) mainly bought precision and ranking quality. When we move the threshold of the final forest from 0.5 to 0.15, the out-of-fold cost falls from about $575,000 to $317,000 per 1,000 applicants. At each model's own best threshold, the forest still costs far less than the logistic regression ($317,000 vs $550,000). Once we chose the threshold on cost, the class weights were no longer necessary.</p>
 </li>
 <li><p><strong>The decision threshold is a business dial, and the bank should set it on training data.</strong> With the forest's strong ranking ability (ROC-AUC 0.96) the bank can move recall between about 70% and 94% by changing the threshold. We chose the cost-minimising threshold of 0.15 on repeated out-of-fold predictions. It catches about 93% of defaulters with 68% precision on unseen applicants. It is stable to changes in the cost assumptions, to a finer threshold grid and to the choice of train/test split. It sits just below the textbook break-even (0.18) because the forest's scores understate risk in the decision range.</p>
 </li>
@@ -16565,7 +16558,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1eba0b02">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1cd7c8f7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -16579,37 +16572,37 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4177e516">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=10c5817c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Proposed-solution:-a-Random-Forest-scoring-engine-with-a-cost-based-decision-threshold,-explained-by-a-surrogate-decision-tree">Proposed solution: a Random Forest scoring engine with a cost-based decision threshold, explained by a surrogate decision tree<a class="anchor-link" href="#Proposed-solution:-a-Random-Forest-scoring-engine-with-a-cost-based-decision-threshold,-explained-by-a-surrogate-decision-tree">¶</a></h3><p><strong>Is the model good enough for production? Yes, with conditions.</strong></p>
+<h3 id="Proposed-solution:-a-Random-Forest-scoring-engine-with-a-cost-based-decision-threshold,-explained-by-a-surrogate-decision-tree">Proposed solution: a Random Forest scoring engine with a cost-based decision threshold, explained by a surrogate decision tree<a class="anchor-link" href="#Proposed-solution:-a-Random-Forest-scoring-engine-with-a-cost-based-decision-threshold,-explained-by-a-surrogate-decision-tree">¶</a></h3><p><strong>Is the model ready for production? Yes, with conditions.</strong></p>
 <ul>
 <li><em>Evidence.</em> On the 1,788 unseen test applicants the model catches 92.7% of defaulters at 68.1% precision (ROC-AUC 0.963). This agrees with the out-of-fold estimate (recall 94%, precision 65%, cost $317,000 against $304,000 per 1,000 applicants on the test set). Under the indicative costs it cuts the cost of credit errors by about 83%.</li>
 <li><em>Limits.</em> The data holds only loans that the old process approved. Two thirds of the defaulters have no recorded debt-to-income ratio, and mandatory income verification will shrink that group. The cost figures are indicative.</li>
-<li><em>Verdict.</em> The performance is good enough for production. But the model must not affect real decisions until the bank completes two steps. First, it builds the per-applicant risk drivers. Second, it meets the three guard-rails for the time before go-live, listed at the end of this cell. These are the shadow run, the fairness review and the test on applicants with a recorded ratio (83% recall, 80% precision on the test set). The other guard-rails apply after go-live.</li>
+<li><em>Verdict.</em> The performance is good enough for production. But the model must not affect real decisions until the bank meets five conditions. It runs the model in shadow mode on all applications for one to two months. It builds the per-applicant risk drivers. It passes the fairness review. It re-derives the 0.15 threshold from its own loss and margin figures. It tests the model on past applicants with a recorded ratio (83% recall, 80% precision on the test set). The other guard-rails apply after go-live.</li>
 </ul>
 <p><strong>Model specification</strong></p>
 <ul>
 <li><code>RandomForestClassifier</code> with 200 fully grown trees and <strong>no class weights</strong>. The configuration search showed that class weights add nothing once we choose the threshold on cost. The 0.3/0.7 and 0.2/0.8 weightings lie within one standard error of the unweighted forest. The balanced and 0.1/0.9 weightings cost about $13,000 and $27,000 more per 1,000 applicants. We train the forest on the untreated data with the 27 model inputs listed in the final-pipeline cell. These are the ten financial attributes, the eleven missing-value flags and the six occupation and loan-purpose indicators. Pre-processing: a missing flag per column, plus median/mode imputation learned on the training rows. There is no outlier capping and no scaling.</li>
-<li><strong>Decision threshold 0.15</strong> instead of the default 0.5. We chose it by minimising the indicative expected cost on repeated out-of-fold predictions of the training rows. The bank is to re-derive it with its own loss-given-default and margin figures. The choice was stable for cost ratios between 3:1 and 6:1 and on two other train/test splits. It sits just below the textbook break-even of 0.18 because the forest's scores understate risk in the decision range.</li>
+<li><strong>Decision threshold 0.15</strong> instead of the default 0.5. We chose it by minimising the indicative expected cost on repeated out-of-fold predictions of the training rows. The bank re-derives it with its own loss-given-default and margin figures before go-live. The choice was stable for cost ratios between 3:1 and 6:1 and on two other train/test splits. It sits just below the textbook break-even of 0.18 because the forest's scores understate risk in the decision range.</li>
 <li><strong>Explanation layer:</strong> a surrogate decision tree of depth 4, fitted to the forest's out-of-fold decisions. It reproduces about 93% of them on unseen applicants (73% for never flagging). Per-applicant risk drivers from the forest (for example SHAP values) complete the layer. The bank builds them in the first two months of the project, before the shadow run. They give the reason for each decline, including the automatic declines above 0.25. The surrogate rules give the plain-language summary.</li>
 <li><strong>Fallback:</strong> the same forest without any occupation information (21 inputs) if the fair-lending review requires it, at about 10% more expected credit-error cost. The 12-input lean model (no occupation, loan purpose or minor flags) costs about a fifth more, and we do not recommend it.</li>
 </ul>
 <p><strong>Why this is the best solution to adopt</strong></p>
 <ol>
-<li><strong>Lowest expected cost of credit errors, chosen without looking at the test set.</strong> It had the lowest expected cost of the fifteen forest configurations and of the seven final candidates in the selection table. That cost was about $317,000 per 1,000 applicants on repeated out-of-fold predictions. On the test set it then delivered about 93% recall at 68% precision and 90% accuracy, with a ROC-AUC of about 0.96. At their own best thresholds, the balanced logistic regression ($550,000) and the tuned decision tree ($607,000) cost about 1.7 and 1.9 times as much. The recall-tuned forest buys its recall with too much precision.</li>
+<li><strong>Lowest expected cost of credit errors, chosen without looking at the test set.</strong> It had the lowest expected cost of the fifteen forest configurations and of the eight final candidates in the selection table. That cost was about $317,000 per 1,000 applicants on repeated out-of-fold predictions. On the test set it then delivered about 93% recall at 68% precision and 90% accuracy, with a ROC-AUC of about 0.96. At their own best thresholds, the other techniques cost about 1.2 to 1.9 times as much. These are the bagged trees ($390,000), the balanced logistic regression ($550,000) and the tuned decision tree ($607,000). The recall-tuned forest buys its recall with too much precision.</li>
 <li><strong>Stable.</strong> Averaging hundreds of trees removes the instability of a single tree. The out-of-fold and test results agree. The threshold is insensitive to the cost assumptions over a wide range.</li>
-<li><strong>Interpretable enough for ECOA.</strong> The surrogate tree gives a short, faithful rule list. Its conditions are: debt-to-income ratio missing, ratio above about 44%, and (at or below 44%) a delinquent line together with a derogatory report. Per-applicant risk drivers (a build item before the shadow run) give the reason for each decline. Because the forest is unweighted, its score is close to a default rate. In the decision range it understates that rate (applicants scored 0.15-0.20 defaulted about 23% of the time). The 0.15 threshold therefore reads as "refer or decline when the estimated risk is above roughly one in five". That is a plain statement of the bank's risk appetite.</li>
+<li><strong>Interpretable enough for ECOA.</strong> The surrogate tree gives a short, faithful rule list. Its conditions are: debt-to-income ratio missing, ratio above about 44%, and (at or below 44%) a delinquent line together with a derogatory report. Per-applicant risk drivers, which the bank builds before the shadow run, give the reason for each decline. Because the forest is unweighted, its score is close to a default rate. In the decision range it understates that rate (applicants scored 0.15-0.20 defaulted about 23% of the time). The 0.15 threshold therefore reads as "refer or decline when the estimated risk is above roughly one in five". That is a plain statement of the bank's risk appetite.</li>
 <li><strong>Operationally simple.</strong> The inputs are all fields that the underwriting process already captures. The bank needs no new data to deploy the model. The first process change the analysis recommends (mandatory income and valuation verification) improves the data for every future model.</li>
 </ol>
 <p><strong>How the solution solves the problem</strong></p>
 <p>The design meets the four goals stated in the problem definition.</p>
 <ol>
-<li><em>Catch defaulters early.</em> Per 1,000 applicants it flags about 185 of 200 defaulters before the bank pays out the loan.</li>
-<li><em>Protect good business.</em> It approves about 73% of applicants. It wrongly flags about 87 creditworthy applicants per 1,000 (11% of them). Underwriters review the 7% of applicants in the 0.10 to 0.25 band.</li>
+<li><em>Catch defaulters early.</em> Per 1,000 applicants it flags about 185 of 200 defaulters before the money leaves the bank.</li>
+<li><em>Protect good business.</em> At the 0.15 threshold the model approves about 73% of applicants. It flags about 87 creditworthy applicants per 1,000 (11% of them). Under the approve / refer / decline bands, the bank approves about 69% of applicants automatically. Underwriters review the 7% in the 0.10 to 0.25 band. Under the bands, the bank declines about 62 creditworthy applicants per 1,000 automatically and refers about 55.</li>
 <li><em>Stay interpretable.</em> The surrogate tree gives the rules. Per-applicant risk drivers give the reason for each decline.</li>
 <li><em>Guide policy.</em> The same drivers support rules that the bank can use now. Examples are mandatory income and valuation verification and a 45% debt-to-income limit.</li>
 </ol>
@@ -16634,7 +16627,7 @@ Surrogate tree (depth 4, fitted to the out-of-fold decisions) reproduces 93.0% o
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fa56ce40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6891dd13">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
