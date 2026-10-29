@@ -1225,7 +1225,7 @@ Class weights and the decision threshold are two dials for the same trade-off. S
 
 **Selection rule, fixed before the search:** the lowest mean expected cost on out-of-fold predictions wins. Among candidates within one fold-to-fold standard error of the lowest cost, we prefer the simplest (fewest non-default settings, then fewest inputs).
 
-1. Stage 1 searches the class weights and the minimum leaf size on all 27 inputs. The number of trees and the features tried per split stay at their defaults. The standard error is the standard deviation of the 15 pooled fold costs divided by the square root of 15. The robustness checks include paired fold-by-fold checks of the two closest contests.
+1. Stage 1 searches the class weights and the minimum leaf size on all 27 inputs. The number of trees and the features tried per split stay at their defaults. The standard error is the standard deviation of the 15 pooled fold costs divided by the square root of 15. The robustness checks include paired fold-by-fold checks of two close contests.
 2. Stage 2 chooses the number of inputs for the winner, the counterpart of choosing how many principal components to keep. We remove the weakest input one at a time and score each smaller set with three forest seeds. The occupation columns and the loan-purpose columns leave together. The rule keeps the smallest input set whose mean cost is within one standard error of the lowest cost on this curve.
 3. Stage 3 compares the winner on the selected input set with the same forest on all 27 inputs. It also scores the same forest on the selected set without any occupation information, the fallback that a fair-lending review might require. The recall-tuned grid winner also competes, on 27 and on 12 inputs. For completeness on the chosen yardstick, we score three more techniques the same way at their own cost-minimising thresholds. These are the bagged trees, the balanced logistic regression and the recall-tuned tree.
 
@@ -1299,14 +1299,14 @@ add_after(166, "markdown", r"""
 
 Among the fully grown forests the class weights barely matter. No weights (\$317,000), 0.3/0.7 (\$320,000) and 0.2/0.8 (\$321,000) are within one standard error (about \$10,500) of each other. They simply reach their minimum at different thresholds (0.15, 0.20, 0.25). The extreme 0.1/0.9 weighting is clearly worse, and `balanced` is somewhat worse (just outside one standard error).
 
-By the pre-stated rule the unweighted forest is the stage 1 choice: it has the lowest mean cost and the simplest configuration. Its score also keeps a natural reading as an estimated default rate (we check this below with a calibration table).
+By the pre-stated rule the unweighted forest is the Stage 1 choice: it has the lowest mean cost and the simplest configuration. Its score also keeps a natural reading as an estimated default rate (we check this below with a calibration table).
 """)
 add_after(166, "markdown", r"""
 ### **Stage 2: how many inputs does the forest need?**
 
-A model with fewer inputs is easier to explain and to monitor. So we check how far we can cut the input set before the cost rises. This is the same question as choosing how many principal components to keep, and we answer it the same way: with a curve of the expected cost against the number of inputs.
+A model with fewer inputs is easier to explain and to monitor. So we check how far we can cut the input set before the cost rises. This is the same question as choosing how many principal components to keep. We answer it the same way, with a curve of the expected cost against the number of inputs.
 
-- We rank the inputs by the chosen forest's impurity importance (mean of three seeds) and remove the weakest first. The occupation columns and the loan-purpose columns count as one input each, so no category is half removed.
+- We rank the inputs by the chosen forest's impurity importance (mean of three seeds) and remove the weakest first. The occupation columns and the loan-purpose columns leave as one group each, so the model never keeps only part of a category.
 - We score every set on the same repeated 5-fold splits, with three forest seeds. A single forest's own randomness moves the cost by about as much as one standard error.
 - The rule keeps the smallest input set whose seed-averaged cost is within one standard error of the lowest cost on the curve.
 """)
@@ -1382,9 +1382,9 @@ ax.legend(loc='upper left')
 plt.tight_layout(); plt.show()
 """)
 add_after(166, "markdown", r"""
-**Observations - input-set reduction:** the curve is flat from 27 down to 22 inputs. The first five inputs removed are missing-value flags with almost no weight (for CLNO, NINQ, DELINQ, CLAGE and MORTDUE, together about 2% of the split power). Without them the cost stays between \$317,700 and \$325,000 per 1,000 applicants, against \$320,150 for all 27 inputs. Beyond 22 inputs the cost rises steadily: about \$328,800 for 21 inputs, \$333,500 for 20, \$373,700 for 16 and \$402,400 for 10.
+**Observations - input-set reduction:** the curve is flat from 27 down to 22 inputs. The first five inputs removed are the missing flags of CLNO, NINQ, DELINQ, CLAGE and MORTDUE. They carry almost no weight, together about 2% of the split power. Without them the cost stays between \$317,700 and \$325,000 per 1,000 applicants, against \$320,150 for all 27 inputs. With fewer than 22 inputs, the cost rises steadily: about \$328,800 for 21 inputs, \$333,500 for 20, \$373,700 for 16 and \$402,400 for 10.
 
-By the rule we keep **22 inputs**: the 10 financial attributes, six missing flags (VALUE, REASON, JOB, YOJ, DEROG and DEBTINC) and the six one-hot indicators. One seed alone would mislead: with seed 1 only, the 25-input set costs about \$13,000 more than the 24-input set. We ranked the inputs on all training rows before the repeated cross-validation, which can slightly favour the reduced sets. The removed flags carry almost no weight, so the effect is small.
+By the rule we keep **22 inputs**. These are the 10 financial attributes, six missing flags (VALUE, REASON, JOB, YOJ, DEROG and DEBTINC) and the six one-hot indicators. One seed alone would mislead: with seed 1 only, the 25-input set costs about \$13,000 more than the 24-input set. We ranked the inputs on all training rows before the repeated cross-validation, which can slightly favour the reduced sets. The removed flags carry almost no weight, so the effect is small.
 """)
 add_after(166, "code", r"""
 #@title
@@ -1524,7 +1524,7 @@ split_check.style.format({c: ('{:.2f}' if c[0] == 'best threshold' else '{:,.0f}
 add_after(166, "markdown", r"""
 **Observations - model, threshold and robustness:** the unweighted forest on all 27 inputs has the lowest single-seed out-of-fold cost (about \$317,000 per 1,000 applicants). The same forest on the 22 selected inputs costs about \$324,000, within one standard error (about \$10,500). So the rule picks the simpler 22-input forest, and Stage 3 confirms the input-set reduction. A paired fold-by-fold check agrees: the 22-input forest costs \$6,792 more per 1,000 on average, with a paired standard error of \$6,276. The gap is about one paired standard error, so it is within noise. Averaged over three seeds, the two sets differ by only about \$1,100 (\$321,242 against \$320,150).
 
-Removing all occupation information from the selected set leaves 16 inputs and costs about 13% more (\$365,000). This is outside one standard error, so occupation carries real signal. The recall-tuned grid winner costs about half again as much. We scored the bagged trees, the balanced logistic regression and the recall-tuned tree the same way, at their own best thresholds. They cost more than any fully grown forest (about \$390,000, \$550,000 and \$607,000). So the technique choice holds on the chosen yardstick too.
+Removing all occupation information from the selected set leaves 16 inputs and costs about 13% more than the 22-input forest (\$365,000). This is outside one standard error, so occupation carries real signal. The recall-tuned grid winner costs about half again as much. We scored the bagged trees, the balanced logistic regression and the recall-tuned tree the same way, at their own best thresholds. They cost more than any fully grown forest (about \$390,000, \$550,000 and \$607,000). So the technique choice holds on the chosen yardstick too.
 
 The cost-minimising threshold is 0.15 (the model flags every applicant whose score exceeds 0.15, an estimated default risk of roughly one in five). It stays at 0.15 for cost ratios from 4.5:1 to 8:1. The stated ratio of 4.5:1 is at the lower edge of that range. The threshold moves to 0.20 at 2:1 and 3:1, and to 0.10 at 9:1. A finer 0.01 grid gives the same threshold. A second paired fold-by-fold check compares the 0.2/0.8 forest with the unweighted forest, both on 27 inputs. The mean difference is \$3,836 per 1,000, with a paired standard error of \$5,122, so the two are within noise. On two other 70/30 splits the unweighted forest is again the cheapest configuration, with the weighted forests within noise of it.
 
