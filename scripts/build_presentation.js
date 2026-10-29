@@ -92,7 +92,7 @@ pres.addSection({ title: "Opening" });
     { text: "Shubham Garg  |  November 2026", options: { fontSize: 12, color: C.accent4 } },
   ], { placeholder: "body" });
   s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.45, w: 0.9, h: 0.08, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "title marker" });
-  notes(s, "Good morning. In the next eight minutes I will show how a bank can cut the default-related cost of the home equity loans it approves today. The cut is about four fifths, with a model the bank can also explain to regulators and applicants.");
+  notes(s, "Good morning. In eight minutes I will show how a bank can cut the cost of credit errors on the home equity loans it approves today. The cut is about four fifths, with a model the bank can also explain to regulators and applicants.");
 }
 
 // 2. Key takeaways
@@ -103,7 +103,7 @@ pres.addSection({ title: "Opening" });
     ["1 in 5", "home equity loans in the data ended in default. Accuracy alone is a misleading yardstick."],
     ["62%", "default rate when the applicant's debt-to-income ratio is missing, versus 8.6% when it is present. Unverified income is the strongest warning sign."],
     ["93%", "of future defaulters among unseen applicants. The proposed Random Forest model catches them. 2 of every 3 applicants it flagged really defaulted."],
-    ["~$9M", "indicative annual benefit on 6,000 applications, from roughly $10.8M of default-related cost down to about $1.9M."],
+    ["~$9M", "indicative annual benefit on 6,000 applications, from roughly $10.8M of credit-error cost down to about $1.9M."],
   ];
   items.forEach(([big, text], i) => {
     const x = 0.5 + i * 2.3;
@@ -275,7 +275,7 @@ pres.addSection({ title: "Modelling" });
   s.addText(bullets([
     "Scoring engine: Random Forest, 200 fully grown trees, no class weights (the threshold handles the imbalance).",
     "Inputs: 22 of 27 (10 attributes, 6 missing-value flags, occupation and loan purpose). Fallback without occupation: 16 inputs, about 13% more cost.",
-    "Threshold 0.15, chosen with the configuration on repeated out-of-fold expected cost (training rows). It holds for cost ratios 4.5:1 to 8:1 and across splits. Approve / refer / decline bands (69% / 7% / 24%) keep an underwriter in the loop.",
+    "Threshold 0.15, chosen with the configuration on repeated out-of-fold expected cost (training rows). It holds for cost ratios 4.5:1 to 8:1 and on a finer grid. Approve / refer / decline bands (69% / 7% / 24%) keep an underwriter in the loop.",
     "Explanation layer: a depth-4 surrogate tree reproduces 93% of the forest's test decisions and gives the plain-language summary. Per-applicant risk drivers (built before the shadow run) give each decline its ECOA reason.",
     "We scored the reserved test set once, after all choices.",
   ], 11), { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
@@ -305,7 +305,7 @@ pres.addSection({ title: "Modelling" });
     s.addText(t, { x: 6.1, y: y + 0.1, w: 3.3, h: 0.4, fontSize: 14, bold: true, color: col, margin: 0, isTextBox: true, objectName: `threshold card title ${i + 1}` });
     s.addText(bullets([a, b, c], 12), { x: 6.1, y: y + 0.52, w: 3.3, h: 1.0, valign: "top", margin: 0, isTextBox: true, objectName: `threshold card body ${i + 1}` });
   });
-  s.addText("Curves: out-of-fold predictions on the training rows. Cards: test set, per 1,000 applicants, at $9,000 per missed defaulter and $2,000 per wrongly declined customer. The optimum stays at 0.15 for cost ratios 4.5:1 to 8:1 and on other splits.", { x: 0.5, y: 4.78, w: 9.0, h: 0.36, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
+  s.addText("Curves: out-of-fold predictions on the training rows. Cards: test set, per 1,000 applicants, at $9,000 per missed defaulter and $2,000 per wrongly declined customer. The optimum stays at 0.15 for cost ratios 4.5:1 to 8:1 and on a finer grid.", { x: 0.5, y: 4.78, w: 9.0, h: 0.36, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
   notes(s, "The model outputs a probability, and 0.5 is only a convention. We chose the threshold on out-of-fold predictions of the training rows, so the test set played no part. Moving it to 0.15 cuts missed defaulters from 64 to 15 per thousand applicants on the test set. The price is flagging 90 instead of 28 good customers. It is the cheapest operating point for any cost ratio between four and a half and eight to one. Our assumed ratio of four and a half to one sits at the lower edge of that range. It held on a finer grid and on other train/test splits. It sits just below the textbook break-even of 0.18 for a perfectly calibrated score, because the forest's scores understate risk in the decision range. Applicants scored fifteen to twenty percent defaulted about twenty-eight percent of the time.");
 }
 
@@ -332,7 +332,7 @@ pres.addSection({ title: "Recommendations" });
     "Costs: roughly $300-400k one-off (pipeline, integration, validation, fairness review, training) and about $100k a year to run and monitor. It repays its cost within year one even if the bank gets only a quarter of the benefit.",
     "Non-financial: faster decisions, consistent treatment, auditable reasons for every decline, verified income and valuation on every application.",
   ], 11), { x: 0.5, y: 3.6, w: 9.1, h: 1.55, valign: "top", margin: 0, isTextBox: true, objectName: "impact bullets" });
-  notes(s, "With round-number assumptions, the bank's default-related cost falls from about 10.8 million to about 1.9 million a year on 6,000 applications. Even if the real benefit were a quarter of that, the project repays its cost inside a year. Finance should replace these assumptions with actual loss and margin figures.");
+  notes(s, "With round-number assumptions, the bank's cost of credit errors falls from about 10.8 million to about 1.9 million a year on 6,000 applications. Even if the real benefit were a quarter of that, the project repays its cost inside a year. Finance should replace these assumptions with actual loss and margin figures.");
 }
 
 // 13. Recommendations and roadmap
