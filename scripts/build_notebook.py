@@ -1029,6 +1029,8 @@ md(r"""
 
 Time-series methods do not apply to this problem. Each row is one loan application with no date or ordering, so there is no sequence to model. We recommend a time-aware validation (train on earlier applications, test on later ones) as further analysis once application dates are available. We include logistic regression as the linear benchmark that we need to compare linear and non-linear techniques fairly.
 
+**Why these techniques suit this data and problem.** The EDA found four facts that set the choice. (1) Risk changes in steps, for example at a 45% debt-to-income ratio (insights 3 and 9). (2) Risk factors combine, for example delinquent lines inside the lower debt-to-income bands (insight 10). (3) A blank field is itself a risk signal (insight 2). (4) Only one applicant in five defaults (insight 1). A decision tree splits on thresholds and on one driver inside another, so it fits facts 1 and 2. It also gives readable rules for adverse-action reasons. A single tree is unstable, so we add bagging to reduce variance. The random forest also tries a random subset of inputs at each split, so its trees are less alike. Missing-value flags cover fact 3. Class weights and the decision threshold cover fact 4. We do not use k-nearest neighbours or support vector machines. The bank cannot easily explain their decisions to an applicant, and the ECOA requires such an explanation.
+
 **How we use the test set.** We choose the hyper-parameters, the final model and its decision threshold with cross-validation on the training rows. We score the test set once per model to report performance, and we never use it to choose any of them.
 """)
 
@@ -1230,6 +1232,7 @@ The default threshold is 0.5. For an imbalanced problem the best operating point
 """)
 
 code(r"""
+# Plot precision and recall of the balanced logistic regression at each threshold on the test set (illustration only)
 proba_lr = lr_bal.predict_proba(X_test_lr_s)[:, 1]
 prec, rec, thr = precision_recall_curve(y_test_lr, proba_lr)
 
@@ -1677,7 +1680,7 @@ plt.title("ROC curves - test set"); plt.legend(); plt.show()
 md(r"""
 **Comparison - how the techniques perform (at the default 0.5 threshold):**
 
-*Linear vs non-linear.* The balanced logistic regression reaches about 80% recall but only about 61% precision and a ROC-AUC of about 0.91. Every random forest beats it on precision and AUC at a similar recall. This shows that trees capture the threshold-shaped relationships in this data better. The linear model remains the most transparent benchmark.
+*Linear vs non-linear.* The balanced logistic regression reaches about 80% recall but only about 61% precision and a ROC-AUC of about 0.91. Every random forest beats it on precision and AUC. The class-weighted and recall-tuned forests do this at a similar recall (77% to 79% against 80%). This shows that trees capture the threshold-shaped relationships in this data better. The linear model remains the most transparent benchmark.
 
 *Single tree vs bagging vs forest.* The tuned decision tree achieves the **highest raw recall (about 82%)** but the **lowest precision (about 53%)**. It would reject almost one good applicant for every defaulter it catches. Bagging 200 trees shows the value of averaging. At the same 68% recall as the single fully grown tree, precision rises to about 83% and ROC-AUC from 0.81 to about 0.95.
 
@@ -1685,9 +1688,11 @@ The random forests add feature sub-sampling. Without class weights the forest is
 
 *Among the forests.* The class-weighted forest (0.2/0.8) has the best F1 (about 0.77) and precision at the same recall. The recall-tuned forest has the same recall with lower precision but a smaller train-test gap. The reduced-feature forest performs essentially the same as the tuned one with 12 instead of 27 inputs. This table cannot show which of these is best for the bank. This is because the business cares about the cost of the two errors at the best operating threshold, not at 0.5. We choose among them next, on the training rows.
 
+*Which technique performs relatively better?* The Random Forest performs relatively better. In the table above, the unweighted forest has the best ROC-AUC (0.963) and the class-weighted forest has the best F1 (0.771). Stage 3 below compares each technique at its own cost-minimising threshold. There the 22-input forest costs \$324,145 per 1,000 applicants, against \$389,821 for bagging, \$550,176 for the logistic regression and \$607,223 for the tuned tree. It wins because it averages many fully grown trees that differ from each other. Their averaged scores follow the thresholds and combined risk factors in the data, so the forests rank applicants best (out-of-fold ROC-AUC 0.96).
+
 *Is there scope to improve further?* Yes, in three directions:
 1. **Threshold tuning** on the chosen forest (next section) moves recall above 90% at a controlled precision cost, because the forest's AUC is high.
-2. **Feature engineering** such as a loan-to-value ratio ((LOAN + MORTDUE) / VALUE), binned debt-to-income or interaction terms. The trees approximate these features but could use them directly. These features would also help the linear model.
+2. **Feature engineering** such as a loan-to-value ratio ((LOAN + MORTDUE) / VALUE), binned debt-to-income or interaction terms. The trees approximate these features but could use them directly. These features would also help the linear model. Binned debt-to-income captures the step in risk at a 45% ratio (EDA insight 3). Interaction terms capture the combined risk factors (EDA insight 10), such as delinquent lines inside the lower debt-to-income bands. A loan-to-value ratio joins the loan, mortgage and property amounts, which matter in combination rather than alone.
 3. **Gradient boosting and probability calibration.** Gradient boosting builds trees one after another, and each new tree corrects the errors of the earlier trees. It keeps what makes trees fit this data (thresholds, combined risk factors and blank fields). On tabular data like this it often ranks applicants better than a random forest. Calibration matters because the forest's scores understate risk in the decision range (see the calibration check below). Both were outside the scope of this milestone, and we list them as next steps.
 """)
 
@@ -2365,6 +2370,14 @@ Under the indicative costs, the cost of credit errors falls from about \$1.8 mil
 - *Class-weighted random forests (0.2/0.8 or 0.3/0.7):* the 0.2/0.8 forest has the best balance at the 0.5 threshold. In Stage 1 both lie within one standard error of the unweighted forest once we tune their own thresholds (0.25 and 0.20). The balanced weighting is somewhat worse, and the 0.1/0.9 weighting is clearly worse. We preferred the unweighted forest under the pre-stated rule as the simplest configuration with the lowest mean cost.
 - *Recall-tuned random forest:* the cross-validated grid winner on recall, but its constrained trees (at least 10 applicants per leaf) give cruder probabilities. Once precision enters the cost, its expected cost is about half again as high as the final forest's.
 - *The unweighted forest at the default 0.5 threshold:* best precision (84% on all 27 inputs, 83% on the 22 selected inputs). But it misses almost a third of defaulters, which is the costlier error. Moving the threshold to 0.15 is what makes it the final model.
+
+**Business recommendations**
+1. Make income and property-valuation verification mandatory. Applicants with no recorded debt-to-income ratio defaulted 62% of the time. Applicants with no valuation defaulted 94% of the time.
+2. Decline or escalate every applicant above a 45% debt-to-income ratio. Above 45%, 87% to 100% of applicants defaulted.
+3. Refer every applicant with two or more delinquent credit lines to an underwriter. With two lines, 45% defaulted, and the rate rises with the count.
+4. Refer every applicant with two or more major derogatory reports to an underwriter. With two reports, 51% defaulted. With three or more, about 75% defaulted.
+5. Adopt the 22-input forest with the 0.15 threshold. Approve at a score of 0.10 or less, refer scores from 0.10 to 0.25 to an underwriter and decline above 0.25.
+6. Do not let the model affect real lending decisions until the bank meets the five conditions in the verdict above.
 
 **Guard-rails for adoption**
 - Run the model in shadow mode on all applications for one to two months before it goes live. Include the applications the old process would decline, which the training data does not cover. Introduce mandatory income and valuation verification alongside the shadow period. Verification removes the missing-ratio signal that the current model relies on most. So, before go-live, test the model on the historical applicants with a recorded ratio, and refit it if necessary. On those applicants it already catches 81% of defaulters at 78% precision. Re-training on the outcomes of newly verified applicants, and reject inference for declined applicants, need 12 months or more of repayment data.
