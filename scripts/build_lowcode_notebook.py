@@ -48,7 +48,7 @@ md(1, r"""
 
 A large share of a retail bank's profit comes from the interest it earns on home loans and home equity lines of credit. The single biggest threat to that profit is the applicant who does not repay. Every loan that becomes a non-performing asset cancels the interest earned on many good loans. Today an underwriter studies each application by hand and decides whether to approve it. This process is slow, expensive, inconsistent between underwriters and open to human error and bias. Earlier attempts to automate it used hand-written heuristics.
 
-In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**. The current process approved all of them. Those loans averaged about \$16,900, so the bank put roughly \$20 million of principal at risk. The bank recovered about half through collateral, so it lost roughly \$10 million on this book alone.
+In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**. The current process approved all of them. Those loans averaged about \$16,900, so the bank put roughly \$20 million of principal at risk. The data does not record recoveries. If the bank recovers about half through the collateral, it lost roughly \$10 million on this book alone.
 
 A reliable, explainable scoring model cuts those losses. It protects revenue by not declining good applicants unnecessarily. It makes decisions faster and standardises them. It also gives the bank documented reasons for every decision, which the Equal Credit Opportunity Act (ECOA) requires.
 
@@ -746,11 +746,25 @@ metrics_score(y_train, lg_bal.predict(X_train_lr))
 print("Test performance - Logistic Regression (balanced)")
 metrics_score(y_test, lg_bal.predict(X_test_lr))
 """)
+add_after(101, "code", r"""
+#@title
+# Tune the regularisation strength C of the balanced model by 5-fold cross-validated grid search on recall
+from sklearn.model_selection import StratifiedKFold
+lr_search = GridSearchCV(LogisticRegression(max_iter=2000, class_weight='balanced', random_state=1), {'C': [0.01, 0.1, 1, 10]},
+                         scoring='recall', cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=1), n_jobs=-1)
+lr_search.fit(X_train_lr, y_train)
+print("Best C:", lr_search.best_params_, f"| best CV recall: {lr_search.best_score_:.3f}")
+print(pd.DataFrame(lr_search.cv_results_)[['param_C', 'mean_test_score']].rename(columns={'mean_test_score': 'CV recall'}).round(3).to_string(index=False))
+
+# Keep the best estimator as the balanced model
+lg_bal = lr_search.best_estimator_
+""")
 md(102, r"""
 **Observations:**
 - The plain logistic regression is accurate overall (88% on test) but catches only **57% of defaulters**: it favours the majority "repaid" class.
 - Balancing the class weights raises test recall to **80%**, while precision falls to 61% and accuracy to 86%. The model catches about 23 more defaulters out of every 100, at the cost of rejecting more good applicants.
 - Train and test scores are close, so the linear model does not over-fit. Its limit is that a straight line cannot capture the threshold effects that the EDA showed.
+- A 5-fold grid search over the regularisation strength keeps C = 1 (cross-validated recall 0.814). So the balanced model is already the tuned one.
 """)
 code(104, r"""
 #@title
@@ -1100,13 +1114,42 @@ pd.Series(importances, index=feature_names).sort_values(ascending=False).round(4
 add_after(159, "markdown", r"""
 **Insights (feature importance):** The two debt-to-income features dominate: the `DEBTINC` missing flag and `DEBTINC` together carry more than half (about 53%) of this recall-tuned forest's split power. (We show the final model's own importances, about a third for the pair, after we choose it.) This shows that affordability, and whether it could be checked, is the heart of the decision. Next come `DELINQ`, `CLAGE` and `DEROG` (repayment behaviour and depth of credit history), then `LOAN`, `VALUE`, `MORTDUE` and `CLNO`. The `JOB` and `REASON` dummies rank at the bottom: once financial behaviour is known, occupation and loan purpose add little. The selection step below tests whether occupation adds value at the cost-optimal threshold.
 """)
+add_after(159, "markdown", r"""
+#### **Did tuning improve the validation scores?**
+
+The grid searches report only the best cross-validated score. Here we score each untuned baseline on the same folds, so that we can compare before and after tuning on the training rows. The test set plays no part.
+""")
+add_after(159, "code", r"""
+#@title
+# Validation scores before and after tuning, on the same folds that each grid search used (training rows only)
+from sklearn.base import clone
+from sklearn.model_selection import cross_validate
+before_after = [("Logistic Regression", "before: plain", lg, X_train_lr, cv),
+                ("Logistic Regression", "after: balanced, C tuned", lg_bal, X_train_lr, cv),
+                ("Decision Tree", "before: fully grown", DecisionTreeClassifier(random_state=1), X_train, cv),
+                ("Decision Tree", "after: grid search", dtree_estimator, X_train, cv),
+                ("Random Forest", "before: default", rf_estimator, X_train, cv3),
+                ("Random Forest", "class weights 0.2/0.8", rf_estimator_weighted, X_train, cv3),
+                ("Random Forest", "after: grid search", rf_estimator_tuned, X_train, cv3)]
+tuning_rows = []
+for technique, stage, model, X_cv, folds in before_after:
+    cv_scores = cross_validate(clone(model), X_cv, y_train, cv=folds, scoring=["recall", "precision", "roc_auc"], n_jobs=-1)
+    tuning_rows.append({"Technique": technique, "Stage": stage, "CV recall": cv_scores["test_recall"].mean(),
+                        "CV precision": cv_scores["test_precision"].mean(), "CV ROC-AUC": cv_scores["test_roc_auc"].mean()})
+pd.DataFrame(tuning_rows).set_index(["Technique", "Stage"]).round(3)
+""")
+add_after(159, "markdown", r"""
+**Observations - validation scores before and after tuning:**
+- Tuning raises the cross-validated recall of each tuned technique: from 0.626 to 0.814 for the logistic regression (almost all from the balanced class weights), from 0.644 to 0.826 for the decision tree, and from 0.703 to 0.811 for the random forest.
+- Recall-only tuning costs precision in every case (0.789 to 0.598, 0.663 to 0.533 and 0.829 to 0.640). This is why we choose the final configuration and its threshold on expected cost later.
+""")
 md(160, r"""
 ### **Think about it:**
 - We have only built 3 models so far, Logistic Regression, Decision Tree and Random Forest
 - We can build other Machine Learning classification models like kNN, LDA, QDA or even Support Vector Machines (SVM).
 - Can we also perform feature engineering and create model features and build a more robust and accurate model for this problem statement?
 
-*Both are worthwhile next steps. We added a bagged ensemble above as the bridge between one tree and a forest. Gradient boosting would be the natural next model. kNN and SVM are less attractive here because they are harder to explain to an applicant, which the ECOA requires. On features, a loan-to-value ratio ((LOAN + MORTDUE) / VALUE) and a payment-to-income measure would give the trees directly what they now approximate through raw-amount splits. Time-series techniques from the course do not apply: each row is one application with no date or ordering.*
+*Both are worthwhile next steps. We added a bagged ensemble above as the bridge between one tree and a forest. Gradient boosting would be the natural next model. kNN and SVM are less attractive here because they are harder to explain to an applicant, which the ECOA requires. On features, a combined loan-to-value ratio ((LOAN + MORTDUE) / VALUE), debt-to-income bands and interaction terms would give the trees directly what they now approximate through raw-amount splits. The data has no income or loan-term field, so a payment-to-income measure is not possible. Time-series techniques from the course do not apply: each row is one application with no date or ordering.*
 """)
 
 # ----------------------------------------------------------------------------- comparison
@@ -1506,8 +1549,8 @@ The class-weighted Random Forest adds feature sub-sampling and class weights. It
 *Scope to improve.* Yes:
 
 1. Choosing the decision threshold on expected cost (done above, on training data only) lifts recall above 90% at a controlled precision cost. The 0.15 threshold on the unweighted forest gives 93% recall and 68% precision on the test set.
-2. Engineered features such as loan-to-value and payment-to-income.
-3. Gradient boosting and probability calibration.
+2. Engineered features such as a combined loan-to-value ratio ((LOAN + MORTDUE) / VALUE), debt-to-income bands and interaction terms.
+3. Gradient boosting, which builds trees one after another so that each tree corrects the earlier errors. It keeps what makes trees fit this data (thresholds, combined risk factors and blank fields). Probability calibration, because the forest's scores understate risk in the decision range.
 4. Reject inference, because the data only covers loans the bank approved.
 """)
 md(169, r"""
@@ -1540,7 +1583,7 @@ md(170, r"""
   - On the held-out applicants it then caught 93% of defaulters at 68% precision and 90% accuracy (ROC-AUC 0.96). That is far better than the single tree (82% recall at 53% precision) and the logistic regression (80% at 61%). It is also well ahead of the recall-tuned forest once we include the cost of lower precision.
   - It is stable because it averages hundreds of trees and because its out-of-fold and test results agree.
   - Because it is unweighted, its score is close to a default rate. In the decision range it understates that rate (applicants scored 0.15-0.20 defaulted about 23% of the time). So the 0.15 threshold reads as "refer or decline above roughly one-in-five estimated risk".
-- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's out-of-fold decisions reproduces about 93% of them on unseen applicants. Per-applicant risk drivers from the forest (for example SHAP values, built in months 0-2) give the reason for each decline. This includes the automatic declines above 0.25. The surrogate gives the plain-language summary of the rules:
+- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's out-of-fold decisions reproduces about 93% of them on unseen applicants. Per-applicant risk drivers from the forest (for example SHAP values, built before the shadow run) give the reason for each decline. This includes the automatic declines above 0.25. The surrogate gives the plain-language summary of the rules:
   - the ratio is missing,
   - the ratio is above about 44%,
   - a delinquent line together with a derogatory report.

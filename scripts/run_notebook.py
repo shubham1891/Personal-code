@@ -26,6 +26,10 @@ print(f"Executed {len(nb.cells)} cells in {time.time() - start:.0f}s")
 exporter = HTMLExporter()
 exporter.exclude_input_prompt = False
 body, _ = exporter.from_notebook_node(nb)
+# nbconvert turns the markdown "\$" into a bare "$", and MathJax then reads the text between two "$" signs as a formula.
+# The notebook has no formulas, so tell MathJax to skip the page.
+body = body.replace('<body class="jp-Notebook"', '<body class="jp-Notebook tex2jax_ignore"', 1)
+assert "tex2jax_ignore" in body
 HTML_PATH.write_text(body, encoding="utf-8")
 print(f"Wrote {HTML_PATH} ({HTML_PATH.stat().st_size / 1e6:.1f} MB)")
 

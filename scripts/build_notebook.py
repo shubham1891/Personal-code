@@ -37,7 +37,7 @@ A large share of a retail bank's profit comes from the interest it earns on home
 
 Today an underwriter studies each application by hand and decides whether to approve it. That process is slow, expensive, inconsistent from one underwriter to another, and vulnerable to human error and bias. Earlier attempts to automate the process used hand-written heuristics. The bank now has data on past loans and their outcomes. With that data, the bank can **learn** the approval decision from evidence instead of opinion. At the same time, the bank can make sure that the new model does not simply replicate the biases of the old manual process.
 
-**Some facts that size the problem.** In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**. The current process approved all of them. Those defaulted loans averaged about \$16,900 each, so roughly \$20 million of principal was at risk. If the bank recovers about half through the collateral, the bank lost roughly \$10 million on this book alone. Every ten defaulters that the bank declines saves about \$90,000 at the \$9,000 per defaulter that we use throughout. Every good applicant that the bank wrongly declines costs only the interest margin on one loan, about $2,000.
+**Some facts that size the problem.** In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**. The current process approved all of them. Those defaulted loans averaged about \$16,900 each, so roughly \$20 million of principal was at risk. If the bank recovers about half through the collateral, the bank lost roughly \$10 million on this book alone. Every ten defaulters that the bank declines saves about \$90,000 at the \$9,000 per defaulter that we use throughout. Every good applicant that the bank wrongly declines costs only the interest margin on one loan, about \$2,000.
 
 **Advantages of solving it.** A reliable, explainable scoring model has four advantages:
 
@@ -71,10 +71,11 @@ The project has several goals, in priority order:
 This is a **supervised binary classification** problem. Each row is a past home equity loan. It has 12 attributes known at application time and a target `BAD` (1 = defaulted or seriously delinquent, 0 = repaid). We will:
 
 - explore and clean the data (missing values, outliers, encoding).
-- train a linear model (Logistic Regression) and non-linear models (Decision Tree, Random Forest).
-- tune the non-linear models with cross-validated grid search.
+- train a linear model (Logistic Regression) and non-linear models (Decision Tree, Bagging, Random Forest).
+- tune the Logistic Regression, the Decision Tree and the Random Forest with cross-validated grid search.
 - compare all models on a metric that we choose from the business cost of each type of error. The primary metric is **Recall on the defaulter class**. Precision and F1 are guard-rails so that the bank does not decline too many good applicants.
-- propose a final solution design and the business rules that follow from it.
+- choose the final configuration and its decision threshold on the expected cost of the two errors, with repeated out-of-fold predictions on the training rows. The model scores each application before the bank approves it, and the threshold turns that score into a flag.
+- propose a final solution design with approve / refer / decline bands around the threshold and an explanation layer that gives a reason for each adverse decision.
 """)
 
 md(r"""
@@ -127,7 +128,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Pre-processing and model selection
-from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold, cross_val_predict
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold, cross_val_predict, cross_validate
 from sklearn.inspection import permutation_importance
 from scipy import stats
 from sklearn.preprocessing import StandardScaler
@@ -135,10 +136,10 @@ from sklearn.preprocessing import StandardScaler
 # Models
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, plot_tree, export_text
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
+from sklearn.base import clone
 
 # Metrics
-from sklearn import metrics
 from sklearn.metrics import (classification_report, confusion_matrix, recall_score,
                              precision_score, f1_score, accuracy_score, roc_auc_score,
                              roc_curve, precision_recall_curve, brier_score_loss, cohen_kappa_score)
@@ -184,6 +185,7 @@ data.tail()
 """)
 
 code(r"""
+# Print the number of rows and columns
 print(f"The dataset has {data.shape[0]:,} rows and {data.shape[1]} columns.")
 """)
 
@@ -211,6 +213,7 @@ missing
 """)
 
 code(r"""
+# Plot the percentage of missing values in each column
 plt.figure(figsize=(10, 4))
 sns.barplot(x=missing.index, y=missing["missing_pct"], color="#4C72B0")
 plt.title("Percentage of missing values per column")
@@ -328,7 +331,7 @@ md(r"""
 7. Is there a correlation between the value of the property and the loan default rate?
 8. Do applicants who default have a significantly different mortgage amount compared to those who repay their loan?
 
-The univariate analysis answers questions 1 to 4. The bivariate analysis answers questions 5 to 8. A summary of the answers is at the end of the EDA section.
+The univariate analysis answers questions 1 to 4. The bivariate analysis answers questions 5 to 8. A summary of the answers is in the last cell of this notebook (Summary of answers to the leading questions).
 """)
 
 md(r"""
@@ -336,6 +339,7 @@ md(r"""
 """)
 
 code(r"""
+# Helper: a box plot above a histogram for one numerical column
 def histogram_boxplot(feature, figsize=(12, 6), bins=None, title=None):
     '''Boxplot on top of a histogram for one numerical feature, with mean (green dashed) and median (black) lines.'''
     f, (ax_box, ax_hist) = plt.subplots(nrows=2, sharex=True,
@@ -352,6 +356,7 @@ def histogram_boxplot(feature, figsize=(12, 6), bins=None, title=None):
 """)
 
 code(r"""
+# Distribution and outliers of LOAN, with its range, median and mean
 histogram_boxplot(data["LOAN"], title="LOAN - amount of loan approved")
 print(f"LOAN ranges from ${data['LOAN'].min():,.0f} to ${data['LOAN'].max():,.0f}; "
       f"median ${data['LOAN'].median():,.0f}, mean ${data['LOAN'].mean():,.0f}")
@@ -364,6 +369,7 @@ md(r"""
 """)
 
 code(r"""
+# Distribution and outliers of YOJ
 histogram_boxplot(data["YOJ"], title="YOJ - years at present job")
 """)
 
@@ -375,10 +381,12 @@ md(r"""
 """)
 
 code(r"""
+# Distribution and outliers of MORTDUE
 histogram_boxplot(data["MORTDUE"], title="MORTDUE - amount due on existing mortgage")
 """)
 
 code(r"""
+# Distribution and outliers of VALUE
 histogram_boxplot(data["VALUE"], title="VALUE - current value of the property")
 """)
 
@@ -389,10 +397,12 @@ md(r"""
 """)
 
 code(r"""
+# Distribution and outliers of CLAGE
 histogram_boxplot(data["CLAGE"], title="CLAGE - age of oldest credit line (months)")
 """)
 
 code(r"""
+# Distribution and outliers of DEBTINC
 histogram_boxplot(data["DEBTINC"], title="DEBTINC - debt-to-income ratio (%)")
 """)
 
@@ -403,6 +413,7 @@ md(r"""
 """)
 
 code(r"""
+# Distribution and outliers of CLNO
 histogram_boxplot(data["CLNO"], title="CLNO - number of existing credit lines")
 """)
 
@@ -418,6 +429,7 @@ These are whole-number counts where most applicants are at zero, so bar charts a
 """)
 
 code(r"""
+# Helper: write the percentage of the total on each bar
 def perc_on_bar(ax, total):
     '''Annotate bars with the percentage of the total.'''
     for p in ax.patches:
@@ -446,6 +458,7 @@ md(r"""
 """)
 
 code(r"""
+# Plot the class shares of BAD, REASON and JOB
 fig, axes = plt.subplots(1, 3, figsize=(18, 4.5))
 for ax, col in zip(axes, ["BAD", "REASON", "JOB"]):
     s = data[col].dropna()
@@ -473,11 +486,12 @@ md(r"""
 """)
 
 code(r"""
+# Compare each numerical variable for repaid (0) and defaulted (1) loans
 num_cols = ["LOAN", "MORTDUE", "VALUE", "YOJ", "DEROG", "DELINQ", "CLAGE", "NINQ", "CLNO", "DEBTINC"]
 
 fig, axes = plt.subplots(2, 5, figsize=(22, 9))
 for ax, col in zip(axes.flatten(), num_cols):
-    sns.boxplot(x=data["BAD"], y=data[col], ax=ax, palette="PuBu", showmeans=True)
+    sns.boxplot(x=data["BAD"], y=data[col], hue=data["BAD"], legend=False, ax=ax, palette="PuBu", showmeans=True)
     ax.set_title(f"{col} by BAD")
     ax.set_xlabel("BAD (0 = repaid, 1 = default)")
 plt.tight_layout()
@@ -520,10 +534,11 @@ md(r"""
 **Insights - significance tests (Q5, Q6, Q8):**
 - The differences in `LOAN`, `MORTDUE` and `VALUE` between defaulters and repayers are **statistically significant** (p < 0.001 in each case). With 5,960 loans, the tests can detect even modest gaps. However, the differences are **small in practical terms**: medians differ by \$2,000 to \$9,000 on amounts of \$15,000 to \$90,000. `DEBTINC` and `CLAGE` differ both significantly and materially.
 - `REASON` is related to default (chi-square p = 0.005), but the effect is weak (22.2% vs 19.0%). `JOB` is strongly related (p < 0.001).
-- Statistical significance tells us the pattern is real. The band charts above tell us where the pattern is large enough for the bank to act.
+- Statistical significance tells us the pattern is real. The band charts below tell us where the pattern is large enough for the bank to act.
 """)
 
 code(r"""
+# Helper: default rate and applicant count for each band of a numerical column
 def default_rate_by_band(col, bins, labels=None):
     '''Default rate and applicant count per band of a numerical column (missing values excluded).'''
     banded = pd.cut(data[col], bins=bins, labels=labels, include_lowest=True)
@@ -563,6 +578,7 @@ md(r"""
 """)
 
 code(r"""
+# Helper: counts and stacked default-rate bars for a categorical column
 def stacked_plot(x, title=None):
     '''Cross-tab counts and a normalised stacked bar chart of BAD by a categorical column.'''
     tab_counts = pd.crosstab(x, data["BAD"], margins=True)
@@ -579,6 +595,7 @@ def stacked_plot(x, title=None):
 """)
 
 code(r"""
+# Default rate for each loan purpose
 stacked_plot(data["REASON"], "BAD by REASON (loan purpose)")
 """)
 
@@ -588,6 +605,7 @@ md(r"""
 """)
 
 code(r"""
+# Default rate for each occupation
 stacked_plot(data["JOB"], "BAD by JOB")
 """)
 
@@ -619,7 +637,7 @@ md(r"""
 
 - **DEROG:** Applicants with no derogatory report default 16.7% of the time. **One report raises this to 39%, and two reports raise it to 51%. Three or four reports raise it to about 75%, and five or more reports raise it to 73%.** The small groups at the top are noisy, but every one of them is far above average.
 - **DELINQ:** The pattern is the same and even steeper. The default rate is 14% with no delinquent line, 34% with one, 45% with two, 55% with three, and **100% with six or more**.
-- **NINQ:** Default risk rises with recent inquiries: 16% at zero, 23% at two, 39% at four, and around 45-50% at five or more.
+- **NINQ:** Default risk rises with recent inquiries: 16% at zero, 23% at two, 39% at four, and about 46% at five or more (252 applicants). The small groups at five and above are noisy (34% to 52%).
 - All three rates rise with the count. They are easy to explain to an applicant ("we declined your application because you have two delinquent credit lines"). They are exactly the kind of evidence that the ECOA requires.
 """)
 
@@ -644,6 +662,7 @@ missing_vs_bad
 """)
 
 code(r"""
+# Plot the default rate when a field is missing and when it is present
 plt.figure(figsize=(11, 4.5))
 m = missing_vs_bad.melt(id_vars="column", value_vars=["default_rate_when_missing_%", "default_rate_when_present_%"],
                         var_name="status", value_name="default_rate")
@@ -670,6 +689,7 @@ md(r"""
 """)
 
 code(r"""
+# Plot two pairs of numerical variables, coloured by the outcome
 fig, axes = plt.subplots(1, 2, figsize=(16, 5.5))
 sns.scatterplot(data=data, x="VALUE", y="MORTDUE", hue="BAD", alpha=0.5, ax=axes[0], palette=["#4C72B0", "#C44E52"])
 axes[0].set_title("Property value vs mortgage due")
@@ -793,6 +813,7 @@ The bivariate analysis found four strong drivers: the debt-to-income ratio, deli
 code(r"""
 # Default rate for pairs of drivers, with 'missing' kept as its own group
 def band_with_missing(s, bins, labels):
+    '''Cut a column into bands and keep blanks as a separate missing band.'''
     banded = pd.cut(s, bins=bins, labels=labels, include_lowest=True).astype(object)
     return banded.where(s.notna(), "missing")
 
@@ -802,6 +823,7 @@ history_band = band_with_missing(data["CLAGE"], [0, 120, 240, np.inf], ["under 1
 derog_group = band_with_missing(data["DEROG"], [-0.5, 0.5, np.inf], ["0", "1+"])
 
 def rate_grid(rows, cols, row_order, col_order):
+    '''Return the default rate and the applicant count for each pair of groups.'''
     grid_rate = bad_int.groupby([rows, cols]).mean().unstack().reindex(index=row_order, columns=col_order) * 100
     grid_n = bad_int.groupby([rows, cols]).size().unstack().reindex(index=row_order, columns=col_order).fillna(0).astype(int)
     return grid_rate, grid_n
@@ -847,6 +869,7 @@ We fit every statistic that prepares the data (outlier fences, imputation median
 """)
 
 code(r"""
+# Split the rows 70/30 before any pre-processing. Stratify on BAD so that both sets keep the 20% default rate.
 train_idx, test_idx = train_test_split(data.index, test_size=0.30, random_state=RANDOM_STATE, stratify=data["BAD"])
 print(f"Training rows: {len(train_idx):,} | Test rows: {len(test_idx):,}")
 print(f"Default rate - train: {data.loc[train_idx, 'BAD'].astype(int).mean():.3f}, test: {data.loc[test_idx, 'BAD'].astype(int).mean():.3f}")
@@ -882,6 +905,7 @@ def treat_outliers(df, col, fit_rows):
     return df
 
 def treat_outliers_all(df, col_list, fit_rows):
+    '''Cap each column in col_list at its IQR whiskers, learned on the training rows only.'''
     for c in col_list:
         df = treat_outliers(df, c, fit_rows)
     return df
@@ -923,6 +947,7 @@ md(r"""
 """)
 
 code(r"""
+# Helper: add a 0/1 flag for each column that has missing values
 def add_missing_flags(df):
     '''Add a 0/1 flag column for each column that has missing values.'''
     for col in [c for c in df.columns if df[c].isnull().any()]:
@@ -948,6 +973,7 @@ print("\nFlag columns added:", [c for c in data.columns if c.endswith("_missing"
 """)
 
 code(r"""
+# Show the first rows after imputation, with the new missing-value flags
 data.head()
 """)
 
@@ -984,7 +1010,7 @@ md(r"""
     - We separated the test set before we fitted any statistic.
     - We added a missing-value flag for every column with gaps.
     - We learned the median/mode imputation on the training rows.
-    - We applied IQR capping only for the linear model (99th-percentile cap for the two count variables).
+    - We applied IQR capping only for the linear model (99th-percentile cap for DEROG and DELINQ).
     - We one-hot encoded `REASON` and `JOB`.
     - We scaled the continuous inputs only for the linear model.
 """)
@@ -1029,6 +1055,7 @@ We tune the individual models with **cross-validated grid search optimising Reca
 """)
 
 code(r"""
+# Helper: print the classification report and plot the confusion matrix
 def metrics_score(actual, predicted, labels=("Repaid (0)", "Default (1)"), title="Confusion matrix"):
     '''Classification report and a confusion matrix heatmap.'''
     print(classification_report(actual, predicted, digits=3))
@@ -1066,6 +1093,7 @@ md(r"""
 
 code(r"""
 def prepare_xy(df):
+    '''Return the one-hot encoded inputs X and the integer target y.'''
     X = pd.get_dummies(df.drop(columns=["BAD"]), columns=["REASON", "JOB"], drop_first=True, dtype=int)
     y = df["BAD"].astype(int)
     return X, y
@@ -1157,7 +1185,7 @@ coef = coef.sort_values("coefficient", ascending=False).reset_index(drop=True)
 
 plt.figure(figsize=(9, 7))
 colors = ["#C44E52" if c > 0 else "#4C72B0" for c in coef["coefficient"]]
-sns.barplot(data=coef, x="coefficient", y="feature", palette=colors)
+sns.barplot(data=coef, x="coefficient", y="feature", hue="feature", legend=False, palette=colors)
 plt.axvline(0, color="black", linewidth=1)
 plt.title("Logistic Regression (balanced) - coefficients\nred = raises default risk, blue = lowers it")
 plt.show()
@@ -1167,7 +1195,7 @@ coef
 md(r"""
 **Insights - what the linear model says drives default:**
 
-- **Risk-increasing (positive coefficients):** the missing-value flags dominate (these flags are 0/1, so the odds ratios are the full effect of the flag). An application with **no property valuation has odds of default about 45 times higher**, all else equal. An application with **no debt-to-income ratio has odds about 13 times higher**, all else equal. A missing count of credit lines also raises the odds sharply. Among the continuous inputs, `DELINQ` (odds ratio about 2.4 per standard deviation) and `DEBTINC` (about 1.8) matter most, followed by `DEROG` and `NINQ`. The `JOB_Sales` indicator roughly triples the odds relative to a manager.
+- **Risk-increasing (positive coefficients):** the missing-value flags dominate (these flags are 0/1, so the odds ratios are the full effect of the flag). An application with **no property valuation has odds of default about 45 times higher**, all else equal. An application with **no debt-to-income ratio has odds about 13 times higher**, all else equal. The model also gives `CLNO_missing` a large odds ratio (11.2). Do not read this flag on its own. Every applicant with a blank `CLNO` also has blank `DEROG`, `DELINQ`, `CLAGE` and `NINQ`. The five flag coefficients partly cancel, and together they give an odds ratio of about 3. The EDA shows only 23.9% default when `CLNO` is missing, against 19.8% when it is present. Among the continuous inputs, `DELINQ` (odds ratio about 2.4 per standard deviation) and `DEBTINC` (about 1.8) matter most, followed by `DEROG` and `NINQ`. The `JOB_Sales` indicator roughly triples the odds relative to a manager.
 - **Risk-decreasing (negative coefficients):** `CLAGE` (longer credit history, odds ratio about 0.6 per standard deviation), `YOJ` (job tenure) and `JOB_Office` lower the odds. The `DEROG`, `JOB`, `YOJ` and `DELINQ` missing flags also lower the odds: in the EDA, the groups with these fields blank defaulted less often.
 - `LOAN` has almost no linear effect once the model includes the other variables. Its relationship with default is non-linear (small loans are riskier, large loans are not), and a straight line cannot represent this.
 - `MORTDUE` and `VALUE` have opposite signs, the classic symptom of their 0.88 correlation. We should not over-interpret these two coefficients individually.
@@ -1290,6 +1318,7 @@ We search over depth, minimum leaf size, split criterion and class weights. We u
 """)
 
 code(r"""
+# Test every combination of tree settings. Score each one by 5-fold cross-validated recall.
 dt_grid = {
     "max_depth": [3, 4, 5, 6, 8, 10, None],
     "min_samples_leaf": [1, 5, 10, 20, 50],
@@ -1307,6 +1336,7 @@ dt_tuned = dt_search.best_estimator_
 """)
 
 code(r"""
+# Score the tuned tree on the training and test rows
 print("Train performance - Decision Tree (tuned)")
 metrics_score(y_train, dt_tuned.predict(X_train), title="DT tuned - train")
 print("Test performance - Decision Tree (tuned)")
@@ -1376,8 +1406,6 @@ A Random Forest is bagging plus one more idea (a random subset of features at ev
 """)
 
 code(r"""
-from sklearn.ensemble import BaggingClassifier
-
 # Bagging of 200 fully grown decision trees
 bag = BaggingClassifier(estimator=DecisionTreeClassifier(random_state=RANDOM_STATE),
                         n_estimators=200, random_state=RANDOM_STATE, n_jobs=-1)
@@ -1441,6 +1469,7 @@ md(r"""
 """)
 
 code(r"""
+# Fit a forest of 200 trees. The 0.2/0.8 weights make each defaulter count four times as much as a repayer.
 rf_cw = RandomForestClassifier(n_estimators=200, class_weight={0: 0.2, 1: 0.8},
                                random_state=RANDOM_STATE, n_jobs=-1)
 rf_cw.fit(X_train, y_train)
@@ -1466,6 +1495,7 @@ We search over the number of trees, maximum depth, minimum leaf size, the number
 """)
 
 code(r"""
+# Test every combination of forest settings. Use 3 folds to keep the run time short.
 rf_grid = {
     "n_estimators": [150, 300],
     "max_depth": [6, 10, None],
@@ -1484,6 +1514,7 @@ rf_tuned = rf_search.best_estimator_
 """)
 
 code(r"""
+# Score the recall-tuned forest on the training and test rows
 print("Train performance - Random Forest (tuned for recall)")
 metrics_score(y_train, rf_tuned.predict(X_train), title="RF tuned - train")
 print("Test performance - Random Forest (tuned for recall)")
@@ -1524,6 +1555,7 @@ A best-practice check: does the model keep its performance with fewer inputs? A 
 """)
 
 code(r"""
+# Keep only the inputs with an importance above 1%, then refit the tuned forest on them
 keep = importances[importances > 0.01].index.tolist()
 dropped = [c for c in X_train.columns if c not in keep]
 print(f"Keeping {len(keep)} of {X_train.shape[1]} features: {keep}")
@@ -1544,6 +1576,39 @@ md(r"""
 - The next section tests properly whether the leaner set is also good enough at the business-optimal threshold. There it competes against the full feature set on expected cost.
 """)
 
+md(r"""
+#### Did tuning improve the validation scores?
+
+The grid searches above report only the best cross-validated score. Here we score each untuned baseline on the same folds, so that we can compare before and after tuning on the training rows. The test set plays no part.
+""")
+
+code(r"""
+# Validation scores before and after tuning, on the same folds that each grid search used (training rows only).
+# This shows that tuning improves the cross-validated scores, not only the test scores.
+before_after = [
+    ("Logistic Regression", "before: plain", lr_plain, X_train_lr_s, y_train_lr, cv5),
+    ("Logistic Regression", "after: balanced, C tuned", lr_bal, X_train_lr_s, y_train_lr, cv5),
+    ("Decision Tree", "before: fully grown", dt_base, X_train, y_train, cv5),
+    ("Decision Tree", "after: grid search", dt_tuned, X_train, y_train, cv5),
+    ("Random Forest", "before: default", rf_base, X_train, y_train, cv3),
+    ("Random Forest", "class weights 0.2/0.8", rf_cw, X_train, y_train, cv3),
+    ("Random Forest", "after: grid search", rf_tuned, X_train, y_train, cv3),
+]
+tuning_rows = []
+for technique, stage, model, X_cv, y_cv, folds in before_after:
+    cv_scores = cross_validate(clone(model), X_cv, y_cv, cv=folds, scoring=["recall", "precision", "roc_auc"], n_jobs=-1)
+    tuning_rows.append({"Technique": technique, "Stage": stage, "CV recall": cv_scores["test_recall"].mean(),
+                        "CV precision": cv_scores["test_precision"].mean(), "CV ROC-AUC": cv_scores["test_roc_auc"].mean()})
+pd.DataFrame(tuning_rows).set_index(["Technique", "Stage"]).round(3)
+""")
+
+md(r"""
+**Observations - validation scores before and after tuning:**
+- Tuning raises the cross-validated recall of each tuned technique. Logistic regression rises from 0.626 to 0.814, almost all from the balanced class weights (the grid above shows that `C` moves it by less than two points). The decision tree rises from 0.644 to 0.826. The random forest rises from 0.703 to 0.811 (0.790 with class weights alone).
+- The test set shows the same direction (0.566 to 0.796, 0.686 to 0.821 and 0.686 to 0.790). So the gains do not come from one lucky split.
+- Recall-only tuning costs precision in every case (0.789 to 0.598, 0.663 to 0.533 and 0.829 to 0.640). It also lowers the forest's cross-validated ROC-AUC from 0.954 to 0.921. This is why we choose the final configuration and its threshold on expected cost in the selection section below.
+""")
+
 # --------------------------------------------------------------------------------------
 md(r"""
 ## **Model Performance Comparison and Final Model Selection**
@@ -1555,6 +1620,7 @@ md(r"""
 """)
 
 code(r"""
+# Put the scores of all models in one table. Darker cells show higher test scores.
 comparison = pd.concat(results, ignore_index=True).set_index("Model")
 comparison.style.format("{:.3f}").background_gradient(subset=["Test Recall", "Test Precision", "Test F1", "Test ROC-AUC"], cmap="Blues")
 """)
@@ -1601,7 +1667,7 @@ The random forests add feature sub-sampling. Without class weights the forest is
 *Is there scope to improve further?* Yes, in three directions:
 1. **Threshold tuning** on the chosen forest (next section) moves recall above 90% at a controlled precision cost, because the forest's AUC is high.
 2. **Feature engineering** such as a loan-to-value ratio ((LOAN + MORTDUE) / VALUE), binned debt-to-income or interaction terms. The trees approximate these features but could use them directly. These features would also help the linear model.
-3. **Other ensembles** (gradient boosting) and probability calibration, which were outside the scope of this milestone. We list them as next steps.
+3. **Gradient boosting and probability calibration.** Gradient boosting builds trees one after another, and each new tree corrects the errors of the earlier trees. It keeps what makes trees fit this data (thresholds, interactions and blank fields). On tabular data like this it often ranks applicants better than a random forest. Calibration matters because the forest's scores understate risk in the decision range (see the calibration check below). Both were outside the scope of this milestone, and we list them as next steps.
 """)
 
 md(r"""
@@ -1614,7 +1680,7 @@ Performance is only one side of the decision. The table below weighs each techni
 | Logistic Regression (balanced) | Excellent: one coefficient per attribute, and the bank can quote odds ratios directly | Trivial. Trains in under a second. Needs scaling and outlier capping in the pipeline | Very stable across re-trainings | Under-fits threshold effects on the raw inputs, so at the same recall it declines many more good applicants than the forest. Needs careful handling of correlated inputs (MORTDUE/VALUE) | Keep as the transparent benchmark and challenger model |
 | Decision Tree (tuned) | Excellent: a short rule list a credit officer can read | Trivial | Unstable: small changes in the training rows can re-shape the tree. The bank must check it again at every re-train | Lowest precision (53%): too much good business declined | Use as a rule summary, not as the scorer |
 | Bagged trees (200) | Same as the forest: importances and per-applicant risk drivers, no rule list | Low | Stable, like the forest | Class weights do not move its recall, so it catches only about two thirds of defaulters. Below the forest on every metric | The Random Forest supersedes it |
-| Random Forest (unweighted, class-weighted or tuned) | Good with the right tooling: global importances, a surrogate tree that reproduces most of its decisions, and per-applicant risk drivers (built in months 0-2). Not a rule list on its own | Low: trains in seconds, scores in milliseconds. 200-300 trees are trivial to host | Stable: averaging removes single-tree instability. Needs drift monitoring and yearly re-training like any credit model | Some stakeholders perceive it as a black box. Needs model-risk documentation and a fairness review before the bank starts to use it | **Adopt as the scoring engine**, with the surrogate tree for explanations |
+| Random Forest (unweighted, class-weighted or tuned) | Good with the right tooling: global importances, a surrogate tree that reproduces most of its decisions, and per-applicant risk drivers (built before the shadow run). Not a rule list on its own | Low: trains in seconds, scores in milliseconds. 200-300 trees are trivial to host | Stable: averaging removes single-tree instability. Needs drift monitoring and yearly re-training like any credit model | Some stakeholders perceive it as a black box. Needs model-risk documentation and a fairness review before the bank starts to use it | **Adopt as the scoring engine**, with the surrogate tree for explanations |
 
 **A caveat that applies to every technique.** The data contains only loans the bank *approved* under its current process (the problem statement: "recent applicants who have been given credit"). The models therefore never saw the applicants the old process declined. The "approve all" baseline used below describes the outcome of today's process on the applicants it accepts, not the full applicant population. For this reason we list reject inference and a shadow period on all applications as risks and next steps.
 """)
@@ -1680,6 +1746,7 @@ def oof_evaluate(model, cols, X=None):
             "fold_sd": np.std(fold_costs[best["threshold"]], ddof=1)}
 
 def summary_row(res):
+    '''Return one row of the selection table from an out-of-fold result.'''
     return {"Mean OOF ROC-AUC": res["auc"], "Best threshold": res["best"]["threshold"],
             "OOF recall at best": res["best"]["recall"], "OOF precision at best": res["best"]["precision"],
             COST_COL: res["best"]["expected_cost_per_1000_$"], "Fold-to-fold SD of cost ($)": res["fold_sd"]}
@@ -1725,6 +1792,7 @@ code(r"""
 # Stage 2: the chosen configuration against the recall-tuned grid winner, on all 27 inputs and on the 12-feature set,
 # plus the chosen configuration without any occupation information (the fair-lending fallback)
 def chosen_forest():
+    '''Return an unfitted forest with the configuration that stage 1 chose.'''
     return RandomForestClassifier(n_estimators=200, class_weight=weight_options[best_weights], min_samples_leaf=best_leaf,
                                   random_state=RANDOM_STATE, n_jobs=-1)
 
@@ -1738,7 +1806,6 @@ candidates = {
 }
 # The other techniques at their own cost-minimising thresholds, so that the comparison on the chosen yardstick is complete
 # (the logistic regression is evaluated on its own capped and scaled data version)
-from sklearn.base import clone
 other_techniques = {
     "Logistic Regression (balanced, C tuned), own threshold": (clone(lr_bal), list(X_train_lr_s.columns), X_train_lr_s),
     "Decision Tree (recall-tuned), own threshold": (clone(dt_tuned), list(X_train.columns), X_train),
@@ -1803,7 +1870,7 @@ pd.DataFrame(rows)
 """)
 
 code(r"""
-# Three robustness checks on the selection, all on training rows only.
+# Five robustness checks on the selection, all on training rows only.
 
 # (a) A finer threshold grid for the winner: does the 0.05 step hide a better cut-off?
 fine = np.round(np.arange(0.08, 0.26, 0.01), 2)
@@ -1815,6 +1882,7 @@ print(pd.Series(fine_cost.round(0).astype(int), index=fine).to_frame("cost").T.t
 #     and for the class-weighted forest it replaced.
 score_bins = [0, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.70, 1.0]
 def reliability(proba, label):
+    '''Return the reliability table: mean score and observed default rate per score band.'''
     t = (pd.DataFrame({"score band": pd.cut(proba, score_bins, include_lowest=True), "p": proba, "y": y_train.values})
            .groupby("score band", observed=True).agg(applicants=("y", "size"), mean_score=("p", "mean"), observed_default_rate=("y", "mean")))
     t.columns = pd.MultiIndex.from_product([[label], t.columns])
@@ -1825,18 +1893,19 @@ print(f"(b) Brier score (mean squared error of the score as a probability, lower
       f"final forest {brier_score_loss(y_train, p_final):.3f}, class weights 0.2/0.8 {brier_score_loss(y_train, p_weighted):.3f}")
 display(pd.concat([reliability(p_final, "Final forest (unweighted)"), reliability(p_weighted, "Class weights 0.2/0.8")], axis=1).round(3))
 
-# (d) The approve / refer / decline bands proposed later (0.10 and 0.25), on the out-of-fold scores of the training rows
+# (c) The approve / refer / decline bands proposed later (0.10 and 0.25), on the out-of-fold scores of the training rows
 oof_bands = pd.cut(p_final, [-0.01, 0.10, 0.25, 1.0], labels=["approve (score <= 0.10)", "refer (0.10 - 0.25)", "decline (score > 0.25)"])
 band_oof = (pd.DataFrame({"band": oof_bands, "defaulted": y_train.values}).groupby("band", observed=True)
               .agg(applicants=("defaulted", "size"), defaulters=("defaulted", "sum"), observed_default_rate=("defaulted", "mean")))
 band_oof["share_of_applicants"] = band_oof["applicants"] / len(y_train)
 band_oof["share_of_defaulters"] = band_oof["defaulters"] / y_train.sum()
-print("(d) Approve / refer / decline bands on the out-of-fold scores (training rows):")
+print("(c) Approve / refer / decline bands on the out-of-fold scores (training rows):")
 display(band_oof.style.format({"observed_default_rate": "{:.1%}", "share_of_applicants": "{:.1%}", "share_of_defaulters": "{:.1%}"}))
 
-# (e) Paired check of the 'within noise' statement: fold-by-fold cost difference between the 0.2/0.8 forest at its own best
+# (d) Paired check of the 'within noise' statement: fold-by-fold cost difference between the 0.2/0.8 forest at its own best
 #     threshold and the winner at its threshold, over the same 15 validation folds
 def fold_costs_at(res, t):
+    '''Return the expected cost per 1,000 applicants in each validation fold at threshold t.'''
     out = []
     for seed, p in zip(CV_REPEATS, res["probas"]):
         for _, val in StratifiedKFold(n_splits=5, shuffle=True, random_state=seed).split(X_train, y_train):
@@ -1844,12 +1913,13 @@ def fold_costs_at(res, t):
     return np.array(out)
 weighted = stage1[("0.2/0.8", 1)]
 diff = fold_costs_at(weighted, weighted["best"]["threshold"]) - fold_costs_at(oof[winner], FINAL_THRESHOLD)
-print(f"(e) Paired fold-by-fold difference, class weights 0.2/0.8 at {weighted['best']['threshold']:.2f} minus the winner at {FINAL_THRESHOLD:.2f}: "
+print(f"(d) Paired fold-by-fold difference, class weights 0.2/0.8 at {weighted['best']['threshold']:.2f} minus the winner at {FINAL_THRESHOLD:.2f}: "
       f"mean ${diff.mean():,.0f} per 1,000 applicants, paired standard error ${diff.std(ddof=1) / np.sqrt(len(diff)):,.0f} ({len(diff)} folds)")
 
-# (c) Does the choice depend on this particular 70/30 split? Repeat stage 1 (fully grown trees) on two other stratified splits,
+# (e) Does the choice depend on this particular 70/30 split? Repeat stage 1 (fully grown trees) on two other stratified splits,
 #     rebuilding the missing flags and the imputation from each split's own training rows.
 def training_rows_for_split(seed):
+    '''Rebuild the tree inputs of the training rows for another stratified 70/30 split.'''
     frame = hm.copy()
     for c in ["REASON", "JOB", "BAD"]:
         frame[c] = frame[c].astype("category")
@@ -1872,7 +1942,7 @@ for seed in [2, 3]:
                      "OOF cost per 1,000 ($)": best["expected_cost_per_1000_$"]})
 split_check = (pd.DataFrame(rows).pivot(index="class weights", columns="split seed", values=["best threshold", "OOF cost per 1,000 ($)"])
                  .loc[list(weight_options)])
-print("(c) Stage 1 repeated on two other 70/30 splits (fully grown trees, single 5-fold OOF). Cheapest configuration per split:",
+print("(e) Stage 1 repeated on two other 70/30 splits (fully grown trees, single 5-fold OOF). Cheapest configuration per split:",
       {seed: split_check[("OOF cost per 1,000 ($)", seed)].idxmin() for seed in [2, 3]})
 split_check.style.format({c: ("{:.2f}" if c[0] == "best threshold" else "{:,.0f}") for c in split_check.columns})
 """)
@@ -1882,6 +1952,7 @@ md(r"""
 - On repeated out-of-fold predictions the **unweighted forest on all 27 inputs has the lowest expected cost**, about \$317,000 per 1,000 applicants. Removing all occupation information (the five occupation indicators and the occupation-missing flag) costs about 10% more (\$351,000), outside one standard error. Occupation carries real signal, so removing it is a policy choice with a measurable price, not a free one. The 12-input version costs about a fifth more (\$378,000): occupation, loan purpose and the minor missing flags barely registered at the 0.5 threshold. Together, however, they give a measurable gain at the cost-optimal operating point. As a result, neither simpler model is within one standard error, and we choose neither.
 - The recall-tuned grid winner is far worse (\$490,000) once precision enters the cost. This shows that recall-only tuning over-shoots. We scored the balanced logistic regression and the recall-tuned decision tree the same way, at their own best thresholds. Both cost far more than any fully grown forest (see the table). The technique choice therefore holds on the chosen yardstick as well as on ranking quality.
 - The cost-minimising threshold is **0.15**: flag every applicant whose score exceeds 0.15 (an estimated default risk of roughly one in five, see the calibration check). It stays at 0.15 for any cost ratio between 3:1 and 6:1. At 2:1 it would move to 0.20. It falls to 0.10 once a missed defaulter costs about eight times a wrongly declined applicant. The choice is stable across these assumptions. For a perfectly calibrated score the textbook break-even at the stated costs would be \$2,000 / (\$9,000 + \$2,000) = 0.18. The forest's optimum sits a little below it because its scores understate risk in the decision range, as the calibration check shows.
+- **Threshold tuning improves the validation cost.** On the same out-of-fold predictions, the unweighted forest at the default 0.5 threshold has recall 0.714, precision 0.825 and a cost of \$574,545 per 1,000 applicants. At 0.15 it has recall 0.937, precision 0.647 and a cost of \$317,354. That is 45% lower, and we measured it on the training rows only.
 - **Robustness of the choice.** A finer 0.01 grid gives the same threshold (0.15, with 0.16 within \$500 of it). The paired fold-by-fold comparison with the 0.2/0.8 forest shows that the two are within noise. The mean difference is about \$4,000 per 1,000 applicants, with a paired standard error of about \$5,000. On two other 70/30 splits the unweighted forest is again the cheapest configuration, and the weighted forests are again within noise of it. The choice is therefore not an artefact of this split.
 - **Calibration.** The final forest's out-of-fold scores rank applicants well (Brier score 0.062 against 0.160 for the base rate) and rise broadly with the observed default rate. There is one small dip between the 0.2-0.3 and 0.3-0.4 bands. In the decision range the scores understate the default rate: applicants scored 0.15-0.20 defaulted about 23% of the time, and those scored 0.20-0.30 about 40%. The class-weighted forest's scores are much further from the observed rates (applicants it scored 0.15-0.20 defaulted only 7% of the time). That is the concrete reason an unweighted score is easier to explain and govern. Therefore, read a score of 0.15 as "estimated default risk of roughly one in five", not exactly 15%. We list probability calibration under further analysis.
 - **What the test set can and cannot show.** We fixed the imputation statistics and the 12-feature set on all training rows before the repeated cross-validation, which can only favour the candidates that lost. We also chose the configuration and the threshold on the same out-of-fold predictions. The single test evaluation below is therefore a consistency check of the chosen model's performance. It is not evidence for the choice between configurations. Its cost comes with a standard error of about \$28,000 per 1,000 applicants, wider than the differences between the fully grown configurations. The paired fold-by-fold check in the robustness cell is the right evidence for those differences.
@@ -2033,12 +2104,35 @@ md(r"""
 **Insights - the surrogate tree:**
 - Fitted to the forest's out-of-fold decisions, a four-level tree reproduces about **93% of the forest's decisions** on unseen applicants (kappa 0.82). Depths 3 to 5 agree within half a point. A rule that never flags anyone reaches 73%. Fitted to the forest's in-sample decisions instead, the tree would reach only about 90%, because those decisions are almost identical to the training labels. The out-of-fold target is what makes the surrogate describe the scoring engine rather than the training data.
 - The rules are short, and they are the same drivers the EDA and the stand-alone tree found: *Is the debt-to-income ratio missing? Then flag, whatever the credit history. If it is recorded, is it above about 44%? Then flag. At or below 44%, flag only when there is at least one delinquent credit line together with at least one major derogatory report. Otherwise clear.* (Credit-history length and job tenure appear as splits inside the "ratio missing" branch, but the tree flags every applicant on that branch.) The bank can therefore tell a flagged applicant which of these conditions applied to them.
-- The surrogate does not reproduce roughly 7% of decisions. Also, each adverse-action notice must give the reasons for that applicant. So the bank must build per-applicant risk drivers from the forest itself (for example SHAP values) in months 0-2, before the shadow run. These drivers give the reason for each decline, including the automatic declines above 0.25. The surrogate rules give the plain-language summary of how the model decides.
+- The surrogate does not reproduce roughly 7% of decisions. Also, each adverse-action notice must give the reasons for that applicant. So the bank must build per-applicant risk drivers from the forest itself (for example SHAP values) in the first two months, before the shadow run. These drivers give the reason for each decline, including the automatic declines above 0.25. The surrogate rules give the plain-language summary of how the model decides.
+""")
+
+md(r"""
+#### Do the EDA drivers remain significant after modelling?
+
+The table compares each EDA driver with its weight in the three model types. EDA figures compare defaulters with repayers. Odds ratios come from the balanced logistic regression. 'Top splits' means the first three levels of the tuned tree and the surrogate tree. Importances come from the final forest.
+
+| Variable | EDA evidence | Logistic regression odds ratio | Top splits | Final forest: impurity share / permutation drop | Remains significant? |
+|---|---|---|---|---|---|
+| DEBTINC_missing | 62.0% default when missing, 8.6% when present | 13.1 | First split of both trees | 18.6% / 0.031 | Yes |
+| DEBTINC | Median 38.1% vs 34.5% (p < 0.001). 87% to 100% default above 45% | 1.82 per SD | Next split, at about 44%, in both trees | 14.0% / 0.033 | Yes |
+| DELINQ | 14% default with 0 lines, 45% with 2 | 2.42 per SD | Splits right after the ratio in both trees | 8.0% / 0.038 (largest drop) | Yes |
+| CLAGE | Median 133 vs 180 months (p < 0.001) | 0.62 per SD (protective) | Splits in both trees | 8.6% / 0.029 | Yes |
+| DEROG | 17% default with 0 reports, 51% with 2 | 1.49 per SD | Splits after DELINQ in both trees | 4.4% / 0.010 | Yes, but weaker in the forest |
+| VALUE_missing | 93.8% default when missing (112 applicants) | 44.6 (largest) | No | 2.6% / 0.011 | Strong in the linear model, weak in the forest. Only 1.9% of applicants have it |
+| NINQ | 16% default with 0 inquiries, about 46% with 5 or more | 1.19 per SD | No | 3.4% / 0.012 | Weakly |
+| LOAN | Median \$14,900 vs \$16,900 (p < 0.001). 57% default under \$5,000 | 0.995 (no linear effect) | No | 6.7% / 0.014 | Moderately, in the forest only (a non-linear effect) |
+| VALUE, MORTDUE | Significant (p < 0.001) but small gaps. Correlation 0.88 | 1.11 and 0.88 per SD (opposite signs) | No | 6.9% and 6.4% / 0.012 and 0.011 | Weakly. They carry the same information |
+| JOB | Chi-square p < 0.001. Sales 35%, Office 13% | Sales 3.30, Office 0.56 | No | Each indicator outside the top 12 by impurity | Yes, as a group. Without it the out-of-fold cost rises by about 10% (\$351,000 vs \$317,000) |
+| REASON | Chi-square p = 0.005. 22.2% vs 19.0% | 1.16 | No | Outside the top 12 by impurity | No, not on its own |
+
+**Answer.** Yes, the main EDA drivers remain significant after modelling. The debt-to-income ratio, its missing flag, delinquent lines and credit-history length are strong in every model. In the final forest they carry 49% of the split power and give the four largest permutation drops. Some EDA findings weaken after modelling. Loan purpose is significant in the EDA (p = 0.005), but it adds little to any model. The loan, property and mortgage amounts differ significantly, but the linear model gives them little weight, and permutation ranks them below the four core drivers. A missing valuation has the largest linear odds ratio (44.6). It ranks only 12th in the forest, because only 112 applicants have it. Occupation remains significant only as a group.
 """)
 
 code(r"""
 # Indicative business impact per 1,000 applicants (test set): current process vs each technique at 0.5, and the final model
 def impact_per_1000(y_true, y_pred):
+    '''Return caught, missed and wrongly declined applicants and the expected cost, per 1,000 applicants.'''
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     n = len(y_true)
     return {"defaulters_caught_per_1000": round(1000 * tp / n, 1),
@@ -2075,7 +2169,7 @@ md(r"""
 """)
 
 md(r"""
-1. **Affordability, and whether the bank can check it, decides most outcomes.** The debt-to-income ratio and its missing-flag are the top features in every model. An applicant with no verifiable ratio defaulted 62% of the time. One with a ratio above 45% defaulted 87% to 100% of the time. These two checks alone would have caught a large share of historical defaults.
+1. **Affordability, and whether the bank can check it, decides most outcomes.** The missing flag is the first split of the tuned tree and of the surrogate tree. With the ratio itself, it has the two largest impurity importances in both forests. In the linear model it has the second-largest odds ratio (13.1), after a missing valuation (44.6). An applicant with no verifiable ratio defaulted 62% of the time. One with a ratio above 45% defaulted 87% to 100% of the time. These two checks alone would have caught a large share of historical defaults.
 
 2. **Past repayment behaviour is the next most important predictor.** Delinquent credit lines, major derogatory reports and recent credit inquiries all raise default risk as they increase. The decision tree's top splits, the forest's importances and the permutation test agree on this.
 
@@ -2085,9 +2179,9 @@ md(r"""
 
 5. **Occupation and loan purpose matter little on their own but are not worthless.** They barely move performance at the 0.5 threshold. Yet removing them (and nine minor missing flags) raised the out-of-fold expected cost of the final model by about a fifth. Removing occupation alone raised it by about 10%. The fair-lending review should clear their use. The 21-input model without occupation is the fallback.
 
-6. **The models agree with each other and with the EDA.** The linear coefficients, the tree's rules, the forest's importances and the surrogate tree all indicate the same handful of drivers. This gives confidence that the signal is real and stable.
+6. **The main drivers remain significant after modelling.** The linear coefficients, the tree's rules, the forest's importances and the surrogate tree all give large weight to the same four drivers (see the table "Do the EDA drivers remain significant after modelling?"). Loan purpose does not remain significant on its own. Occupation remains significant only as a group. This agreement gives confidence that the signal is real and stable.
 
-7. **Handling the imbalance and the missingness mattered more than the choice of algorithm.** At the 0.5 threshold, class weights improved recall by about 23 points for the logistic regression and 9 for the forest. Averaging trees (bagging) mainly bought precision and ranking quality. Once we chose the decision threshold on cost, however, the class weights were no longer necessary. The unweighted forest with a 0.15 threshold was the cheapest configuration, and the weighted forests were within noise of it at their own thresholds.
+7. **The threshold mattered as much as the choice of algorithm.** At the 0.5 threshold, class weights improved recall by about 23 points for the logistic regression and 9 for the forest. Averaging trees (bagging) mainly bought precision and ranking quality. For the final forest, a move of the threshold from 0.5 to 0.15 cuts the out-of-fold cost from about \$575,000 to \$317,000 per 1,000 applicants. At each model's own best threshold, the forest still costs far less than the logistic regression (\$317,000 vs \$550,000). Once we chose the threshold on cost, the class weights were no longer necessary.
 
 8. **The decision threshold is a business dial, and the bank should set it on training data.** With the forest's strong ranking ability (ROC-AUC 0.96) the bank can move recall between about 70% and 94% by changing the threshold. We chose the cost-minimising threshold of 0.15 on repeated out-of-fold predictions. It catches about 93% of defaulters with 68% precision on unseen applicants. It is stable to changes in the cost assumptions, to a finer threshold grid and to the choice of train/test split. It sits just below the textbook break-even (0.18) because the forest's scores understate risk in the decision range.
 """)
@@ -2100,29 +2194,44 @@ md(r"""
 md(r"""
 ### Proposed solution: a Random Forest scoring engine with a cost-based decision threshold, explained by a surrogate decision tree
 
+**Is the model good enough for production? Yes, with conditions.**
+- *Evidence.* On the 1,788 unseen test applicants the model catches 92.7% of defaulters at 68.1% precision (ROC-AUC 0.963). This agrees with the out-of-fold estimate (recall 94%, precision 65%, cost \$317,000 against \$304,000 per 1,000 applicants on the test set). Under the indicative costs it cuts the cost of credit errors by about 83%.
+- *Limits.* The data holds only loans that the old process approved. Two thirds of the defaulters have no recorded debt-to-income ratio, and mandatory income verification will shrink that group. The cost figures are indicative.
+- *Verdict.* The performance is good enough for production. But the model must not affect real decisions until the bank completes two steps. First, it builds the per-applicant risk drivers. Second, it meets the guard-rails at the end of this cell. The most important are the shadow run, the fairness review and the test on applicants with a recorded ratio (83% recall, 80% precision on the test set).
+
 **Model specification**
-- `RandomForestClassifier` with 200 fully grown trees and **no class weights**. The configuration search showed that class weights make no measurable difference once we choose the threshold on cost. We train the forest on the untreated data with the 27 model inputs listed in the final-pipeline cell. These are the ten financial attributes, the eleven missing-value flags and the six occupation and loan-purpose indicators. Pre-processing: a missing flag per column, plus median/mode imputation learned on the training rows. There is no outlier capping and no scaling.
+- `RandomForestClassifier` with 200 fully grown trees and **no class weights**. The configuration search showed that class weights add nothing once we choose the threshold on cost. The 0.3/0.7 and 0.2/0.8 weightings lie within one standard error of the unweighted forest. The balanced and 0.1/0.9 weightings cost about \$13,000 and \$27,000 more per 1,000 applicants. We train the forest on the untreated data with the 27 model inputs listed in the final-pipeline cell. These are the ten financial attributes, the eleven missing-value flags and the six occupation and loan-purpose indicators. Pre-processing: a missing flag per column, plus median/mode imputation learned on the training rows. There is no outlier capping and no scaling.
 - **Decision threshold 0.15** instead of the default 0.5. We chose it by minimising the indicative expected cost on repeated out-of-fold predictions of the training rows. The bank is to re-derive it with its own loss-given-default and margin figures. The choice was stable for cost ratios between 3:1 and 6:1 and on two other train/test splits. It sits just below the textbook break-even of 0.18 because the forest's scores understate risk in the decision range.
-- **Explanation layer:** a surrogate decision tree of depth 4, fitted to the forest's out-of-fold decisions. It reproduces about 93% of them on unseen applicants (73% for never flagging). Per-applicant risk drivers from the forest (for example SHAP values) complete the layer. The bank builds them in months 0-2. They give the reason for each decline, including the automatic declines above 0.25. The surrogate rules give the plain-language summary.
+- **Explanation layer:** a surrogate decision tree of depth 4, fitted to the forest's out-of-fold decisions. It reproduces about 93% of them on unseen applicants (73% for never flagging). Per-applicant risk drivers from the forest (for example SHAP values) complete the layer. The bank builds them in the first two months of the project, before the shadow run. They give the reason for each decline, including the automatic declines above 0.25. The surrogate rules give the plain-language summary.
 - **Fallback:** the same forest without any occupation information (21 inputs) if the fair-lending review requires it, at about 10% more expected credit-error cost. The 12-input lean model (no occupation, loan purpose or minor flags) costs about a fifth more, and we do not recommend it.
 
 **Why this is the best solution to adopt**
-1. **Lowest expected cost of credit errors, chosen without looking at the test set.** Among fifteen forest configurations and five final candidates it had the lowest expected cost on repeated out-of-fold predictions at its best threshold. On the test set it then delivered about 93% recall at 68% precision and 90% accuracy, with a ROC-AUC of about 0.96. The single decision tree (82% recall at 53% precision) and the logistic regression (80% at 61%) are far behind on precision. The recall-tuned forest buys its recall with too much precision.
+1. **Lowest expected cost of credit errors, chosen without looking at the test set.** It had the lowest expected cost of the fifteen forest configurations and of the seven final candidates in the selection table. That cost was about \$317,000 per 1,000 applicants on repeated out-of-fold predictions. On the test set it then delivered about 93% recall at 68% precision and 90% accuracy, with a ROC-AUC of about 0.96. At their own best thresholds, the balanced logistic regression (\$550,000) and the tuned decision tree (\$607,000) cost about 1.7 and 1.9 times as much. The recall-tuned forest buys its recall with too much precision.
 2. **Stable.** Averaging hundreds of trees removes the instability of a single tree. The out-of-fold and test results agree. The threshold is insensitive to the cost assumptions over a wide range.
-3. **Interpretable enough for ECOA.** The surrogate tree gives a short, faithful rule list. Its conditions are: debt-to-income ratio missing, ratio above about 44%, and (at or below 44%) a delinquent line together with a derogatory report. Per-applicant risk drivers (a build item for months 0-2) give the reason for each decline. Because the forest is unweighted, its score is close to a default rate. In the decision range it understates that rate (applicants scored 0.15-0.20 defaulted about 23% of the time). The 0.15 threshold therefore reads as "refer or decline when the estimated risk is above roughly one in five". That is a plain statement of the bank's risk appetite.
+3. **Interpretable enough for ECOA.** The surrogate tree gives a short, faithful rule list. Its conditions are: debt-to-income ratio missing, ratio above about 44%, and (at or below 44%) a delinquent line together with a derogatory report. Per-applicant risk drivers (a build item before the shadow run) give the reason for each decline. Because the forest is unweighted, its score is close to a default rate. In the decision range it understates that rate (applicants scored 0.15-0.20 defaulted about 23% of the time). The 0.15 threshold therefore reads as "refer or decline when the estimated risk is above roughly one in five". That is a plain statement of the bank's risk appetite.
 4. **Operationally simple.** The inputs are all fields that the underwriting process already captures. The bank needs no new data to deploy the model. The first process change the analysis recommends (mandatory income and valuation verification) improves the data for every future model.
+
+**How the solution solves the problem**
+
+The design meets the four goals stated in the problem definition.
+1. *Catch defaulters early.* Per 1,000 applicants it flags about 185 of 200 defaulters before the bank pays out the loan.
+2. *Protect good business.* It approves about 73% of applicants. It wrongly flags about 87 creditworthy applicants per 1,000 (11% of them). Underwriters review the 7% of applicants in the 0.10 to 0.25 band.
+3. *Stay interpretable.* The surrogate tree gives the rules. Per-applicant risk drivers give the reason for each decline.
+4. *Guide policy.* The same drivers support rules that the bank can use now. Examples are mandatory income and valuation verification and a 45% debt-to-income limit.
+
+Under the indicative costs, the cost of credit errors falls from about \$1.8 million to about \$0.3 million per 1,000 applicants (about 83% less).
 
 **Why not the alternatives**
 - *Logistic regression (balanced):* fully transparent, but at a similar recall it mis-classifies many more good applicants (precision 61% vs 77% at the 0.5 threshold). The reason is that it cannot represent the threshold effects on the raw inputs.
 - *Tuned decision tree:* highest recall at 0.5 (82%), but a precision of 53% means too much lost business. It serves better as a rule summary than as the scorer.
 - *Bagged trees:* a clear improvement over a single tree (precision 83%, ROC-AUC 0.95). But it misses a third of defaulters, and class weights do not move its recall. The forest dominates it on every metric that matters.
-- *Class-weighted random forests (0.2/0.8 or 0.3/0.7):* the 0.2/0.8 forest has the best balance at the 0.5 threshold. Both lie within one standard error of the final model once we tune their own thresholds (0.25 and 0.20). The balanced and 0.1/0.9 weightings are clearly worse. We preferred the unweighted forest under the pre-stated rule as the simplest configuration with the lowest mean cost.
+- *Class-weighted random forests (0.2/0.8 or 0.3/0.7):* the 0.2/0.8 forest has the best balance at the 0.5 threshold. Both lie within one standard error of the final model once we tune their own thresholds (0.25 and 0.20). The balanced weighting is somewhat worse, and the 0.1/0.9 weighting is clearly worse. We preferred the unweighted forest under the pre-stated rule as the simplest configuration with the lowest mean cost.
 - *Recall-tuned random forest:* the cross-validated grid winner on recall, but its constrained trees (at least 10 applicants per leaf) give cruder probabilities. Once precision enters the cost, its expected cost is about half again as high as the final forest's.
 - *The forest at the default 0.5 threshold:* best precision (84%), but it misses almost a third of defaulters, which is the costlier error. Moving the threshold to 0.15 is what makes it the final model.
 
 **Guard-rails for adoption**
 - Run the model in shadow mode on all applications for one to two months before it goes live. Include the applications the old process would decline, which the training data does not cover. Introduce mandatory income and valuation verification alongside the shadow period. Verification removes the missing-ratio signal that the current model relies on most. So, before go-live, test the model on the historical applicants with a recorded ratio, and refit it if necessary. On those applicants it already catches 83% of defaulters at 80% precision. Re-training on the outcomes of newly verified applicants, and reject inference for declined applicants, need 12 months or more of repayment data.
-- Monitor recall, precision and the approval rate monthly. Re-train at least yearly or when the default rate drifts. Re-derive the threshold whenever the cost assumptions change.
+- Monitor the approval rate and the score distribution monthly, and recall and precision as repayment outcomes arrive. Re-train at least yearly or when the default rate drifts. Re-derive the threshold whenever the cost assumptions change.
 - Run a fairness review on the final model (approval rates and error rates across protected groups) before go-live. Keep the 21-input fallback (no occupation information) ready if you have to remove occupation.
 - Have a human underwriter review applicants in the uncertain band around the threshold during the first months. That band is a predicted probability between roughly 0.10 and 0.25. On the test set that band holds about 7% of applicants with a default rate of about 24%. About 69% are clear approvals (about 1% default) and about 24% clear declines (74% default).
 """)

@@ -263,7 +263,7 @@ pres.addSection({ title: "Modelling" });
     "The class-weighted forest: 77% recall at 77% precision, ROC-AUC 0.96, among the best at ranking applicants by risk.",
     "Final choice on the expected cost of mistakes (training rows only), by a rule fixed beforehand: lowest mean cost, simplest if within noise. Three forests tied. The plain forest at 0.15 catches 93% at 68% precision on test.",
   ], 12), { x: 6.45, y: 1.25, w: 3.15, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "comparison bullets" });
-  notes(s, "We built eleven model variants. These six tell the story. At the usual threshold the forest with class weights has the best balance and ranks applicants among the best. We then chose the final configuration and its threshold together on repeated out-of-fold expected cost, using training rows only. We fixed the rule beforehand: lowest mean cost of mistakes, and the simplest set-up when several are within run-to-run noise. Three forests tied within that noise, so class weights made no measurable difference once we tune the threshold. We chose the plain forest at a 0.15 threshold. On the test set it catches 93 percent of defaulters, and two thirds of the flagged applicants really defaulted. At their own best thresholds the logistic regression and the tree cost 550 and 607 thousand dollars per thousand applicants. The forest costs 317 thousand, so it also wins on the cost yardstick.");
+  notes(s, "We built eleven model variants. These six tell the story. At the usual threshold the forest with class weights has the best balance and ranks applicants among the best. We then chose the final configuration and its threshold together on repeated out-of-fold expected cost, using training rows only. We fixed the rule beforehand: lowest mean cost of mistakes, and the simplest set-up when several are within run-to-run noise. Three forests tied within that noise, so class weights added nothing once we tune the threshold. We chose the plain forest at a 0.15 threshold. On the test set it catches 93 percent of defaulters, and two thirds of the flagged applicants really defaulted. At their own best thresholds the logistic regression and the tree cost 550 and 607 thousand dollars per thousand applicants. The forest costs 317 thousand, so it also wins on the cost yardstick.");
 }
 
 // 10. Proposed solution
@@ -276,7 +276,7 @@ pres.addSection({ title: "Modelling" });
     "Scoring engine: Random Forest, 200 fully grown trees, no class weights (the threshold handles the imbalance).",
     "Inputs: all 27 (10 attributes, 11 missing-value flags, occupation and loan purpose). Fallback without occupation: 21 inputs, about 10% more cost.",
     "Threshold 0.15, chosen with the configuration on repeated out-of-fold expected cost (training rows). It holds for cost ratios 3:1 to 6:1 and across splits. Approve / refer / decline bands (69% / 7% / 24%) keep an underwriter in the loop.",
-    "Explanation layer: a depth-4 surrogate tree reproduces 93% of the forest's out-of-fold decisions and gives the plain-language summary. Per-applicant risk drivers (built in months 0-2) give each decline its ECOA reason.",
+    "Explanation layer: a depth-4 surrogate tree reproduces 93% of the forest's out-of-fold decisions and gives the plain-language summary. Per-applicant risk drivers (built before the shadow run) give each decline its ECOA reason.",
     "We scored the reserved test set once, after all choices.",
   ], 11), { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
   stat(s, 6.1, 1.3, 1.65, "93%", "of defaulters caught", C.accent5, 34);
@@ -376,7 +376,7 @@ pres.addSection({ title: "Recommendations" });
   s.addText("Further analysis", { x: 5.35, y: 1.4, w: 4.1, h: 0.4, fontSize: 14, bold: true, color: C.accent1, margin: 0, isTextBox: true, objectName: "next title" });
   s.addText(bullets([
     "Reject inference to cover applicants the old process declined (needs 12+ months of data).",
-    "Engineered features: loan-to-value and payment-to-income ratios.",
+    "Engineered features: combined loan-to-value ratio, debt-to-income bands, interaction terms.",
     "Gradient boosting and probability calibration, so a score of 0.15 means exactly a 15% chance of default.",
     "Time-based validation once application dates are available.",
     "Risk-based pricing for the referral band. Early-warning scoring on existing loans.",
@@ -475,7 +475,7 @@ pres.addSection({ title: "Appendix" });
     ["Outliers", "IQR capping for the linear model only. DEROG and DELINQ capped at the 99th percentile. Tree models use raw values", "Extreme values pull linear models (debt-to-income 203%, credit history 97 years). Trees split on rank order and keep the 'above 50% always defaults' signal"],
     ["Encoding and scaling", "One-hot encoding of REASON and JOB (drop first). Standard scaling of the continuous inputs for the linear model only, flags left as 0/1", "Comparable coefficients, odds ratios for flags read as the effect of the flag"],
     ["Split", "70% train / 30% test, stratified on the target, fixed seed, reserved before we fitted any statistic. Identical applicants in both data versions", "No leakage from test rows into fences, medians or scaling. Results comparable across models"],
-    ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the individual models, then the decision threshold for the final model. No resampling", "Keeps each real applicant. Class weights lifted recall by 23 points for logistic regression and 9 for the forest at the 0.5 threshold. They made no measurable difference once we chose the threshold on cost, so the final forest is unweighted"],
+    ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the individual models, then the decision threshold for the final model. No resampling", "Keeps each real applicant. Class weights lifted recall by 23 points for logistic regression and 9 for the forest at the 0.5 threshold. They added nothing once we chose the threshold on cost, so the final forest is unweighted"],
     ["Model inputs", "27 columns: the 10 attributes, 11 missing flags and 6 one-hot indicators (REASON HomeImp, JOB Office/Other/ProfExe/Sales/Self)", "The notebook's final-pipeline cell names every input to the final model, with the imputation values and model settings"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.8, 3.7], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
