@@ -476,7 +476,7 @@ pres.addSection({ title: "Appendix" });
     ["Encoding and scaling", "One-hot encoding of REASON and JOB (drop first). Standard scaling of the continuous inputs for the linear model only, flags left as 0/1", "Comparable coefficients, odds ratios for flags read as the effect of the flag"],
     ["Split", "70% train / 30% test, stratified on the target, fixed seed, reserved before we fitted any statistic. Identical applicants in both data versions", "No leakage from test rows into fences, medians or scaling. Results comparable across models"],
     ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the individual models, then the decision threshold for the final model. No resampling", "Keeps each real applicant. Class weights lifted recall by 23 points for logistic regression and 9 for the forest at the 0.5 threshold. They added nothing once we chose the threshold on cost, so the final forest is unweighted"],
-    ["Model inputs", "27 columns: the 10 attributes, 11 missing flags and 6 one-hot indicators (REASON HomeImp, JOB Office/Other/ProfExe/Sales/Self)", "The notebook's final-pipeline cell names every input to the final model, with the imputation values and model settings"],
+    ["Model inputs", "27 columns: the 10 attributes, 11 missing flags and 6 one-hot indicators (REASON HomeImp, JOB Office/Other/ProfExe/Sales/Self)", "The final-pipeline cell names every input. Smaller sets cost more out of fold (21 inputs without occupation +10%, 12 inputs +19%), so all 27 stay"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.8, 3.7], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
 }

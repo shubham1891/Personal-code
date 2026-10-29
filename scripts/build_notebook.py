@@ -1119,9 +1119,30 @@ scaler = StandardScaler().fit(X_train_lr[num_cols])
 X_train_lr_s, X_test_lr_s = X_train_lr.copy(), X_test_lr.copy()
 X_train_lr_s[num_cols] = scaler.transform(X_train_lr[num_cols])
 X_test_lr_s[num_cols] = scaler.transform(X_test_lr[num_cols])
+assert list(X_train_lr_s.columns) == list(X_train.columns), "both data versions carry the same 27 named inputs"
+print(f"Linear-model inputs ({X_train_lr_s.shape[1]}), the same columns as the tree models:")
+print(f"  capped (IQR whiskers, DEROG and DELINQ at the 99th percentile) and standardised ({len(num_cols)}):", num_cols)
+print(f"  left as 0/1 ({X_train_lr_s.shape[1] - len(num_cols)}):", [c for c in X_train_lr_s.columns if c not in num_cols])
 
 cv5 = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
 cv3 = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
+""")
+
+md(r"""
+#### Model inputs at each stage
+
+The table follows the named inputs from the raw fields to the model. The outputs above print every list.
+
+| Stage | Tree models (Decision Tree, Bagging, Random Forest) | Logistic regression |
+|---|---|---|
+| 1. Raw fields (12) | `LOAN`, `MORTDUE`, `VALUE`, `REASON`, `JOB`, `YOJ`, `DEROG`, `DELINQ`, `CLAGE`, `NINQ`, `CLNO`, `DEBTINC` | Same |
+| 2. Outlier treatment | None | The 10 numeric fields capped on training-row fences: IQR whiskers, `DEROG` and `DELINQ` at the 99th percentile |
+| 3. Missing-value flags (11) | `<field>_missing` for every field except `LOAN` | Same |
+| 4. Imputation | Training-row median (numeric fields) or mode (`REASON`, `JOB`) | Same |
+| 5. One-hot encoding (6) | `REASON_HomeImp`, `JOB_Office`, `JOB_Other`, `JOB_ProfExe`, `JOB_Sales`, `JOB_Self` | Same |
+| 6. Scaling | None | The 10 numeric fields standardised; the 17 flags and indicators stay 0/1 |
+| 7. Model inputs (27) | 10 numeric fields + 11 flags + 6 indicators | The same 27 columns |
+| 8. Input-set reduction | Tested in the selection section: 21 inputs (no occupation) and 12 inputs. The final pipeline cell names both sets and the rule that decides | Not applied |
 """)
 
 # --------------------------------------------------------------------------------------
@@ -1551,7 +1572,7 @@ md(r"""
 md(r"""
 #### Improving the forest by removing weak variables
 
-A best-practice check: does the model keep its performance with fewer inputs? A leaner model is cheaper to maintain, easier to explain and less prone to learning spurious patterns. We refit the recall-tuned forest on only the features with importance above 1%. This 12-feature set is then a candidate when we choose the final model.
+A best-practice check: does the model keep its performance with fewer inputs? A leaner model is cheaper to maintain, easier to explain and less prone to learning spurious patterns. We refit the recall-tuned forest on only the features with importance above 1%. This 12-feature set is then a candidate when we choose the final model. The selection section applies one rule: keep the smallest input set whose out-of-fold cost is within one standard error of the lowest.
 """)
 
 code(r"""
@@ -1978,6 +1999,22 @@ print("6. Model:", type(final_model).__name__, {k: v for k, v in final_model.get
       if k in ["n_estimators", "class_weight", "min_samples_leaf", "max_features", "max_depth", "random_state"]})
 print(f"7. Model inputs, in order ({len(final_cols)}):", final_cols)
 print(f"8. Decision rule: flag the applicant when the predicted default probability exceeds {FINAL_THRESHOLD:.2f}")
+print(f"9. Input-set reduction. Rule: keep the smallest input set whose mean out-of-fold cost is within one standard error "
+      f"(${one_se:,.0f}) of the lowest. Input sets tested with the selected configuration:")
+reduced_ok = []
+for name, (_, cols) in candidates.items():
+    if not name.startswith(f"RF class weights {best_weights}, leaf {best_leaf},"):
+        continue
+    cost = selection.loc[name, COST_COL]
+    removed = [c for c in final_cols if c not in cols]
+    status = "selected" if name == winner else ("within one standard error" if cost <= lowest + one_se else "outside one standard error")
+    if removed and cost <= lowest + one_se:
+        reduced_ok.append(name)
+    print(f"   {len(cols)} inputs: ${cost:,.0f} per 1,000 applicants ({status})" + (f"; removes {removed}" if removed else ""))
+    if removed and len(cols) < len(removed):
+        print(f"      keeps {cols}")
+print("   No reduced set is within one standard error, so the final model keeps all 27 inputs." if not reduced_ok
+      else f"   Reduced sets within one standard error: {reduced_ok}")
 """)
 
 code(r"""

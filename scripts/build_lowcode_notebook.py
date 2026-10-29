@@ -640,7 +640,7 @@ What are the the most important observations and insights from the data based on
     - We reserved the test set before we fitted any statistic.
     - We added a missing-value flag for every column with gaps.
     - We learned the median/mode imputation on the training rows.
-    - We applied IQR capping only for the linear model (99th-percentile cap for the two count variables).
+    - We applied IQR capping only for the linear model (99th-percentile cap for DEROG and DELINQ).
     - We one-hot encoded `REASON` and `JOB`.
     - We applied standard scaling to the continuous inputs for the linear model only.
 """)
@@ -676,6 +676,9 @@ scaler = StandardScaler().fit(X_train[continuous])
 X_train_lr, X_test_lr = X_train.copy(), X_test.copy()
 X_train_lr[continuous] = scaler.transform(X_train[continuous])
 X_test_lr[continuous] = scaler.transform(X_test[continuous])
+print(f'Linear-model inputs ({X_train_lr.shape[1]}):')
+print(f'  capped (IQR whiskers, DEROG and DELINQ at the 99th percentile) and standardised ({len(continuous)}):', continuous)
+print(f'  left as 0/1 ({X_train_lr.shape[1] - len(continuous)}):', [c for c in X_train_lr.columns if c not in continuous])
 """)
 md(93, r"""
 ### **Think about it**
@@ -1220,7 +1223,7 @@ The comparison above uses the conventional 0.5 threshold. We never tested the cl
 
 Class weights and the decision threshold are two dials for the same trade-off. So we choose them together, on that criterion, and **without touching the test set**. We score every candidate with **repeated 5-fold out-of-fold predictions on the training rows** (three different 5-fold splits, 15 validation folds). On those predictions we find the threshold that minimises the mean of the indicative expected cost. The indicative costs are about \$9,000 for a missed defaulter and about \$2,000 for a wrongly declined good applicant.
 
-**Selection rule, fixed before the search:** the lowest mean expected cost on out-of-fold predictions wins. Among candidates within one fold-to-fold standard error of the lowest cost, we prefer the simplest (fewest non-default settings, fewer inputs).
+**Selection rule, fixed before the search:** the lowest mean expected cost on out-of-fold predictions wins. Among candidates within one fold-to-fold standard error of the lowest cost, we prefer the simplest (fewest non-default settings, then fewest inputs).
 
 1. Stage 1 searches the class weights and the minimum leaf size on all 27 inputs. The number of trees and the features tried per split stay at their defaults. The standard error is the standard deviation of the 15 pooled fold costs divided by the square root of 15. The robustness checks include a paired fold-by-fold check of the closest contest.
 2. Stage 2 pits the winner against the recall-tuned grid winner, each on 27 and on 12 inputs. Stage 2 also tests the winner without any occupation information (21 inputs), the fallback a fair-lending review might require. For completeness on the chosen yardstick, we score three more techniques the same way at their own cost-minimising thresholds. These are the bagged trees, the balanced logistic regression and the recall-tuned tree.
@@ -1429,7 +1432,7 @@ print('(c) Stage 1 repeated on two other 70/30 splits (fully grown trees, single
 split_check.style.format({c: ('{:.2f}' if c[0] == 'best threshold' else '{:,.0f}') for c in split_check.columns})
 """)
 add_after(166, "markdown", r"""
-**Observations - model, threshold and robustness:** the unweighted forest on all 27 inputs has the lowest mean cost on out-of-fold predictions (about \$317,000 per 1,000 applicants). Removing all occupation information costs about 10% more (\$351,000, outside one standard error, so occupation carries real signal). The 12-input version costs about a fifth more, and the recall-tuned grid winner costs about half again as much. We scored the bagged trees, the balanced logistic regression and the recall-tuned tree the same way, at their own best thresholds. They cost more than any fully grown forest (about \$390,000, \$550,000 and \$607,000). So the technique choice holds on the chosen yardstick too.
+**Observations - model, threshold and robustness:** the unweighted forest on all 27 inputs has the lowest mean cost on out-of-fold predictions (about \$317,000 per 1,000 applicants). Removing all occupation information costs about 10% more (\$351,000, outside one standard error, so occupation carries real signal). The 12-input version (the 10 financial attributes plus the DEBTINC and VALUE missing flags) costs about a fifth more. Neither smaller input set is within one standard error, so the final model keeps all 27 inputs. The recall-tuned grid winner costs about half again as much. We scored the bagged trees, the balanced logistic regression and the recall-tuned tree the same way, at their own best thresholds. They cost more than any fully grown forest (about \$390,000, \$550,000 and \$607,000). So the technique choice holds on the chosen yardstick too.
 
 The cost-minimising threshold is 0.15 (the model flags every applicant whose score exceeds 0.15, an estimated default risk of roughly one in five). It stays at 0.15 for cost ratios between 3:1 and 6:1. It falls to 0.10 only once a missed defaulter costs about eight times a wrongly declined applicant. A finer 0.01 grid gives the same threshold. The paired fold-by-fold comparison with the 0.2/0.8 forest (mean difference about \$4,000 per 1,000, paired standard error about \$5,000) shows the two are within noise. On two other 70/30 splits the unweighted forest is again the cheapest configuration, with the weighted forests within noise of it.
 
@@ -1453,6 +1456,22 @@ print('5. No outlier capping and no scaling: tree ensembles are unaffected by mo
 print('6. Model:', type(final_model).__name__, {k: v for k, v in final_model.get_params().items() if k in ['n_estimators', 'class_weight', 'min_samples_leaf', 'max_features', 'max_depth', 'random_state']})
 print(f'7. Model inputs, in order ({len(final_cols)}):', final_cols)
 print(f'8. Decision rule: flag the applicant when the predicted default probability exceeds {FINAL_THRESHOLD:.2f} (break-even for a calibrated score at the stated costs: {COST_FP / (COST_FN + COST_FP):.2f})')
+print(f'9. Input-set reduction. Rule: keep the smallest input set whose mean out-of-fold cost is within one standard error '
+      f'(${one_se:,.0f}) of the lowest. Input sets tested with the selected configuration:')
+reduced_ok = []
+for name, (_, cols) in candidates.items():
+    if not name.startswith(f'RF class weights {best_weights}, leaf {best_leaf},'):
+        continue
+    cost = selection.loc[name, COST_COL]
+    removed = [c for c in final_cols if c not in cols]
+    status = 'selected' if name == winner else ('within one standard error' if cost <= lowest + one_se else 'outside one standard error')
+    if removed and cost <= lowest + one_se:
+        reduced_ok.append(name)
+    print(f'   {len(cols)} inputs: ${cost:,.0f} per 1,000 applicants ({status})' + (f'; removes {removed}' if removed else ''))
+    if removed and len(cols) < len(removed):
+        print(f'      keeps {cols}')
+print('   No reduced set is within one standard error, so the final model keeps all 27 inputs.' if not reduced_ok
+      else f'   Reduced sets within one standard error: {reduced_ok}')
 """)
 add_after(166, "code", r"""
 #@title
