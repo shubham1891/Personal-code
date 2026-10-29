@@ -1140,7 +1140,7 @@ The table follows the named inputs from the raw fields to the model. The outputs
 | 3. Missing-value flags (11) | `<field>_missing` for every field except `LOAN` | Same |
 | 4. Imputation | Training-row median (numeric fields) or mode (`REASON`, `JOB`) | Same |
 | 5. One-hot encoding (6) | `REASON_HomeImp`, `JOB_Office`, `JOB_Other`, `JOB_ProfExe`, `JOB_Sales`, `JOB_Self` | Same |
-| 6. Scaling | None | The 10 numeric fields standardised; the 17 flags and indicators stay 0/1 |
+| 6. Scaling | None | The 10 numeric fields standardised. The 17 flags and indicators stay 0/1 |
 | 7. Model inputs (27) | 10 numeric fields + 11 flags + 6 indicators | The same 27 columns |
 | 8. Input-set reduction | Tested in the selection section: 21 inputs (no occupation) and 12 inputs. The final pipeline cell names both sets and the rule that decides | Not applied |
 """)
