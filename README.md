@@ -14,6 +14,8 @@ The program grades one of two tracks. The participant chooses this track on the 
 | Final report (40 pts) | `reports/Loan_Default_Prediction_Final_Report.pdf` (Word source alongside) | same |
 | Live presentation (40 pts) | `presentation/Loan_Default_Prediction_Presentation.pdf` (PowerPoint source alongside) | same |
 
+Upload exactly one file for each stage. If you upload a notebook and a report together, the graders mark only the report. They do not mark a submission that has more than one file.
+
 ## Repository layout
 
 ```
