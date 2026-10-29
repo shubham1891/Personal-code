@@ -250,7 +250,7 @@ pres.addSection({ title: "Modelling" });
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
   s.addText("Model comparison: the Random Forest gives the best balance", { placeholder: "title" });
-  const labels = ["Logistic Regression (balanced)", "Decision Tree (tuned)", "Bagged trees (200)", "Random Forest (default; proposed at 0.5)", "Random Forest (class weights)", "Random Forest, threshold 0.15"];
+  const labels = ["Logistic Regression (balanced)", "Decision Tree (tuned)", "Bagged trees (200)", "Random Forest (default: proposed model at 0.5)", "Random Forest (class weights)", "Random Forest, threshold 0.15"];
   s.addChart(pres.charts.BAR, [
     { name: "Defaulters caught (recall)", labels, values: [79.6, 82.1, 68.3, 68.6, 77.3, 92.7] },
     { name: "Precision", labels, values: [60.8, 53.1, 82.7, 84.2, 76.9, 68.1] },
