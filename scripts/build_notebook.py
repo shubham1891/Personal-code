@@ -1713,15 +1713,17 @@ Above, we compared the models at the conventional 0.5 threshold. We never tested
 
 To answer it **without touching the test set**, we score every candidate with **repeated 5-fold out-of-fold predictions on the training rows**. We use three different stratified 5-fold splits. So each training applicant receives three probabilities from models that never saw them, and we judge every candidate on 15 validation folds. For each candidate we find, on those out-of-fold predictions, the threshold that minimises the mean of the indicative expected cost.
 
-**Selection rule, fixed before the search:** the candidate with the lowest mean expected cost on out-of-fold predictions wins. If several candidates lie within one fold-to-fold standard error of the lowest cost, we prefer the simplest of them (fewest non-default settings, fewer inputs). The standard error is the standard deviation of the 15 pooled fold costs divided by the square root of 15. This convention treats the three repeats as independent. We show a paired fold-by-fold check of the closest contest with the robustness checks. Only then do we refit the winner on all training rows and score it once on the test set.
+**Selection rule, fixed before the search:** the candidate with the lowest mean expected cost on out-of-fold predictions wins. If several candidates lie within one fold-to-fold standard error of the lowest cost, we prefer the simplest of them (fewest non-default settings, then fewest inputs). The standard error is the standard deviation of the 15 pooled fold costs divided by the square root of 15. This convention treats the three repeats as independent. We show a paired fold-by-fold check of the closest contest with the robustness checks. Only then do we refit the winner on all training rows and score it once on the test set.
 
 Indicative cost assumptions: a missed defaulter costs about \$9,000 (roughly half of the \$16,900 average defaulted loan after recovery of the collateral). A wrongly declined good applicant costs about \$2,000 in lost interest margin and acquisition spend. We show afterwards how sensitive the chosen threshold is to these assumptions.
 
-The search runs in two stages:
+The search runs in three stages:
 
 **(1)** The forest's class weights and minimum leaf size, on all 27 inputs. These are the two dials the course material and the earlier grid search used. The number of trees and the features tried per split stay at their defaults, 200 and the square root of the input count.
 
-**(2)** The winning configuration against the recall-tuned grid winner, each on all 27 inputs and on the 12-feature set. Stage 2 also includes the winning configuration without any occupation information (21 inputs), which is the fallback a fair-lending review might require.
+**(2)** The number of inputs for the winning configuration. This is the counterpart of choosing how many principal components to keep. We remove the weakest input one at a time and score each smaller set. The six occupation columns and the two loan-purpose columns leave together, so that no category is half removed. The rule keeps the smallest input set whose mean cost is within one standard error of the lowest cost on this curve.
+
+**(3)** The winning configuration on the selected input set, against the same forest on all 27 inputs and without any occupation information (the fallback a fair-lending review might require). The recall-tuned grid winner also competes, on all 27 inputs and on the 12-feature set.
 
 For completeness on the chosen yardstick, we score three more techniques the same way at their own cost-minimising thresholds. These are the bagged trees, the balanced logistic regression and the recall-tuned decision tree.
 """)
@@ -1748,7 +1750,8 @@ def cost_table(y_true, proba, thresholds=THRESHOLDS):
 def oof_evaluate(model, cols, X=None):
     '''Repeated 5-fold out-of-fold evaluation of one candidate on the training rows (X defaults to the tree data X_train;
     the linear model passes its own capped and scaled frame). Returns the per-repeat OOF probabilities, the threshold
-    table averaged over the repeats, its best row, the mean OOF ROC-AUC and the fold-to-fold SD of the cost at the best threshold.'''
+    table averaged over the repeats, its best row, the mean OOF ROC-AUC, the fold-to-fold SD of the cost at the best threshold
+    and the 15 fold costs at every threshold.'''
     X = X_train if X is None else X
     probas, tables, fold_costs = [], [], {}
     for seed in CV_REPEATS:
@@ -1764,7 +1767,7 @@ def oof_evaluate(model, cols, X=None):
     best = tbl.loc[tbl["expected_cost_per_1000_$"].idxmin()]
     return {"probas": probas, "table": tbl, "best": best,
             "auc": np.mean([roc_auc_score(y_train, p) for p in probas]),
-            "fold_sd": np.std(fold_costs[best["threshold"]], ddof=1)}
+            "fold_sd": np.std(fold_costs[best["threshold"]], ddof=1), "fold_costs": fold_costs}
 
 def summary_row(res):
     '''Return one row of the selection table from an out-of-fold result.'''
@@ -1809,19 +1812,114 @@ md(r"""
 - By the pre-stated rule we choose the **unweighted forest with fully grown trees** for the next stage. It has the lowest mean cost, and it is the simplest of the configurations within one standard error. Its score also keeps a natural reading as an estimated default rate (we check this below with a calibration table). That reading makes the threshold interpretable as the bank's risk appetite.
 """)
 
+md(r"""
+#### Stage 2: how many inputs does the forest need?
+
+A model with fewer inputs is easier to explain and to monitor, so we check how far we can cut the input set before the cost rises. This is the same question as choosing how many principal components to keep, and we answer it the same way: with a curve. The curve plots the expected cost against the number of inputs, and a pre-stated rule picks the point.
+
+- **Order.** We rank the inputs by the chosen forest's impurity importance (mean of three seeds) and remove the weakest first. The six occupation columns and the two loan-purpose columns count as one input each, so no category is half removed.
+- **Score.** We score every set on the same repeated 5-fold splits, with three forest seeds. A single forest's own randomness moves the cost by about as much as one standard error, so one seed alone could pick a set by chance.
+- **Rule.** We keep the smallest input set whose seed-averaged cost is within one standard error of the lowest cost on the curve.
+""")
+
 code(r"""
-# Stage 2: the chosen configuration against the recall-tuned grid winner, on all 27 inputs and on the 12-feature set,
-# plus the chosen configuration without any occupation information (the fair-lending fallback)
-def chosen_forest():
+# Stage 2: input-set reduction for the chosen configuration (the counterpart of choosing how many principal components to keep).
+# Nested input sets: remove the weakest input first, ranked by the forest's impurity importance (mean of three seeds).
+# The six occupation columns and the two loan-purpose columns leave together, so that no category is half removed.
+FOREST_SEEDS = [1, 2, 3]         # a single forest's randomness moves the cost by about one standard error, so we average three seeds
+SMALLEST_SET = 10                # stop at 10 inputs: the cost rises steeply well before that point
+
+def chosen_forest(seed=RANDOM_STATE):
     '''Return an unfitted forest with the configuration that stage 1 chose.'''
     return RandomForestClassifier(n_estimators=200, class_weight=weight_options[best_weights], min_samples_leaf=best_leaf,
-                                  random_state=RANDOM_STATE, n_jobs=-1)
+                                  random_state=seed, n_jobs=-1)
 
-no_occupation = [c for c in X_train.columns if not c.startswith("JOB_")]   # fair-lending fallback: no occupation information at all (21 inputs)
+input_units = {"occupation (JOB_missing and five JOB indicators)": [c for c in X_train.columns if c.startswith("JOB_")],
+               "loan purpose (REASON_missing and REASON_HomeImp)": [c for c in X_train.columns if c.startswith("REASON_")]}
+input_units.update({c: [c] for c in X_train.columns if not c.startswith(("JOB_", "REASON_"))})
+seed_importance = pd.Series(np.mean([chosen_forest(s).fit(X_train, y_train).feature_importances_ for s in FOREST_SEEDS], axis=0),
+                            index=X_train.columns)
+unit_importance = pd.Series({u: seed_importance[cols].sum() for u, cols in input_units.items()}).sort_values()
+
+stage2_runs = {}                 # (inputs, seed) -> out-of-fold result, reused in stage 3
+def seed_averaged_cost(cols):
+    '''Mean out-of-fold cost of the chosen configuration on these inputs, averaged over the forest seeds.'''
+    runs = []
+    for s in FOREST_SEEDS:
+        key = (tuple(cols), s)
+        if len(cols) == X_train.shape[1] and s == RANDOM_STATE:
+            stage2_runs[key] = stage1[(best_weights, best_leaf)]      # the same model on the same splits as in stage 1
+        elif key not in stage2_runs:
+            stage2_runs[key] = oof_evaluate(chosen_forest(s), cols)
+        runs.append(stage2_runs[key])
+    tbl = pd.concat([r["table"] for r in runs]).groupby("threshold", as_index=False).mean()
+    best = tbl.loc[tbl["expected_cost_per_1000_$"].idxmin()]
+    t = best["threshold"]
+    return {COST_COL: best["expected_cost_per_1000_$"], "Best threshold": t,
+            "Cost with seed 1 / 2 / 3 ($)": " / ".join(f"{r['table'].set_index('threshold').loc[t, 'expected_cost_per_1000_$']:,.0f}" for r in runs),
+            "Fold-to-fold SD of cost ($)": np.mean([np.std(r["fold_costs"][t], ddof=1) for r in runs])}
+
+rows, input_sets, cols = [], {}, list(X_train.columns)
+for unit in [None] + list(unit_importance.index):
+    if unit is not None:
+        cols = [c for c in cols if c not in input_units[unit]]
+    if len(cols) < SMALLEST_SET:
+        break
+    input_sets[len(cols)] = cols
+    rows.append({"Inputs": len(cols), "Removed in this step": unit or "(none: all inputs)",
+                 "Importance of the removed input": unit_importance[unit] if unit else np.nan, **seed_averaged_cost(cols)})
+reduction = pd.DataFrame(rows).set_index("Inputs")
+
+# The rule: the smallest input set whose seed-averaged cost is within one standard error of the lowest cost on the curve
+lowest_red = reduction[COST_COL].min()
+one_se_red = reduction.loc[reduction[COST_COL].idxmin(), "Fold-to-fold SD of cost ($)"] / np.sqrt(5 * len(CV_REPEATS))
+selected_size = int(reduction[reduction[COST_COL] <= lowest_red + one_se_red].index.min())
+selected_inputs = input_sets[selected_size]
+removed_inputs = [c for c in X_train.columns if c not in selected_inputs]
+print(f"Lowest seed-averaged cost: ${lowest_red:,.0f} per 1,000 applicants ({reduction[COST_COL].idxmin()} inputs); "
+      f"one standard error: ${one_se_red:,.0f}")
+print(f"Selected input set: {selected_size} inputs at ${reduction.loc[selected_size, COST_COL]:,.0f}")
+print(f"Removed ({len(removed_inputs)}):", removed_inputs)
+print(f"Kept ({selected_size}):", selected_inputs)
+(reduction.style.format({COST_COL: "{:,.0f}", "Best threshold": "{:.2f}", "Fold-to-fold SD of cost ($)": "{:,.0f}",
+                         "Importance of the removed input": "{:.3f}"}, na_rep="")
+          .apply(lambda r: ["background-color: #c6efce" if r.name == selected_size else "" for _ in r], axis=1))
+""")
+
+code(r"""
+# Cost against the number of inputs (the counterpart of a scree plot), with the one-standard-error band of the rule
+fig, ax = plt.subplots(figsize=(9, 4.5))
+ax.axhspan(lowest_red, lowest_red + one_se_red, color="#c6efce", label="within one standard error of the lowest cost")
+ax.plot(reduction.index, reduction[COST_COL], marker="o", color="#1E2761", label="mean out-of-fold cost (three seeds)")
+ax.plot(selected_size, reduction.loc[selected_size, COST_COL], marker="o", markersize=14, markerfacecolor="none",
+        markeredgecolor="#C44E52", markeredgewidth=2, linestyle="none", label=f"selected: {selected_size} inputs")
+ax.invert_xaxis()
+ax.set_xticks(reduction.index)
+ax.yaxis.set_major_formatter(lambda x, _: f"${x:,.0f}")
+ax.set_xlabel("number of inputs (weakest removed first)"); ax.set_ylabel("expected cost per 1,000 applicants")
+ax.set_title("Expected cost of credit errors as the weakest inputs are removed")
+ax.legend(loc="upper left")
+plt.tight_layout(); plt.show()
+""")
+
+md(r"""
+**Observations - input-set reduction:**
+- The curve is flat from 27 down to 22 inputs. The first five inputs removed are missing-value flags with almost no weight: `CLNO_missing`, `NINQ_missing`, `DELINQ_missing`, `CLAGE_missing` and `MORTDUE_missing` (together about 2% of the split power). Without them the cost stays between \$317,700 and \$325,000 per 1,000 applicants, against \$320,150 for all 27 inputs.
+- Beyond 22 inputs the cost rises steadily: about \$328,800 for 21 inputs, \$333,500 for 20, \$373,700 for 16 and \$402,400 for 10. The remaining flags, loan purpose and occupation each carry some signal at the cost-optimal threshold.
+- By the rule we keep **22 inputs**: the 10 financial attributes, six missing flags (`VALUE`, `REASON`, `JOB`, `YOJ`, `DEROG` and `DEBTINC`) and the six one-hot indicators. Stage 3 tests this set against all 27 inputs on the same splits.
+- One seed alone would mislead here. With seed 1 only, the 25-input set costs about \$13,000 more than the 24-input set. The mean of three seeds removes most of this noise.
+- We ranked the inputs on all training rows before the repeated cross-validation, which can slightly favour the reduced sets. The removed flags carry almost no weight, so the effect is small.
+""")
+
+code(r"""
+# Stage 3: the chosen configuration on the selected input set, on all 27 inputs and without any occupation information
+# (the fair-lending fallback), against the recall-tuned grid winner on all 27 inputs and on the 12-feature set
+no_occupation = [c for c in selected_inputs if not c.startswith("JOB_")]   # fair-lending fallback: the selected set without occupation
+forest_name = f"RF class weights {best_weights}, leaf {best_leaf}"
 candidates = {
-    f"RF class weights {best_weights}, leaf {best_leaf}, 27 inputs": (chosen_forest(), list(X_train.columns)),
-    f"RF class weights {best_weights}, leaf {best_leaf}, 21 inputs (no occupation)": (chosen_forest(), no_occupation),
-    f"RF class weights {best_weights}, leaf {best_leaf}, 12 inputs": (chosen_forest(), keep),
+    f"{forest_name}, {len(selected_inputs)} inputs (selected set)": (chosen_forest(), selected_inputs),
+    f"{forest_name}, 27 inputs": (chosen_forest(), list(X_train.columns)),
+    f"{forest_name}, {len(no_occupation)} inputs (selected set without occupation)": (chosen_forest(), no_occupation),
     "RF recall-tuned grid winner, 27 inputs": (RandomForestClassifier(**rf_search.best_params_, random_state=RANDOM_STATE, n_jobs=-1), list(X_train.columns)),
     "RF recall-tuned grid winner, 12 inputs": (RandomForestClassifier(**rf_search.best_params_, random_state=RANDOM_STATE, n_jobs=-1), keep),
 }
@@ -1834,7 +1932,8 @@ other_techniques = {
 }
 oof = {}
 for name, (model, cols) in candidates.items():
-    oof[name] = stage1[(best_weights, best_leaf)] if name.endswith(f"leaf {best_leaf}, 27 inputs") else oof_evaluate(model, cols)
+    reuse = (tuple(cols), RANDOM_STATE)       # the chosen forest with seed 1 on a set that stage 2 already scored on the same splits
+    oof[name] = stage2_runs[reuse] if name.startswith(forest_name) and reuse in stage2_runs else oof_evaluate(model, cols)
 for name, (model, cols, frame) in other_techniques.items():
     oof[name] = oof_evaluate(model, cols, X=frame)
 selection = pd.DataFrame({name: summary_row(res) for name, res in oof.items()}).T
@@ -1924,8 +2023,8 @@ band_oof["share_of_defaulters"] = band_oof["defaulters"] / y_train.sum()
 print("(c) Approve / refer / decline bands on the out-of-fold scores (training rows):")
 display(band_oof.style.format({"observed_default_rate": "{:.1%}", "share_of_applicants": "{:.1%}", "share_of_defaulters": "{:.1%}"}))
 
-# (d) Paired check of the 'within noise' statement: fold-by-fold cost difference between the 0.2/0.8 forest at its own best
-#     threshold and the winner at its threshold, over the same 15 validation folds
+# (d) Paired checks of the 'within noise' statements, over the same 15 validation folds: the 0.2/0.8 forest against the
+#     unweighted forest (both on all 27 inputs), and the unweighted forest on all 27 inputs against the winner
 def fold_costs_at(res, t):
     '''Return the expected cost per 1,000 applicants in each validation fold at threshold t.'''
     out = []
@@ -1933,10 +2032,13 @@ def fold_costs_at(res, t):
         for _, val in StratifiedKFold(n_splits=5, shuffle=True, random_state=seed).split(X_train, y_train):
             out.append(cost_table(y_train.iloc[val], p[val], thresholds=np.array([t]))["expected_cost_per_1000_$"].iloc[0])
     return np.array(out)
-weighted = stage1[("0.2/0.8", 1)]
-diff = fold_costs_at(weighted, weighted["best"]["threshold"]) - fold_costs_at(oof[winner], FINAL_THRESHOLD)
-print(f"(d) Paired fold-by-fold difference, class weights 0.2/0.8 at {weighted['best']['threshold']:.2f} minus the winner at {FINAL_THRESHOLD:.2f}: "
-      f"mean ${diff.mean():,.0f} per 1,000 applicants, paired standard error ${diff.std(ddof=1) / np.sqrt(len(diff)):,.0f} ({len(diff)} folds)")
+weighted, all_inputs = stage1[("0.2/0.8", 1)], stage1[(best_weights, best_leaf)]
+for label, a, b in [("class weights 0.2/0.8 minus no class weights, both on 27 inputs", weighted, all_inputs),
+                    (f"all 27 inputs minus the selected {len(final_cols)} inputs (the winner)", all_inputs, oof[winner])]:
+    diff = fold_costs_at(a, a["best"]["threshold"]) - fold_costs_at(b, b["best"]["threshold"])
+    print(f"(d) Paired fold-by-fold difference, {label}, each at its own best threshold "
+          f"({a['best']['threshold']:.2f} and {b['best']['threshold']:.2f}): mean ${diff.mean():,.0f} per 1,000 applicants, "
+          f"paired standard error ${diff.std(ddof=1) / np.sqrt(len(diff)):,.0f} ({len(diff)} folds)")
 
 # (e) Does the choice depend on this particular 70/30 split? Repeat stage 1 (fully grown trees) on two other stratified splits,
 #     rebuilding the missing flags and the imputation from each split's own training rows.
@@ -1985,12 +2087,14 @@ code(r"""
 flag_cols = [c for c in final_cols if c.endswith("_missing")]
 dummy_cols = [c for c in final_cols if c.startswith(("REASON_", "JOB_")) and c not in flag_cols]
 raw_cols = [c for c in final_cols if c not in flag_cols + dummy_cols]
-assert len(final_cols) == len(raw_cols) + len(flag_cols) + len(dummy_cols) == 27
-assert final_cols == list(X_train.columns), "the final model uses every prepared column, in this order"
+assert len(final_cols) == len(raw_cols) + len(flag_cols) + len(dummy_cols)
+assert final_cols == [c for c in X_train.columns if c in final_cols], "the final inputs keep the order of the prepared columns"
+unused_flags = [c for c in X_train.columns if c.endswith("_missing") and c not in final_cols]
 
 print(f"FINAL PIPELINE  (every statistic below was learned on the {len(train_idx):,} training rows only)")
 print(f"1. Raw inputs kept as numbers ({len(raw_cols)}):", raw_cols)
-print(f"2. Missing-value flags, 1 if the field was blank ({len(flag_cols)}):", flag_cols)
+print(f"2. Missing-value flags, 1 if the field was blank, kept as inputs ({len(flag_cols)}):", flag_cols)
+print(f"   Flags removed by the input-set reduction ({len(unused_flags)}):", unused_flags)
 print("3. Imputation of blanks - training-row medians:", {k: round(v, 2) for k, v in hm.loc[train_idx, num_cols].median().items()})
 print("                          training-row modes  :", {c: hm.loc[train_idx, c].mode()[0] for c in ["REASON", "JOB"]})
 print(f"4. One-hot encoding of REASON and JOB, first level dropped ({len(dummy_cols)}):", dummy_cols)
@@ -1999,22 +2103,14 @@ print("6. Model:", type(final_model).__name__, {k: v for k, v in final_model.get
       if k in ["n_estimators", "class_weight", "min_samples_leaf", "max_features", "max_depth", "random_state"]})
 print(f"7. Model inputs, in order ({len(final_cols)}):", final_cols)
 print(f"8. Decision rule: flag the applicant when the predicted default probability exceeds {FINAL_THRESHOLD:.2f}")
-print(f"9. Input-set reduction. Rule: keep the smallest input set whose mean out-of-fold cost is within one standard error "
-      f"(${one_se:,.0f}) of the lowest. Input sets tested with the selected configuration:")
-reduced_ok = []
-for name, (_, cols) in candidates.items():
-    if not name.startswith(f"RF class weights {best_weights}, leaf {best_leaf},"):
-        continue
-    cost = selection.loc[name, COST_COL]
-    removed = [c for c in final_cols if c not in cols]
-    status = "selected" if name == winner else ("within one standard error" if cost <= lowest + one_se else "outside one standard error")
-    if removed and cost <= lowest + one_se:
-        reduced_ok.append(name)
-    print(f"   {len(cols)} inputs: ${cost:,.0f} per 1,000 applicants ({status})" + (f"; removes {removed}" if removed else ""))
-    if removed and len(cols) < len(removed):
-        print(f"      keeps {cols}")
-print("   No reduced set is within one standard error, so the final model keeps all 27 inputs." if not reduced_ok
-      else f"   Reduced sets within one standard error: {reduced_ok}")
+print(f"9. Input-set reduction (stage 2). Rule: keep the smallest input set whose mean out-of-fold cost over {len(FOREST_SEEDS)} forest "
+      f"seeds is within one standard error (${one_se_red:,.0f}) of the lowest cost on the curve (${lowest_red:,.0f}).")
+smaller = [n for n in reduction.index if n < selected_size]
+print(f"   Selected: {selected_size} inputs at ${reduction.loc[selected_size, COST_COL]:,.0f} per 1,000 applicants; all 27 inputs: "
+      f"${reduction.loc[27, COST_COL]:,.0f}" + (f"; next smaller set ({smaller[0]} inputs): ${reduction.loc[smaller[0], COST_COL]:,.0f}, "
+      "outside one standard error" if smaller else ""))
+print(f"   Removed ({len(removed_inputs)}):", removed_inputs)
+print(f"   Stage 3 confirmed the selected set: {winner}")
 """)
 
 code(r"""
