@@ -182,7 +182,7 @@ pres.addSection({ title: "Key insights" });
     "Interpretation: the bank could not check the income or collateral, or the applicant chose not to supply it.",
     "Action: every imputed field gets a 'was missing' flag for the models. Verification should become mandatory in the process.",
   ], 12.5), { x: 6.2, y: 1.25, w: 3.4, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "insight 1 bullets" });
-  notes(s, "The single most important finding. When the debt-to-income ratio is missing, 62 percent of those applicants defaulted. When the property valuation is missing, 94 percent. The absence of information is itself a signal, so the models carry a flag for every missing field. The final model keeps six of these flags, because Stage 2 removed five weak ones.");
+  notes(s, "The single most important finding. When the debt-to-income ratio is missing, 62 percent of those applicants defaulted. When the property valuation is missing, 94 percent. The absence of information is itself a signal, so the models carry a flag for every missing field. The final model keeps six of these flags, because the input-set reduction removed five weak ones.");
 }
 
 // 6. Insight 2: debt burden and repayment history
@@ -276,7 +276,7 @@ pres.addSection({ title: "Modelling" });
     "Scoring engine: Random Forest, 200 fully grown trees, no class weights (the threshold handles the imbalance).",
     "Inputs: 22 of 27 (10 attributes, 6 missing-value flags, occupation and loan purpose). Fallback without occupation: 16 inputs, about 13% more cost.",
     "Threshold 0.15, chosen with the configuration on repeated out-of-fold expected cost (training rows). It holds for cost ratios 4.5:1 to 8:1 and across splits. Approve / refer / decline bands (69% / 7% / 24%) keep an underwriter in the loop.",
-    "Explanation layer: a depth-4 surrogate tree reproduces 93% of the forest's out-of-fold decisions and gives the plain-language summary. Per-applicant risk drivers (built before the shadow run) give each decline its ECOA reason.",
+    "Explanation layer: a depth-4 surrogate tree reproduces 93% of the forest's test decisions and gives the plain-language summary. Per-applicant risk drivers (built before the shadow run) give each decline its ECOA reason.",
     "We scored the reserved test set once, after all choices.",
   ], 11), { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
   stat(s, 6.1, 1.3, 1.65, "93%", "of defaulters caught", C.accent5, 34);
@@ -284,7 +284,7 @@ pres.addSection({ title: "Modelling" });
   stat(s, 6.1, 2.75, 1.65, "0.96", "ROC-AUC: risk ranking quality", C.accent1, 34);
   stat(s, 7.85, 2.75, 1.65, "90%", "overall accuracy", C.accent1, 34);
   s.addText("Per 1,000 applicants at 0.15: 185 of 200 defaulters flagged in advance, 15 missed, 90 good customers flagged. 27% of applicants flagged, 73% approved.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
-  notes(s, "The proposal. A Random Forest on 22 inputs scores the applicants. Stage 2 of the selection removed five weak missing flags, those of mortgage balance, delinquent lines, credit-line age, inquiries and number of credit lines. The rule kept the smallest input set within one standard error of the lowest cost. Stage 3 confirmed the 22-input forest against all 27 inputs. The fallback without occupation uses 16 inputs and costs about 13 percent more. A surrogate decision tree fitted to the forest's out-of-fold decisions reproduces ninety-three percent of them and gives the plain-language summary of the rules. Per-applicant risk drivers, built before the shadow run, give each decline its own reason. On unseen applicants the forest catches 93 percent of defaulters. On the same applicants, two out of three flagged applicants really defaulted.");
+  notes(s, "The proposal. A Random Forest on 22 inputs scores the applicants. Stage 2 of the selection removed five weak missing flags, those of mortgage balance, delinquent lines, credit-line age, inquiries and number of credit lines. The rule kept the smallest input set within one standard error of the lowest cost. Stage 3 checked the 22-input forest against all 27 inputs and kept it. The fallback without occupation uses 16 inputs and costs about 13 percent more. A surrogate decision tree, fitted to the forest's out-of-fold decisions, reproduces ninety-three percent of the forest's decisions on unseen applicants. It gives the plain-language summary of the rules. Per-applicant risk drivers, built before the shadow run, give each decline its own reason. On unseen applicants the forest catches 93 percent of defaulters. On the same applicants, two out of three flagged applicants really defaulted.");
 }
 
 // 11. Threshold choice
@@ -416,7 +416,7 @@ pres.addSection({ title: "Appendix" });
     ["Random Forest (default, 200 trees)", "0.686", "0.842", "0.756", "0.912", "0.963", "1.000"],
     ["Random Forest (class weights 0.2/0.8)", "0.773", "0.769", "0.771", "0.908", "0.959", "1.000"],
     ["Random Forest (tuned for recall)", "0.790", "0.656", "0.717", "0.875", "0.932", "0.918"],
-    ["Random Forest (tuned, 12 features)", "0.784", "0.660", "0.717", "0.876", "0.929", "0.916"],
+    ["Random Forest (tuned, 12 inputs)", "0.784", "0.660", "0.717", "0.876", "0.929", "0.916"],
     [{ text: "Proposed: RF unweighted, 22 inputs, threshold 0.15", options: { bold: true } }, { text: "0.927", options: { bold: true } }, { text: "0.674", options: { bold: true } }, { text: "0.781", options: { bold: true } }, { text: "0.896", options: { bold: true } }, { text: "0.961", options: { bold: true } }, "-"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [3.3, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.27, valign: "middle", margin: 0.03, align: "left", objectName: "full comparison table" });
@@ -476,7 +476,7 @@ pres.addSection({ title: "Appendix" });
     ["Encoding and scaling", "One-hot encoding of REASON and JOB (drop first). Standard scaling of the continuous inputs for the linear model only, flags left as 0/1", "Comparable coefficients, odds ratios for flags read as the effect of the flag"],
     ["Split", "70% train / 30% test, stratified on the target, fixed seed, reserved before we fitted any statistic. Identical applicants in both data versions", "No leakage from test rows into fences, medians or scaling. Results comparable across models"],
     ["Imbalance", "Class weights (balanced or 0.2/0.8) inside the individual models, then the decision threshold for the final model. No resampling", "Keeps each real applicant. Class weights lifted recall by 23 points for logistic regression and 9 for the forest at the 0.5 threshold. They added nothing once we chose the threshold on cost, so the final forest is unweighted"],
-    ["Model inputs", "22 of 27 columns: the 10 attributes, 6 missing flags (VALUE, REASON, JOB, YOJ, DEROG, DEBTINC) and 6 one-hot REASON/JOB indicators", "Stage 2 removed five flags (MORTDUE, DELINQ, CLAGE, NINQ, CLNO): smallest set within one standard error of the lowest cost. Stage 3 confirmed it against all 27"],
+    ["Model inputs", "22 of 27 columns: the 10 attributes, 6 missing flags (VALUE, REASON, JOB, YOJ, DEROG, DEBTINC) and 6 one-hot REASON/JOB indicators", "Stage 2 removed five flags (MORTDUE, DELINQ, CLAGE, NINQ, CLNO): smallest set within one standard error of the lowest cost. Stage 3 checked it against all 27"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.8, 3.7], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
 }
