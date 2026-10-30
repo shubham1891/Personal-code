@@ -62,7 +62,7 @@ function table(header, rows, widths, keepTogether = false) {
   });
   return new Table({ width: { size: total, type: WidthType.DXA }, columnWidths: widths, rows: [
     new TableRow({ tableHeader: true, cantSplit: true, children: header.map((h, i) => cell(h, true, widths[i], false, keepTogether)) }),
-    ...rows.map((r, ri) => new TableRow({ cantSplit: true, children: r.map((c, i) => cell(c, false, widths[i], i > 0 && /^[\d$.,%\-]+( \([a-z ]+\))?$/.test(String(c)), keepTogether && ri < rows.length - 1)) })),
+    ...rows.map((r, ri) => new TableRow({ cantSplit: true, children: r.map((c, i) => cell(c, false, widths[i], i > 0 && /^[\d$.,%\-]+( \([a-z ]+\))?$/.test(String(c)), keepTogether)) })),   // a kept-together table also stays with its caption
   ] });
 }
 
@@ -92,7 +92,7 @@ children.push(summaryBox("Summary for the Data Science lead", [
 children.push(h1("1. Problem Definition"));
 children.push(h2("Context: why this problem is important to solve"));
 children.push(p("A large share of a retail bank's profit comes from the interest it earns on home loans and home equity lines of credit. The single biggest threat to that profit is the borrower who does not repay the loan. Every loan that becomes a non-performing asset removes the interest earned on many good loans. Today an underwriter studies each application manually and decides whether to approve it. That process is slow, expensive, inconsistent between underwriters and open to human error and bias. Earlier attempts to automate it relied on hand-written heuristics."));
-children.push(p([txt("The numbers size the problem. In the bank's own recent book of "), bold("5,960 home equity loans, 1,189 (19.9%) ended in default or serious delinquency"), txt(". The current process approved all of them. Those loans averaged about $16,900, so the bank put roughly $20 million of principal at risk. The data does not record recoveries. We assume that the bank recovers about half of each defaulted loan through the collateral. On that assumption, the bank lost roughly $10 million on this book alone. With collection costs, we assume that each missed defaulter costs about $9,000. So every ten defaulters that the model stops save about $90,000. Every good applicant wrongly declined costs only the interest margin on one loan, about $2,000.")]));
+children.push(p([txt("The numbers size the problem. In the bank's own recent book of "), bold("5,960 home equity loans, 1,189 (19.9%) ended in default or serious delinquency"), txt(". The current process approved all of them. Those loans averaged about $16,900, so the bank put roughly $20 million of principal at risk. The data does not record recoveries. We assume that the bank recovers about half of each defaulted loan through the collateral. On that assumption, the bank lost roughly $10 million on this book alone. With collection costs, we assume that each missed defaulter costs about $9,000. So every ten defaulters that the model stops save about $90,000. Every good applicant wrongly declined costs only the interest margin on one loan, about $2,000. The business problem is therefore a trade-off. A missed defaulter costs about 4.5 times a wrongly declined good applicant, so the bank must weigh both errors.")]));
 children.push(p([bold("Advantages of solving it. "), txt("A reliable, explainable scoring model has four advantages. (1) It cuts credit losses by stopping likely defaulters at the door. (2) It protects revenue by not declining good applicants unnecessarily. (3) It makes decisions faster and standardises them, so underwriters spend their time on the genuinely uncertain cases. (4) It gives the bank documented, consistent reasons for every decision, a regulatory requirement under the Equal Credit Opportunity Act (ECOA) and a fairness safeguard.")]));
 
 children.push(h2("Objectives: the intended goals"));
@@ -140,10 +140,11 @@ children.push(table(
   [1500, 5560, 2300],
 ));
 children.push(caption("Table 1. The twelve applicant attributes, their data types and missing-value rates."));
-children.push(p([bold("Statistical summary. "), txt("There are no duplicate rows. 44% of applications have at least one blank field, so we cannot simply remove those rows. Loan amounts range from $1,100 to $89,900 (median $16,300). Property values range from $8,000 to $855,909 (median $89,236). Mortgage balances range from $2,063 to $399,550 (median $65,019). All three amounts are right-skewed. The median applicant has 7 years in the present job, one recent credit inquiry and 20 credit lines. The debt-to-income ratio has a median of 34.8%. It is tightly concentrated between 29% and 39% for the middle half of applicants but contains impossible values (a maximum of 203%). The age of the oldest credit line has an implausible maximum of 97 years. Among applicants with a record, 86% have no major derogatory report and 78% have no delinquent credit line.")]));
+children.push(p([bold("Statistical summary. "), txt("There are no duplicate rows. 44% of applications have at least one blank field, so we cannot simply remove those rows. Loan amounts range from $1,100 to $89,900 (median $16,300). Property values range from $8,000 to $855,909 (median $89,236). Mortgage balances range from $2,063 to $399,550 (median $65,019). All three amounts are right-skewed. Years at the present job range from 0 to 41 (median 7). Recent credit inquiries range from 0 to 17 (median 1). Credit lines range from 0 to 71 (median 20). The debt-to-income ratio has a median of 34.8%. It is tightly concentrated between 29% and 39% for the middle half of applicants but contains impossible values (a maximum of 203%). The age of the oldest credit line has a median of about 14.5 years (173 months) but an implausible maximum of 97 years. Among applicants with a record, 86% have no major derogatory report and 78% have no delinquent credit line. The maximum counts are 10 major derogatory reports and 15 delinquent credit lines.")]));
 children.push(p([bold("Ranges and outliers. "), txt("Box plots show outliers in almost every numeric column. Most are genuine extreme values, such as loans above about $41,000 and property values up to $855,909. We keep them for the tree models and cap them only for the linear model. Only debt-to-income ratios above 100% and credit lines older than about 50 years (600 months) look like data errors.")]));
 
 children.push(h2("Observations and insights"));
+children.push(p([bold("Defaulters are a small minority. "), txt("Only one applicant in five defaulted (19.9%). A model that approves every applicant is 80% accurate but catches no defaulter. So recall on the default class, not accuracy, is the measure of success.")]));
 children.push(p([bold("Missing information is the strongest single risk signal. "), txt("Applicants with no recorded debt-to-income ratio defaulted 62% of the time, against 8.6% for applicants with a recorded ratio. Applicants with no property valuation defaulted 94% of the time (Figure 1). For the problem this means that the bank should treat an unverifiable income or collateral as a red flag, not a neutral gap. It also means that the models must be able to see whether a field was blank. The signal does not point the same way for every field. Figure 1 shows five fields where a blank goes with a lower default rate (8% to 15%, against 20% overall). These are occupation, job tenure, derogatory reports, delinquent lines and recent inquiries. This probably shows how the bank recorded the data, for example by storing 'no record found' as a blank. A flag for each field lets the models learn both directions.")]));
 children.push(figure("report_missing_vs_present.png", 6.4, 2.71));
 children.push(caption("Figure 1. Default rate when an attribute is missing versus present."));
@@ -335,6 +336,15 @@ children.push(
   bullet([bold("Guide policy. "), txt("The analysis names the attributes that matter most. They support rules that the bank can adopt now, such as mandatory income verification and a 45% limit on the debt-to-income ratio.")]),
 );
 children.push(p("Under the indicative costs, the cost of credit errors falls from about $1.8 million to about $0.3 million per 1,000 applicants, 83% less."));
+children.push(h2("Business recommendations"));
+children.push(
+  numbered("Make income and property-valuation verification mandatory. Applicants with no recorded debt-to-income ratio defaulted 62% of the time. Applicants with no valuation defaulted 94% of the time.", "recs"),
+  numbered("Decline or escalate every applicant above a 45% debt-to-income ratio. Above 45%, 87% to 100% of applicants defaulted.", "recs"),
+  numbered("Refer every applicant with two or more delinquent credit lines to an underwriter. With two lines, 45% defaulted.", "recs"),
+  numbered("Refer every applicant with two or more major derogatory reports to an underwriter. With two reports, 51% defaulted.", "recs"),
+  numbered("Adopt the 22-input forest with the 0.15 threshold. Approve applicants with a score of 0.10 or less. Refer applicants with a score from 0.10 to 0.25 to an underwriter. Decline applicants with a score above 0.25.", "recs"),
+  numbered("Do not let the model affect real lending decisions until the bank meets the five conditions below.", "recs"),
+);
 children.push(h2("Is the model ready for production? Yes, with conditions"));
 children.push(p("The model's performance is good enough for production. On 1,788 unseen applicants it catches 92.7% of defaulters at 67.4% precision (ROC-AUC 0.96). This agrees with the out-of-fold estimate (recall 94%, precision 64%). Under the indicative costs it cuts the cost of credit errors by about 83%. The surrogate tree and the per-applicant risk drivers make its decisions explainable. But the model must not affect real lending decisions until the bank meets five conditions:", { para: { keepNext: true } }));
 children.push(
@@ -358,6 +368,7 @@ const doc = new Document({
     { reference: "kq", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1.", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 360 } } } }] },
     { reference: "insights", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1.", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 360 } } } }] },
     { reference: "conds", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1.", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 360 } } } }] },
+    { reference: "recs", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1.", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 360 } } } }] },
   ] },
   sections: [{
     properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1300, bottom: 1200, left: 1440, right: 1440 } } },
