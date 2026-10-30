@@ -189,7 +189,7 @@ children.push(table(
     ["Random Forest, default (200 trees)", "69%", "84%", "91%", "0.96", "Feature sub-sampling adds a little more ranking quality (the best ROC-AUC). But at the 0.5 threshold the forest is conservative and still misses almost a third of defaulters there. On 22 inputs and with its threshold moved to 0.15, this is the proposed model."],
     ["Random Forest, class weights 0.2/0.8", "77%", "77%", "91%", "0.96", "Class weights shift the forest towards recall with almost no loss of precision. This is the best balance at the conventional threshold."],
     ["Random Forest, grid-searched on recall", "79%", "66%", "88%", "0.93", "Recall-only tuning chooses larger leaves and balanced weights. It generalises with a smaller train-test gap, but it buys little extra recall with a lot of precision. This is why the final selection uses expected cost rather than recall alone."],
-    ["Random Forest, tuned, 12 inputs", "78%", "66%", "88%", "0.93", "Removing occupation, loan purpose and nine minor flags changes performance by about a point at the 0.5 threshold. The selection step tests whether this holds at the cost-optimal threshold."],
+    ["Random Forest, tuned, 12 inputs", "78%", "66%", "88%", "0.93", "Removing the six occupation and loan-purpose indicators and nine of the eleven missing flags changes performance by about a point at the 0.5 threshold. The selection step tests whether this holds at the cost-optimal threshold."],
   ],
   [1900, 850, 1100, 1100, 1000, 3410],
 ));

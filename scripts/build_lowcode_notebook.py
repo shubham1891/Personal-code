@@ -1471,14 +1471,14 @@ print(f'(b) Brier score (lower is better; the base rate alone scores {metrics.br
       f'final forest {metrics.brier_score_loss(y_train, p_final):.3f}, class weights 0.2/0.8 {metrics.brier_score_loss(y_train, p_weighted):.3f}')
 display(pd.concat([reliability(p_final, 'Final forest (unweighted)'), reliability(p_weighted, 'Class weights 0.2/0.8')], axis=1).round(3))
 
-# (d) the approve / refer / decline bands proposed later (0.10 and 0.25), on the out-of-fold scores of the training rows
+# (c) the approve / refer / decline bands proposed later (0.10 and 0.25), on the out-of-fold scores of the training rows
 oof_bands = pd.cut(p_final, [-0.01, 0.10, 0.25, 1.0], labels=['approve (score <= 0.10)', 'refer (0.10 - 0.25)', 'decline (score > 0.25)'])
 band_oof = (pd.DataFrame({'band': oof_bands, 'defaulted': y_train.values}).groupby('band', observed=True)
               .agg(applicants=('defaulted', 'size'), defaulters=('defaulted', 'sum'), observed_default_rate=('defaulted', 'mean')))
 band_oof['share_of_applicants'] = band_oof['applicants'] / len(y_train); band_oof['share_of_defaulters'] = band_oof['defaulters'] / y_train.sum()
-print('(d) Approve / refer / decline bands on the out-of-fold scores (training rows):'); display(band_oof.round(3))
+print('(c) Approve / refer / decline bands on the out-of-fold scores (training rows):'); display(band_oof.round(3))
 
-# (e) paired checks of the 'within noise' statements over the same 15 folds: the 0.2/0.8 forest against the unweighted forest (both on 27 inputs),
+# (d) paired checks of the 'within noise' statements over the same 15 folds: the 0.2/0.8 forest against the unweighted forest (both on 27 inputs),
 #     and the winner against the unweighted forest on all 27 inputs
 def fold_costs_at(res, t):
     out = []
@@ -1490,10 +1490,10 @@ weighted, all_inputs = stage1[('0.2/0.8', 1)], stage1[(best_weights, best_leaf)]
 for label, a, b in [('class weights 0.2/0.8 minus no class weights, both on 27 inputs', weighted, all_inputs),
                     (f'the selected {len(candidates[winner][1])} inputs (the winner) minus all 27 inputs', oof[winner], all_inputs)]:
     diff = fold_costs_at(a, a['best']['threshold']) - fold_costs_at(b, b['best']['threshold'])
-    print(f"(e) Paired fold-by-fold difference, {label}, each at its own best threshold ({a['best']['threshold']:.2f} and {b['best']['threshold']:.2f}): "
+    print(f"(d) Paired fold-by-fold difference, {label}, each at its own best threshold ({a['best']['threshold']:.2f} and {b['best']['threshold']:.2f}): "
           f"mean ${diff.mean():,.0f} per 1,000, paired standard error ${diff.std(ddof=1) / np.sqrt(len(diff)):,.0f} ({len(diff)} folds)")
 
-# (c) does the choice depend on this particular 70/30 split? Repeat stage 1 (fully grown trees) on two other stratified splits,
+# (e) does the choice depend on this particular 70/30 split? Repeat stage 1 (fully grown trees) on two other stratified splits,
 #     rebuilding the missing flags and the imputation from each split's own training rows
 def training_rows_for_split(seed):
     frame = hm.copy()
@@ -1517,7 +1517,7 @@ for seed in [2, 3]:
         t = cost_table(ys, p); best = t.loc[t['expected_cost_per_1000_$'].idxmin()]
         rows.append({'class weights': w_name, 'split seed': seed, 'best threshold': best['threshold'], 'OOF cost per 1,000 ($)': best['expected_cost_per_1000_$']})
 split_check = pd.DataFrame(rows).pivot(index='class weights', columns='split seed', values=['best threshold', 'OOF cost per 1,000 ($)']).loc[list(weight_options)]
-print('(c) Stage 1 repeated on two other 70/30 splits (fully grown trees, single 5-fold OOF). Cheapest configuration per split:',
+print('(e) Stage 1 repeated on two other 70/30 splits (fully grown trees, single 5-fold OOF). Cheapest configuration per split:',
       {seed: split_check[('OOF cost per 1,000 ($)', seed)].idxmin() for seed in [2, 3]})
 split_check.style.format({c: ('{:.2f}' if c[0] == 'best threshold' else '{:,.0f}') for c in split_check.columns})
 """)
