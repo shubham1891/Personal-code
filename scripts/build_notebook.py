@@ -37,7 +37,7 @@ A large share of a retail bank's profit comes from the interest it earns on home
 
 Today an underwriter studies each application by hand and decides whether to approve it. That process is slow, expensive, inconsistent from one underwriter to another, and vulnerable to human error and bias. Earlier attempts to automate the process used hand-written heuristics. The bank now has data on past loans and their outcomes. With that data, the bank can **learn** the approval decision from evidence instead of opinion. At the same time, the bank can make sure that the new model does not simply replicate the biases of the old manual process.
 
-**Some facts that size the problem.** In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**. The current process approved all of them. Those defaulted loans averaged about \$16,900 each, so roughly \$20 million of principal was at risk. We assume that the bank recovers about half through the collateral. On that assumption, the bank lost roughly \$10 million on this book alone. Every ten defaulters that the bank declines saves about \$90,000 at the \$9,000 per defaulter that we use throughout. Every good applicant that the bank wrongly declines costs only the interest margin on one loan, about \$2,000.
+**Some facts that size the problem.** In the bank's own recent book of 5,960 home equity loans, **1,189 (19.9%) ended in default or serious delinquency**. The current process approved all of them. Those defaulted loans averaged about \$16,900 each, so roughly \$20 million of principal was at risk. We assume that the bank recovers about half through the collateral. On that assumption, the bank lost roughly \$10 million on this book alone. With collection costs, we assume that each missed defaulter costs about \$9,000. So every ten defaulters that the bank stops save about \$90,000. Every good applicant that the bank wrongly declines costs only the interest margin on one loan, about \$2,000.
 
 **The business problem is therefore a trade-off.** A missed defaulter costs about 4.5 times a wrongly declined good applicant, so the bank must weigh both errors.
 
@@ -318,8 +318,7 @@ md(r"""
 md(r"""
 - EDA is an important part of any project involving data.
 - It is important to investigate and understand the data better before building a model with it.
-- A few questions have been mentioned below which will help you approach the analysis in the right manner and generate insights from the data.
-- A thorough analysis of the data, in addition to the questions mentioned below, should be done.
+- Eight leading questions guide the analysis. The notebook also analyses the data beyond these questions.
 """)
 
 md(r"""
@@ -549,6 +548,7 @@ def default_rate_by_band(col, bins, labels=None):
         applicants="count")
     return tab
 
+OVERALL_RATE = data["BAD"].astype(int).mean() * 100   # overall default rate (%), the dashed reference line in the EDA charts
 fig, axes = plt.subplots(1, 3, figsize=(20, 4.8))
 specs = [
     ("DEBTINC", [0, 20, 30, 35, 40, 45, 50, 210], "Debt-to-income ratio band (%)"),
@@ -560,7 +560,7 @@ for ax, (col, bins, label) in zip(axes, specs):
     sns.barplot(x=tab.index.astype(str), y=tab["default_rate"], ax=ax, color="#C44E52")
     for i, (rate, n) in enumerate(zip(tab["default_rate"], tab["applicants"])):
         ax.text(i, rate + 1, f"{rate}%\n(n={n})", ha="center", fontsize=8)
-    ax.axhline(19.9, color="black", linestyle="--", linewidth=1, label="overall 19.9%")
+    ax.axhline(OVERALL_RATE, color="black", linestyle="--", linewidth=1, label=f"overall {OVERALL_RATE:.1f}%")
     ax.set_title(f"Default rate by {col} band"); ax.set_xlabel(label); ax.set_ylabel("% defaulted")
     ax.tick_params(axis="x", rotation=30); ax.legend()
 plt.tight_layout()
@@ -628,7 +628,7 @@ for ax, (col, cap) in zip(axes, [("DEROG", 5), ("DELINQ", 6), ("NINQ", 8)]):
     sns.barplot(x=labels, y=tab["default_rate"], ax=ax, color="#C44E52")
     for i, (rate, n) in enumerate(zip(tab["default_rate"], tab["applicants"])):
         ax.text(i, rate + 1, f"{rate}%\n(n={n})", ha="center", fontsize=8)
-    ax.axhline(19.9, color="black", linestyle="--", linewidth=1)
+    ax.axhline(OVERALL_RATE, color="black", linestyle="--", linewidth=1)
     ax.set_title(f"Default rate by {col}"); ax.set_ylabel("% defaulted"); ax.set_xlabel(col)
 plt.tight_layout()
 plt.show()
@@ -670,7 +670,7 @@ m = missing_vs_bad.melt(id_vars="column", value_vars=["default_rate_when_missing
                         var_name="status", value_name="default_rate")
 m["status"] = m["status"].str.replace("default_rate_when_", "").str.replace("_%", "")
 sns.barplot(data=m, x="column", y="default_rate", hue="status", palette=["#C44E52", "#4C72B0"])
-plt.axhline(19.9, color="black", linestyle="--", linewidth=1)
+plt.axhline(OVERALL_RATE, color="black", linestyle="--", linewidth=1)
 plt.title("Default rate when a field is missing vs present")
 plt.ylabel("% defaulted"); plt.xlabel("")
 plt.show()
@@ -983,7 +983,7 @@ data.head()
 md(r"""
 ## **Important Insights from EDA**
 
-What are the the most important observations and insights from the data based on the EDA performed?
+What are the most important observations and insights from the data based on the EDA performed?
 """)
 
 md(r"""
@@ -1336,7 +1336,7 @@ The maximum depth of the tree. If None, the tree grows until all leaves are pure
 
 The minimum number of samples that a leaf node must contain. The tree considers a split point at any depth only if the split leaves at least min_samples_leaf training samples in each branch. This may smooth the model, especially in regression.
 
-This link describes more hyperparameters that you can tune.
+The scikit-learn documentation lists the other hyperparameters of the classifier:
 
 https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
 
