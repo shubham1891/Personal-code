@@ -26,7 +26,7 @@ const H = THEME.colors; // hex values for the options that only take hex
 const pres = new pptxgen();
 pres.layout = "LAYOUT_16x9"; // 10 x 5.625 in
 pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
-pres.author = "Shubham Garg";
+pres.author = "Saloni Priya";
 pres.title = "Loan Default Prediction - Capstone Presentation";
 const C = pres.SchemeColor;
 
@@ -89,7 +89,7 @@ pres.addSection({ title: "Opening" });
   s.addText([
     { text: "An interpretable credit-scoring model to approve home equity loans", options: { fontSize: 18, color: C.background2, breakLine: true } },
     { text: "Capstone Project  |  Practical Data Science  |  MIT Professional Education - Applied AI and Data Science Program", options: { fontSize: 12, color: C.accent4, breakLine: true } },
-    { text: "Shubham Garg  |  November 2026", options: { fontSize: 12, color: C.accent4 } },
+    { text: "Saloni Priya  |  November 2026", options: { fontSize: 12, color: C.accent4 } },
   ], { placeholder: "body" });
   s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.45, w: 0.9, h: 0.08, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "title marker" });
   notes(s, "Good morning. In eight minutes I will show how a bank can cut the cost of credit errors on the home equity loans it approves today. The cut is about four fifths, with a model the bank can also explain to regulators and applicants.");

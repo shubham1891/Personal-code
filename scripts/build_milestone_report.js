@@ -75,7 +75,7 @@ children.push(
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [new TextRun({ text: "Problem Definition, Data Exploration, Building Models, Comparison of Techniques, Final Solution Design", font: FONT, size: 22 })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [new TextRun({ text: "Practical Data Science track (Classification)", font: FONT, size: 22 })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [new TextRun({ text: "MIT Professional Education - Applied AI and Data Science Program", font: FONT, size: 22 })] }),
-  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new TextRun({ text: "Shubham Garg  |  November 2026", font: FONT, size: 22, color: GREY })] }),
+  new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new TextRun({ text: "Saloni Priya  |  November 2026", font: FONT, size: 22, color: GREY })] }),
 );
 children.push(summaryBox("Summary for the Data Science lead", [
   ["Problem: ", "The bank approved all 5,960 loans in this book, and 1,189 (19.9%) defaulted. We assume that the bank recovers about half of each defaulted loan through the collateral. On that assumption, it lost about $10 million on this book."],
@@ -359,7 +359,7 @@ children.push(p([bold("Caveats and next steps towards the final submission. "), 
 
 // ---------------------------------------------------------------- document
 const doc = new Document({
-  creator: "Shubham Garg",
+  creator: "Saloni Priya",
   title: "Capstone Project: Loan Default Prediction - Milestone Report",
   styles: { default: { document: { run: { font: FONT, size: 22 } } } },
   numbering: { config: [

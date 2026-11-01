@@ -88,7 +88,7 @@ children.push(
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 },
     children: [new TextRun({ text: "MIT Professional Education - Applied AI and Data Science Program", font: FONT, size: 22 })] }),
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 240 },
-    children: [new TextRun({ text: "Shubham Garg  |  November 2026", font: FONT, size: 22, color: GREY })] }),
+    children: [new TextRun({ text: "Saloni Priya  |  November 2026", font: FONT, size: 22, color: GREY })] }),
 );
 
 // 1. Executive summary
@@ -302,7 +302,7 @@ children.push(p([txt("The project notebook "), new TextRun({ text: "Loan_Default
 
 // ---------- document ----------
 const doc = new Document({
-  creator: "Shubham Garg",
+  creator: "Saloni Priya",
   title: "Capstone Project: Loan Default Prediction - Final Report",
   styles: { default: { document: { run: { font: FONT, size: 22 } } } },
   numbering: {

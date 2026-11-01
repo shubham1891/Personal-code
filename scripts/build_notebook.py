@@ -23,7 +23,7 @@ md(r"""
 
 ### Capstone Project - Practical Data Science (Classification) | Milestone Submission
 
-**Learner:** Shubham Garg
+**Learner:** Saloni Priya
 **Program:** MIT Professional Education - Applied AI and Data Science Program
 **Dataset:** Home Equity (HMEQ) - 5,960 recent home equity loans
 """)
