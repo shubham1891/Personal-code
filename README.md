@@ -11,10 +11,10 @@ The program grades one of two tracks. The participant chooses this track on the 
 | Stage | Full-code track | Low-code track |
 |---|---|---|
 | Milestone (20 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` (executed full-code notebook, with the `.ipynb` file next to it) | `reports/Loan_Default_Prediction_Milestone_Report.pdf` (business report, supported by the completed template notebook `notebooks/Loan_Default_Prediction_Low_Code.html`) |
-| Final report (40 pts) | `reports/Loan_Default_Prediction_Final_Report.pdf` (Word source alongside) | same |
+| Final report (40 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` again: the same notebook now ends with the three final-submission sections (executive summary, problem and solution summary, recommendations for implementation) | `reports/Loan_Default_Prediction_Final_Report.pdf` (Word source alongside) |
 | Live presentation (40 pts) | `presentation/Loan_Default_Prediction_Presentation.pdf` (PowerPoint source alongside) | same |
 
-Upload exactly one file for each stage. If you upload a notebook and a report together, the graders mark only the report. They do not mark a submission that has more than one file.
+Upload exactly one file for each stage. If you upload a notebook and a report together, the graders mark only the report. They do not mark a submission that has more than one file. The program's final-submission guideline asks full-code learners to add the final sections to their notebook and to submit it as HTML, and low-code learners to submit the report as PDF.
 
 ## Repository layout
 
