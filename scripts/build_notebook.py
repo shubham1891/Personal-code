@@ -263,6 +263,10 @@ data["BAD"] = data["BAD"].astype("category")
 data.dtypes
 """)
 
+md(r"""
+**Observation:** `REASON`, `JOB` and the target `BAD` are now categories. The ten other inputs stay numeric. The conversion changes no value.
+""")
+
 # --------------------------------------------------------------------------------------
 md(r"""
 ## Summary Statistics
@@ -878,6 +882,10 @@ print(f"Training rows: {len(train_idx):,} | Test rows: {len(test_idx):,}")
 print(f"Default rate - train: {data.loc[train_idx, 'BAD'].astype(int).mean():.3f}, test: {data.loc[test_idx, 'BAD'].astype(int).mean():.3f}")
 """)
 
+md(r"""
+**Observation:** the stratified split keeps the default rate at about 20% in both sets (0.199 in training, 0.200 in test). The 4,172 training rows fit every statistic and model. We score the 1,788 test rows only to report performance, never to choose a model.
+""")
+
 # --------------------------------------------------------------------------------------
 md(r"""
 ## Treating Outliers
@@ -980,6 +988,10 @@ code(r"""
 data.head()
 """)
 
+md(r"""
+**Observation:** no blanks remain. Every blank now holds the training median or mode (for example the debt-to-income ratio 34.84 in the first rows). The flag columns record where each value was blank. Row 3, which had only a loan amount, now carries a 1 in every flag.
+""")
+
 # --------------------------------------------------------------------------------------
 md(r"""
 ## **Important Insights from EDA**
@@ -1054,7 +1066,7 @@ Recall alone can be gamed (rejecting everyone gives 100% recall), so we track tw
 - **Precision** on the defaulter class: of the applicants we reject, how many would really have defaulted? Low precision means the bank rejects good business.
 - **F1-score**: the harmonic mean of the two. We use it as the tie-breaker when recall is similar.
 
-We also report **Accuracy** for completeness and **ROC-AUC** as a threshold-free measure of how well the model ranks risky applicants. ROC-AUC matters because the bank can later move the decision threshold. We report these metrics to three decimals, because the closest candidates differ only in the third decimal.
+We also report **Accuracy** for completeness and **ROC-AUC** as a threshold-free measure of how well the model ranks risky applicants. ROC-AUC matters because the bank can later move the decision threshold. We report these metrics, the feature importances and the permutation drops to three decimals. The closest candidates and inputs differ only in the third decimal.
 
 We tune the individual models with **cross-validated grid search optimising Recall** (the course convention, and a deliberate push towards catching defaulters). Recall alone rewards flagging everyone. We therefore **choose the final model and its threshold on the expected cost of the two errors**. We estimate this cost with out-of-fold predictions on the training rows, so that precision carries an explicit price.
 """)
@@ -2396,13 +2408,13 @@ md(r"""
 
 ### Executive Summary, Problem and Solution Summary, Recommendations for Implementation
 
-The three sections below summarise the whole project for the bank's decision makers. They follow the program's final-submission template. Every number comes from the outputs above.
+The three sections below summarise the whole project for the bank's decision makers. They follow the program's final-submission template. Every performance figure and every expected-cost figure comes from the outputs above. We state the unit costs of the two errors, the implementation and running costs and the annual application volume as assumptions.
 """)
 
 md(r"""
 ## **Executive Summary**
 
-A bank's consumer credit department asked for an empirically derived, interpretable model that predicts which applicants for home equity loans are likely to default. The department also asked for guidance on which applicant attributes should drive approval decisions. The project used the Home Equity (HMEQ) dataset of 5,960 recent loans, of which 19.9% defaulted. The project explored the data, then built and tuned linear and tree-based classifiers. It compared them on a business-driven metric. The result is a deployable solution design. On 1,788 unseen applicants the proposed model catches 92.7% of defaulters at 67.4% precision. Under indicative cost assumptions it cuts the cost of credit errors by about 83%.
+A bank's consumer credit department asked for an empirically derived, interpretable model that predicts which applicants for home equity loans are likely to default. The department also asked for guidance on which applicant attributes should drive approval decisions. The project used the Home Equity (HMEQ) dataset of 5,960 recent loans, of which 19.9% defaulted. The project explored the data, then built and tuned linear and tree-based classifiers. It compared them on a business-driven metric. The result is a deployable solution design. It is a Random Forest scoring engine with a cost-based decision threshold of 0.15. A surrogate decision tree explains its decisions. On 1,788 unseen applicants the proposed model catches 92.7% of defaulters at 67.4% precision. Under indicative cost assumptions it cuts the cost of credit errors by about 83%.
 
 ### Most important findings from the analysis
 
@@ -2421,7 +2433,7 @@ A bank's consumer credit department asked for an empirically derived, interpreta
 | Scoring engine | Random Forest classifier: 200 fully grown trees, no class weights, random seed 1. Each split tries 4 of the 22 inputs at random (the library default). Extra weight for defaulters added nothing once we chose the threshold on cost. |
 | Inputs | 22 model inputs of three kinds. First, the 10 financial attributes (`LOAN`, `MORTDUE`, `VALUE`, `YOJ`, `DEROG`, `DELINQ`, `CLAGE`, `NINQ`, `CLNO`, `DEBTINC`). Second, six 0/1 missing-value flags, for `VALUE`, `REASON`, `JOB`, `YOJ`, `DEROG` and `DEBTINC`. Third, six 0/1 indicators from one-hot encoding: one for `REASON` = HomeImp and five for `JOB` = Office, Other, ProfExe, Sales, Self. Stage 2 of the selection removed the missing flags of `MORTDUE`, `DELINQ`, `CLAGE`, `NINQ` and `CLNO`. Its rule keeps the smallest input set whose out-of-fold cost (averaged over three forest seeds) is within one standard error of the lowest cost. Fallback if the fair-lending review requires it: the same forest without any occupation information (16 inputs, about 13% higher expected cost of credit errors). |
 | Pre-processing | Median imputation for numerical gaps and mode imputation for categorical gaps, both learned on the training rows. The medians are `MORTDUE` \$66,293, `VALUE` \$89,965, `YOJ` 7 years, `DEROG` 0, `DELINQ` 0, `CLAGE` 173.87 months, `NINQ` 1, `CLNO` 20 and `DEBTINC` 34.84%. The modes are DebtCon (`REASON`) and Other (`JOB`). `LOAN` has no blanks. A missing-value flag for six of the imputed fields, and no outlier capping for the tree model. |
-| Decision threshold | Flag an applicant as a likely defaulter when the predicted probability is above 0.15. The threshold minimises the indicative expected cost of credit errors on repeated out-of-fold predictions of the training rows. It is unchanged for cost ratios from 4.5:1 to 8:1 and on a finer grid. It sits just below the textbook break-even for the stated costs (\$2,000 / \$11,000 = 0.18). The reason is that the forest's scores understate risk in the decision range (applicants scored 0.15 to 0.20 defaulted about 28% of the time). |
+| Decision threshold | Flag an applicant as a likely defaulter when the predicted probability is above 0.15. The threshold minimises the indicative expected cost of credit errors on repeated out-of-fold predictions of the training rows. It is unchanged for cost ratios from 4.5:1 to 8:1 and on a finer grid. It sits just below the textbook break-even for the stated costs (\$2,000 / \$11,000 = 0.18). The reason is that the forest's scores understate risk in the decision range (applicants scored 0.15 to 0.20 defaulted about 28% of the time). Around the threshold, the bank approves below about 0.10, refers 0.10 to 0.25 to an underwriter and declines above 0.25. On the test set these bands hold about 69%, 7% and 24% of applications. |
 | Explanation layer | A surrogate decision tree of depth 4, fitted to the forest's out-of-fold decisions. It reproduces 93% of them on unseen applicants (against 73% for never flagging). Its rules flag a missing debt-to-income ratio or a ratio above about 44%. At or below 44%, they flag a delinquent credit line together with a credit history of about 93 months or less. Each adverse-action notice that the Equal Credit Opportunity Act (ECOA) requires gives the applicant's own top risk drivers from the forest (for example SHAP values). SHAP (Shapley additive explanations) values split each applicant's score among the model inputs. The bank builds these drivers in the first two months, before the shadow run. |
 | Measure of success | Recall on the defaulter class (share of future defaulters caught), with precision and F1 as guard-rails against declining too many good applicants. We then chose the final model and its threshold on the expected cost of the two errors, so the expected cost includes precision explicitly. |
 | Performance on unseen applicants | 92.7% of defaulters caught (recall), 67.4% precision, 89.6% accuracy, risk-ranking quality (ROC-AUC) 0.96. At the conventional 0.5 threshold the same model gives 67.8% recall, 82.9% precision and 90.8% accuracy. |
@@ -2431,7 +2443,7 @@ A bank's consumer credit department asked for an empirically derived, interpreta
 
 - **Decide and check the threshold:** the head of consumer credit approves the three-band policy (approve / refer / decline). Finance supplies actual loss-given-default and margin figures so that we can check the 0.15 threshold.
 - **Prepare the process (underwriting operations, data and technology):** make income verification and property-valuation verification mandatory fields, because their absence is the strongest default signal. Build the scoring pipeline with per-applicant risk drivers (for example SHAP values) for the adverse-action notices.
-- **Prove it safely (data science, compliance and legal):** run the model in shadow mode alongside manual decisions for one to two months. Complete a fair-lending review before activating the model.
+- **Prove it safely (data science, compliance and legal):** run the model in shadow mode alongside manual decisions for one to two months. The training data holds only loans that the old process approved, so include the applications that it declines. Complete a fair-lending review before activating the model.
 - **Make the most of it (underwriting operations, data and technology, data science):** automate clear approvals and declines. Route the uncertain band to underwriters. Monitor the approval rate monthly, and recall and precision as repayment outcomes arrive. Re-train yearly.
 - **Improve it (data science):** add reject inference, a combined loan-to-value ratio, debt-to-income bands, interaction terms, probability calibration and time-based validation in the next iteration.
 
@@ -2445,7 +2457,7 @@ md(r"""
 
 A large share of a retail bank's profit comes from interest on home loans and home equity lines of credit. The single biggest threat to that profit is the borrower who does not repay. One non-performing loan erases the interest earned on many good ones. Today an underwriter reviews each application manually and decides whether to approve it. The process is slow, costly, inconsistent across underwriters and vulnerable to human error and bias. Earlier attempts to automate it relied on hand-written heuristics.
 
-The consumer credit department wants to replace that process with an empirically derived, statistically sound credit-scoring model. The department wants a model built from the bank's own data on recent applicants and in line with the Equal Credit Opportunity Act. The model must predict at application time which applicants are likely to default. At the same time, it must remain interpretable enough that the bank can give a specific, defensible reason for every rejection. Formally this is a supervised problem of binary classification on 5,960 historical loans. Each loan has 12 attributes known at application time and a target that indicates default or serious delinquency.
+The consumer credit department wants to replace that process with an empirically derived, statistically sound credit-scoring model. The department wants a model built from the bank's own data on recent applicants and in line with the Equal Credit Opportunity Act. The model must predict at application time which applicants are likely to default. The department also asked which applicant attributes should drive approval decisions. At the same time, it must remain interpretable enough that the bank can give a specific, defensible reason for every rejection. Formally this is a supervised problem of binary classification on 5,960 historical loans. Each loan has 12 attributes known at application time and a target that indicates default or serious delinquency.
 
 ### Final proposed solution design
 
@@ -2493,6 +2505,7 @@ Fully grown trees beat limited trees for every weighting, and Stage 1 chose the 
 
 ### How the solution affects the business
 
+- **Lower cost of credit errors.** The indicative costs are \$9,000 per missed defaulter and \$2,000 per wrongly declined good applicant. Under these costs, the expected cost of credit errors falls from about \$1.8 million to about \$0.3 million per 1,000 applicants. That is about 83% less.
 - **Fewer bad loans.** Of every 200 defaulters in 1,000 applications the model flags about 185 before the money leaves the bank, against none today.
 - **Protected good business.** At the 0.15 threshold the model flags about 90 creditworthy applicants per 1,000. This is the price of catching defaulters, and it is far lower than the single decision tree's 145. Under the approve / refer / decline bands, the bank declines about 64 creditworthy applicants per 1,000 automatically and refers about 58. The model flags about 27% of all applicants. That is an approval rate of about 73% on a population that the bank approves in full today. At the conventional 0.5 threshold it would be 84%. It wrongly flags about 11% of creditworthy applicants at 0.15, against about 3% at 0.5.
 - **Faster, more consistent decisions.** About seven in ten applications fall in the clear-approval band, and about a quarter fall in the clear-decline band. So the bank can automate both bands. Underwriters focus on the roughly 7% in the uncertain band around the threshold.

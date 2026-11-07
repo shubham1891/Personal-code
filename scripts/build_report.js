@@ -13,7 +13,7 @@ const ROOT = path.resolve(__dirname, "..");
 const FIG = (name) => fs.readFileSync(path.join(ROOT, "reports", "figures", name));
 const FIG_H = (name, w) => { const b = FIG(name); return Math.round(w * b.readUInt32BE(20) / b.readUInt32BE(16) * 100) / 100; };
 // Height of the interaction figure in inches, from the PNG header (width 6.6 in)
-const FIG_H_INTERACTIONS = (() => { const b = FIG("report_interactions.png"); return Math.round(6.6 * b.readUInt32BE(20) / b.readUInt32BE(16) * 100) / 100; })();
+const FIG_H_INTERACTIONS = (() => { const b = FIG("report_interactions.png"); return Math.round(6.2 * b.readUInt32BE(20) / b.readUInt32BE(16) * 100) / 100; })();
 const OUT = path.join(ROOT, "reports", "Loan_Default_Prediction_Final_Report.docx");
 
 const NAVY = "1E2761";
@@ -96,7 +96,7 @@ children.push(h1("1. Executive Summary"));
 children.push(p([
   txt("A bank's consumer credit department asked for an empirically derived, interpretable model that predicts which applicants for home equity loans are likely to default. The department also asked for guidance on which applicant attributes should drive approval decisions. The project used the Home Equity (HMEQ) dataset of "),
   bold("5,960 recent loans"), txt(", of which "), bold("19.9% defaulted"),
-  txt(". The project explored the data, then built and tuned linear and tree-based classifiers. It compared them on a business-driven metric. The result is a deployable solution design. On 1,788 unseen applicants the proposed model catches 92.7% of defaulters at 67.4% precision. Under indicative cost assumptions it cuts the cost of credit errors by about 83%."),
+  txt(". The project explored the data, then built and tuned linear and tree-based classifiers. It compared them on a business-driven metric. The result is a deployable solution design. It is a Random Forest scoring engine with a cost-based decision threshold of 0.15. A surrogate decision tree explains its decisions. On 1,788 unseen applicants the proposed model catches 92.7% of defaulters at 67.4% precision. Under indicative cost assumptions it cuts the cost of credit errors by about 83%."),
 ]));
 
 children.push(h2("Most important findings from the analysis"));
@@ -115,9 +115,9 @@ children.push(table(
   ["Element", "Specification"],
   [
     ["Scoring engine", "Random Forest classifier: 200 fully grown trees, no class weights, random seed 1. Each split tries 4 of the 22 inputs at random (the library default). Extra weight for defaulters added nothing once we chose the threshold on cost."],
-    ["Inputs", "22 model inputs of three kinds. First, the 10 financial attributes (LOAN, MORTDUE, VALUE, YOJ, DEROG, DELINQ, CLAGE, NINQ, CLNO, DEBTINC). Second, six 0/1 missing-value flags, for VALUE, REASON, JOB, YOJ, DEROG and DEBTINC. Third, six 0/1 indicators from one-hot encoding: one for REASON = HomeImp and five for JOB = Office, Other, ProfExe, Sales, Self. Stage 2 of the selection removed the missing flags of MORTDUE, DELINQ, CLAGE, NINQ and CLNO. Its rule keeps the smallest input set whose out-of-fold cost (averaged over three forest seeds) is within one standard error of the lowest cost. Fallback if the fair-lending review requires it: the same forest without any occupation information. This removes the five occupation indicators and the occupation-missing flag, leaving 16 inputs. Its expected cost of credit errors is about 13% higher."],
+    ["Inputs", "22 model inputs of three kinds. Table A2 in the Appendix defines each field name. First, the 10 financial attributes (LOAN, MORTDUE, VALUE, YOJ, DEROG, DELINQ, CLAGE, NINQ, CLNO, DEBTINC). Second, six 0/1 missing-value flags, for VALUE, REASON, JOB, YOJ, DEROG and DEBTINC. Third, six 0/1 indicators from one-hot encoding: one for REASON = HomeImp and five for JOB = Office, Other, ProfExe, Sales, Self. Stage 2 of the selection removed the missing flags of MORTDUE, DELINQ, CLAGE, NINQ and CLNO. Its rule keeps the smallest input set whose out-of-fold cost (averaged over three forest seeds) is within one standard error of the lowest cost. Fallback if the fair-lending review requires it: the same forest without any occupation information. This removes the five occupation indicators and the occupation-missing flag, leaving 16 inputs. Its expected cost of credit errors is about 13% higher."],
     ["Pre-processing", "Median imputation for numerical gaps and mode imputation for categorical gaps, both learned on the training rows. The medians are MORTDUE $66,293, VALUE $89,965, YOJ 7 years, DEROG 0, DELINQ 0, CLAGE 173.87 months, NINQ 1, CLNO 20 and DEBTINC 34.84%. The modes are DebtCon (REASON) and Other (JOB). LOAN has no blanks. A missing-value flag for six of the imputed fields (see Inputs), and no outlier capping for the tree model."],
-    ["Decision threshold", "Flag an applicant as a likely defaulter when the predicted probability is above 0.15. The threshold minimises the indicative expected cost of credit errors on repeated out-of-fold predictions of the training rows. It is unchanged for cost ratios from 4.5:1 to 8:1 and on a finer grid. It sits just below the textbook break-even for the stated costs ($2,000 / $11,000 = 0.18). The reason is that the forest's scores understate risk in the decision range (applicants scored 0.15 to 0.20 defaulted about 28% of the time)."],
+    ["Decision threshold", "Flag an applicant as a likely defaulter when the predicted probability is above 0.15. The threshold minimises the indicative expected cost of credit errors on repeated out-of-fold predictions of the training rows. It is unchanged for cost ratios from 4.5:1 to 8:1 and on a finer grid. It sits just below the textbook break-even for the stated costs ($2,000 / $11,000 = 0.18). The reason is that the forest's scores understate risk in the decision range (applicants scored 0.15 to 0.20 defaulted about 28% of the time). Around the threshold, the bank approves below about 0.10, refers 0.10 to 0.25 to an underwriter and declines above 0.25. On the test set these bands hold about 69%, 7% and 24% of applications."],
     ["Explanation layer", "A surrogate decision tree of depth 4, fitted to the forest's out-of-fold decisions. It reproduces 93% of them on unseen applicants (against 73% for never flagging). Its rules flag a missing debt-to-income ratio or a ratio above about 44%. At or below 44%, they flag a delinquent credit line together with a credit history of about 93 months or less. These rules give the plain-language summary of how the model decides. Each adverse-action notice that the Equal Credit Opportunity Act (ECOA) requires gives the applicant's own top risk drivers from the forest (for example SHAP values). SHAP (Shapley additive explanations) values split each applicant's score among the model inputs. The bank builds these drivers in the first two months, before the shadow run."],
     ["Measure of success", "Recall on the defaulter class (share of future defaulters caught), with precision and F1 as guard-rails against declining too many good applicants. We then chose the final model and its threshold on the expected cost of the two errors, so the expected cost includes precision explicitly."],
     ["Performance on unseen applicants", "92.7% of defaulters caught (recall), 67.4% precision, 89.6% accuracy, risk-ranking quality (ROC-AUC) 0.96. At the conventional 0.5 threshold the same model gives 67.8% recall, 82.9% precision and 90.8% accuracy."],
@@ -130,7 +130,7 @@ children.push(h2("Key next steps"));
 children.push(
   bullet([bold("Decide and check the threshold: "), txt("the head of consumer credit approves the three-band policy (approve / refer / decline). Finance supplies actual loss-given-default and margin figures so that we can check the 0.15 threshold.")]),
   bullet([bold("Prepare the process (underwriting operations, data and technology): "), txt("make income verification and property-valuation verification mandatory fields, because their absence is the strongest default signal. Build the scoring pipeline with per-applicant risk drivers (for example SHAP values) for the adverse-action notices.")]),
-  bullet([bold("Prove it safely (data science, compliance and legal): "), txt("run the model in shadow mode alongside manual decisions for one to two months. Complete a fair-lending review before activating the model.")]),
+  bullet([bold("Prove it safely (data science, compliance and legal): "), txt("run the model in shadow mode alongside manual decisions for one to two months. The training data holds only loans that the old process approved, so include the applications that it declines. Complete a fair-lending review before activating the model.")]),
   bullet([bold("Make the most of it (underwriting operations, data and technology, data science): "), txt("automate clear approvals and declines. Route the uncertain band to underwriters. Monitor the approval rate monthly, and recall and precision as repayment outcomes arrive. Re-train yearly.")]),
   bullet([bold("Improve it (data science): "), txt("add reject inference, a combined loan-to-value ratio, debt-to-income bands, interaction terms, probability calibration and time-based validation in the next iteration.")]),
 );
@@ -143,7 +143,7 @@ children.push(p([
 children.push(h1("2. Problem and Solution Summary"));
 children.push(h2("Summary of the problem"));
 children.push(p("A large share of a retail bank's profit comes from interest on home loans and home equity lines of credit. The single biggest threat to that profit is the borrower who does not repay. One non-performing loan erases the interest earned on many good ones. Today an underwriter reviews each application manually and decides whether to approve it. The process is slow, costly, inconsistent across underwriters and vulnerable to human error and bias. Earlier attempts to automate it relied on hand-written heuristics."));
-children.push(p("The consumer credit department wants to replace that process with an empirically derived, statistically sound credit-scoring model. The department wants a model built from the bank's own data on recent applicants and in line with the Equal Credit Opportunity Act. The model must predict at application time which applicants are likely to default. At the same time, it must remain interpretable enough that the bank can give a specific, defensible reason for every rejection. Formally this is a supervised problem of binary classification on 5,960 historical loans. Each loan has 12 attributes known at application time and a target that indicates default or serious delinquency."));
+children.push(p("The consumer credit department wants to replace that process with an empirically derived, statistically sound credit-scoring model. The department wants a model built from the bank's own data on recent applicants and in line with the Equal Credit Opportunity Act. The model must predict at application time which applicants are likely to default. The department also asked which applicant attributes should drive approval decisions. At the same time, it must remain interpretable enough that the bank can give a specific, defensible reason for every rejection. Formally this is a supervised problem of binary classification on 5,960 historical loans. Each loan has 12 attributes known at application time and a target that indicates default or serious delinquency. Table A2 in the Appendix defines the 12 attributes and their field names."));
 
 children.push(h2("Final proposed solution design"));
 children.push(
@@ -196,6 +196,7 @@ children.push(p([bold("A surrogate decision tree that follows the forest provide
 children.push(p([bold("What is new in this approach. "), txt("Three choices set this project apart from a standard scorecard, and any lender with its own loan outcomes can repeat them. First, we treated each blank field as information and gave it a flag. The models then used those flags as their strongest signal. Second, we chose the model, its inputs and its threshold on the dollar cost of out-of-fold mistakes. A rule fixed in advance decided each choice, not a convention. Third, a surrogate tree fitted to the forest's own decisions gives a plain-language rule list for a 200-tree model. Together these steps give a scoring engine that is both cheaper in credit errors and defensible to a regulator.")]));
 children.push(h2("How the solution affects the business"));
 children.push(
+  bullet([bold("Lower cost of credit errors. "), txt("The indicative costs are $9,000 per missed defaulter and $2,000 per wrongly declined good applicant. Under these costs, the expected cost of credit errors falls from about $1.8 million to about $0.3 million per 1,000 applicants. That is about 83% less.")]),
   bullet([bold("Fewer bad loans. "), txt("Of every 200 defaulters in 1,000 applications the model flags about 185 before the money leaves the bank, against none today. Table A1 gives the test-set counts.")]),
   bullet([bold("Protected good business. "), txt("At the 0.15 threshold the model flags about 90 creditworthy applicants per 1,000. This is the price of catching defaulters. It is far lower than the single decision tree's 145. The bank can reduce it further by routing borderline cases to a human underwriter instead of declining them outright. Under the approve / refer / decline bands, the bank declines about 64 creditworthy applicants per 1,000 automatically and refers about 58. Stated as rates, the model flags about 27% of all applicants. That is an approval rate of about 73% on a population that the bank approves in full today, against 84% at the conventional 0.5 threshold. The model wrongly flags about 11% of creditworthy applicants at 0.15, against about 3% at 0.5. Every flag that ends in a decline needs an adverse-action notice, which is one more reason to route the uncertain middle to a person.")]),
   bullet([bold("Faster, more consistent decisions. "), txt("About seven in ten applications fall in the clear-approval band, and about a quarter fall in the clear-decline band. So the bank can automate both bands. Underwriters focus on the roughly 7% in the uncertain band around the threshold.")]),
@@ -288,15 +289,14 @@ children.push(
 );
 
 // Appendix
-children.push(new Paragraph({ children: [new PageBreak()] }));
 children.push(h1("Appendix: Supporting Analysis"));
-children.push(figure("report_missing_vs_present.png", 6.4, 2.71));
+children.push(figure("report_missing_vs_present.png", 6.0, 2.54));
 children.push(caption("Figure A1. Default rate when an attribute is missing versus present. A missing debt-to-income ratio or property valuation is the strongest signal in the data."));
-children.push(figure("report_default_rate_bands.png", 6.6, FIG_H("report_default_rate_bands.png", 6.6)));
+children.push(figure("report_default_rate_bands.png", 6.2, FIG_H("report_default_rate_bands.png", 6.2)));
 children.push(caption("Figure A2. Default rate by debt-to-income band, age of oldest credit line and loan amount."));
-children.push(figure("report_credit_history.png", 6.6, FIG_H("report_credit_history.png", 6.6)));
+children.push(figure("report_credit_history.png", 6.2, FIG_H("report_credit_history.png", 6.2)));
 children.push(caption("Figure A3. Default rate by number of derogatory reports, delinquent credit lines and recent credit inquiries."));
-children.push(figure("report_interactions.png", 6.6, FIG_H_INTERACTIONS));
+children.push(figure("report_interactions.png", 6.2, FIG_H_INTERACTIONS));
 children.push(caption("Figure A4. Default rate for pairs of variables. At a debt-to-income ratio of 45% or less, two or more delinquent lines raise the default rate from 3-9% to 25-30%. Loan purpose changes the risk within some occupations."));
 children.push(table(
   ["Proposed model on the 1,788 test-set applicants", "Model flags as likely default", "Model clears as likely to repay", "Total"],
@@ -308,6 +308,25 @@ children.push(table(
   [3460, 2000, 2300, 1600], true,
 ));
 children.push(caption("Table A1. Decisions of the proposed model (Random Forest, threshold 0.15) on the test set. The model caught 92.7% of defaulters. Of the flagged applicants, 67.4% were real defaulters. Of all decisions, 89.6% were correct."));
+children.push(table(
+  ["Field name", "Meaning"],
+  [
+    ["LOAN", "Amount of loan approved"],
+    ["MORTDUE", "Amount due on the existing mortgage"],
+    ["VALUE", "Current value of the property"],
+    ["REASON", "Reason for the loan: HomeImp (home improvement) or DebtCon (debt consolidation)"],
+    ["JOB", "Occupation: Mgr (manager), Office (office worker), Other, ProfExe (professional or executive), Sales, Self (self-employed)"],
+    ["YOJ", "Years at present job"],
+    ["DEROG", "Number of major derogatory reports"],
+    ["DELINQ", "Number of delinquent credit lines"],
+    ["CLAGE", "Age of the oldest credit line in months"],
+    ["NINQ", "Number of recent credit inquiries"],
+    ["CLNO", "Number of existing credit lines"],
+    ["DEBTINC", "Debt-to-income ratio (%)"],
+  ],
+  [1800, 7560],
+));
+children.push(caption("Table A2. The 12 data fields named in this report, as the dataset defines them."));
 children.push(p([txt("The project notebook "), new TextRun({ text: "Loan_Default_Prediction_Capstone.html", font: FONT, size: 22, italics: true }), txt(" holds the complete analysis, including all exploratory charts, model code, cross-validation results and the full decision-tree rules. This report does not depend on it.")]));
 
 // ---------- document ----------
