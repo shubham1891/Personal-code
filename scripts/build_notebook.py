@@ -26,6 +26,7 @@ md(r"""
 **Learner:** Saloni Priya
 **Program:** MIT Professional Education - Applied AI and Data Science Program
 **Dataset:** Home Equity (HMEQ) - 5,960 recent home equity loans
+**Final Submission:** the last three sections of this notebook hold the Executive Summary, the Problem and Solution Summary and the Recommendations for Implementation.
 """)
 
 md(r"""
@@ -1053,7 +1054,7 @@ Recall alone can be gamed (rejecting everyone gives 100% recall), so we track tw
 - **Precision** on the defaulter class: of the applicants we reject, how many would really have defaulted? Low precision means the bank rejects good business.
 - **F1-score**: the harmonic mean of the two. We use it as the tie-breaker when recall is similar.
 
-We also report **Accuracy** for completeness and **ROC-AUC** as a threshold-free measure of how well the model ranks risky applicants. ROC-AUC matters because the bank can later move the decision threshold.
+We also report **Accuracy** for completeness and **ROC-AUC** as a threshold-free measure of how well the model ranks risky applicants. ROC-AUC matters because the bank can later move the decision threshold. We report these metrics to three decimals, because the closest candidates differ only in the third decimal.
 
 We tune the individual models with **cross-validated grid search optimising Recall** (the course convention, and a deliberate push towards catching defaulters). Recall alone rewards flagging everyone. We therefore **choose the final model and its threshold on the expected cost of the two errors**. We estimate this cost with out-of-fold predictions on the training rows, so that precision carries an explicit price.
 """)
@@ -1323,22 +1324,6 @@ md(r"""
 * **Grid search is a tuning technique that attempts to compute the optimum values of hyperparameters.**
 * **It is an exhaustive search**: it tries every combination of the parameter values that we specify.
 * **Cross-validated grid search** chooses the parameters of the estimator from a parameter grid.
-
-**Criterion {"gini", "entropy"}**
-
-The function to measure the quality of a split. Supported criteria are "gini" for the Gini impurity and "entropy" for the information gain.
-
-**max_depth**
-
-The maximum depth of the tree. If None, the tree grows until all leaves are pure or until all leaves contain less than min_samples_split samples.
-
-**min_samples_leaf**
-
-The minimum number of samples that a leaf node must contain. The tree considers a split point at any depth only if the split leaves at least min_samples_leaf training samples in each branch. This may smooth the model, especially in regression.
-
-The scikit-learn documentation lists the other hyperparameters of the classifier:
-
-https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
 
 We search over depth, minimum leaf size, split criterion and class weights. We use **5-fold stratified cross-validation on the training rows with Recall as the scoring metric**. Because class weights are in the grid, recall-scoring will favour the heavier minority weighting. We report the precision cost of that choice alongside.
 """)
@@ -1718,7 +1703,7 @@ md(r"""
 
 Above, we compared the models at the conventional 0.5 threshold. We never tested the class weights used so far (0.2/0.8 by convention, `balanced` from a recall-only grid search) against the business criterion. The bank's real question is: **which forest configuration, at its best threshold, produces the lowest expected cost of credit errors?** Class weights and the decision threshold are two dials for the same trade-off (how readily the model flags an applicant). So we must choose them together and on that criterion.
 
-To answer it **without touching the test set**, we score every candidate with **repeated 5-fold out-of-fold predictions on the training rows**. We use three different stratified 5-fold splits. So each training applicant receives three probabilities from models that never saw them, and we judge every candidate on 15 validation folds. For each candidate we find, on those out-of-fold predictions, the threshold that minimises the mean of the indicative expected cost.
+To answer it **without touching the test set**, we score every candidate with **repeated 5-fold out-of-fold (OOF) predictions on the training rows**. The tables below use OOF for out-of-fold. We use three different stratified 5-fold splits. So each training applicant receives three probabilities from models that never saw them, and we judge every candidate on 15 validation folds. For each candidate we find, on those out-of-fold predictions, the threshold that minimises the mean of the indicative expected cost.
 
 **Selection rule, fixed before the search:** the candidate with the lowest mean expected cost on out-of-fold predictions wins. If several candidates lie within one fold-to-fold standard error of the lowest cost, we prefer the simplest of them (fewest non-default settings, then fewest inputs). The standard error is the standard deviation of the 15 pooled fold costs divided by the square root of 15. This convention treats the three repeats as independent. We show paired fold-by-fold checks of the two closest contests with the robustness checks. Only then do we refit the winner on all training rows and score it once on the test set.
 
@@ -2246,7 +2231,7 @@ md(r"""
 **Insights - the surrogate tree:**
 - Fitted to the forest's out-of-fold decisions, a four-level tree reproduces about **93% of the forest's decisions** on unseen applicants (kappa 0.82). Depths 3 to 5 agree within a quarter of a point. A rule that never flags anyone reaches 73%. Fitted to the forest's in-sample decisions instead, the tree would reach only about 90%, because those decisions are almost identical to the training labels. The out-of-fold target is what makes the surrogate describe the scoring engine rather than the training data.
 - The rules are short, and they are the same drivers the EDA and the stand-alone tree found: *Is the debt-to-income ratio missing? Then flag, whatever the credit history. If it is recorded, is it above about 44%? Then flag. At or below 44%, flag only when two conditions both hold. The applicant has at least one delinquent credit line. The oldest credit line is about 93 months (7.8 years) old or less. Otherwise clear.* (Inside the "ratio missing" branch the tree splits on credit-history length, delinquent lines, a missing occupation and job tenure. But it flags every applicant on that branch. For applicants at or below 44% with no delinquent line, a property-value split appears, but both of its groups clear.) The bank can therefore tell a flagged applicant which of these conditions applied to them.
-- The surrogate does not reproduce roughly 7% of decisions. Also, each adverse-action notice must give the reasons for that applicant. So the bank must build per-applicant risk drivers from the forest itself (for example SHAP values) in the first two months, before the shadow run. These drivers give the reason for each decline, including the automatic declines above 0.25. The surrogate rules give the plain-language summary of how the model decides.
+- The surrogate does not reproduce roughly 7% of decisions. Also, each adverse-action notice must give the reasons for that applicant. So the bank must build per-applicant risk drivers from the forest itself (for example SHAP values) in the first two months, before the shadow run. SHAP values split each applicant's score among the model inputs. These drivers give the reason for each decline, including the automatic declines above 0.25. The surrogate rules give the plain-language summary of how the model decides.
 """)
 
 md(r"""
@@ -2417,7 +2402,7 @@ The three sections below summarise the whole project for the bank's decision mak
 md(r"""
 ## **Executive Summary**
 
-A bank's consumer credit department asked for an empirically derived, interpretable model that predicts which applicants for home equity loans are likely to default. The department also asked for guidance on which applicant attributes should drive approval decisions. The project used the Home Equity (HMEQ) dataset of 5,960 recent loans, of which 19.9% defaulted. The project explored the data, then built and tuned linear and tree-based classifiers. It compared them on a business-driven metric. The result is a deployable solution design.
+A bank's consumer credit department asked for an empirically derived, interpretable model that predicts which applicants for home equity loans are likely to default. The department also asked for guidance on which applicant attributes should drive approval decisions. The project used the Home Equity (HMEQ) dataset of 5,960 recent loans, of which 19.9% defaulted. The project explored the data, then built and tuned linear and tree-based classifiers. It compared them on a business-driven metric. The result is a deployable solution design. On 1,788 unseen applicants the proposed model catches 92.7% of defaulters at 67.4% precision. Under indicative cost assumptions it cuts the cost of credit errors by about 83%.
 
 ### Most important findings from the analysis
 
@@ -2445,10 +2430,10 @@ A bank's consumer credit department asked for an empirically derived, interpreta
 ### Key next steps
 
 - **Decide and check the threshold:** the head of consumer credit approves the three-band policy (approve / refer / decline). Finance supplies actual loss-given-default and margin figures so that we can check the 0.15 threshold.
-- **Prepare the process:** make income verification and property-valuation verification mandatory fields, because their absence is the strongest default signal. Build the scoring pipeline with per-applicant risk drivers (for example SHAP values) for the adverse-action notices.
-- **Prove it safely:** run the model in shadow mode alongside manual decisions for one to two months. Complete a fair-lending review before activating the model.
-- **Make the most of it:** automate clear approvals and declines. Route the uncertain band to underwriters. Monitor the approval rate monthly, and recall and precision as repayment outcomes arrive. Re-train yearly.
-- **Improve it:** add reject inference, a combined loan-to-value ratio, debt-to-income bands, interaction terms, probability calibration and time-based validation in the next iteration.
+- **Prepare the process (underwriting operations, data and technology):** make income verification and property-valuation verification mandatory fields, because their absence is the strongest default signal. Build the scoring pipeline with per-applicant risk drivers (for example SHAP values) for the adverse-action notices.
+- **Prove it safely (data science, compliance and legal):** run the model in shadow mode alongside manual decisions for one to two months. Complete a fair-lending review before activating the model.
+- **Make the most of it (underwriting operations, data and technology, data science):** automate clear approvals and declines. Route the uncertain band to underwriters. Monitor the approval rate monthly, and recall and precision as repayment outcomes arrive. Re-train yearly.
+- **Improve it (data science):** add reject inference, a combined loan-to-value ratio, debt-to-income bands, interaction terms, probability calibration and time-based validation in the next iteration.
 
 Per 1,000 applicants, we expect the proposed model to catch about 185 of the 200 defaulters and to miss about 15. At the 0.15 threshold we expect it to flag about 90 creditworthy applicants. Under the approve / refer / decline bands, the bank declines about 64 creditworthy applicants per 1,000 automatically and refers about 58 to an underwriter. The cost assumptions are indicative: a missed defaulter costs about \$9,000, and a wrongly declined good applicant costs about \$2,000. Under these assumptions the model cuts the cost of credit errors from roughly \$1.8 million per 1,000 applicants today to about \$0.3 million. That is a reduction of about 83%.
 """)
@@ -2465,7 +2450,7 @@ The consumer credit department wants to replace that process with an empirically
 ### Final proposed solution design
 
 - **Scoring engine:** a Random Forest of 200 fully grown trees with no class weights. It uses 22 inputs: the 10 financial attributes, six missing-value flags and six one-hot indicators.
-- **Pre-processing:** a missing-value flag for every field with gaps, then median or mode imputation learned on the training rows. No outlier capping and no scaling for the tree model.
+- **Pre-processing:** a missing-value flag for six fields (`VALUE`, `REASON`, `JOB`, `YOJ`, `DEROG` and `DEBTINC`), then median or mode imputation learned on the training rows. No outlier capping and no scaling for the tree model.
 - **Decision rule:** flag when the predicted default probability is above 0.15. Approve below about 0.10, refer 0.10 to 0.25 to an underwriter, and decline above 0.25.
 - **Explanation layer:** a depth-4 surrogate decision tree that reproduces 93% of the forest's decisions, plus per-applicant risk drivers from the forest for every adverse-action notice.
 - **Policy rules alongside the score:** mandatory income and valuation verification, and a 45% debt-to-income limit. Applicants with two or more delinquent lines or two or more major derogatory reports go to an underwriter. Where a rule and the score disagree, the stricter outcome applies.
@@ -2498,11 +2483,13 @@ All rows use the conventional 0.5 threshold except the proposed model.
 
 **We chose the final model and its threshold on the training rows, from business cost rather than convention.** Two settings decide how readily a forest flags an applicant: the extra weight given to defaulters during training (class weights) and the probability threshold. We chose them together, on the training rows alone, by one yardstick: the expected dollar cost of the model's mistakes. We estimated that cost on training applicants that the model did not see (three rounds of 5-fold cross-validation). The selection had three stages, each with a rule that we fixed beforehand. Stage 1 scored fifteen forest configurations on all 27 inputs, each at its own cost-minimising threshold. Stage 2 reduced the input set of the chosen forest. Stage 3 compared five final forest candidates and three other techniques. In each stage, the lowest average cost wins. When several candidates are within one standard error of the lowest cost, the simplest wins (fewest non-default settings, then fewest inputs).
 
-Fully grown trees beat limited trees for every weighting, and Stage 1 chose the unweighted forest. Stage 2 is the counterpart of choosing how many principal components to keep. We ranked the inputs by the chosen forest's importance and removed the weakest input first. The occupation and loan-purpose columns left only as whole groups. We scored each input set on the same folds with three forest seeds. Three seeds are necessary because the randomness of a single forest moves the cost by about one standard error. The rule kept 22 inputs. It removed the missing flags of `MORTDUE`, `DELINQ`, `CLAGE`, `NINQ` and `CLNO`, which together carry about 2% of the model's decision power. In Stage 3 the forest on all 27 inputs had the lowest cost (about \$317,000 per 1,000 applicants). The 22-input forest cost about \$324,000, within one standard error, so the rule chose it as the simpler model. The forest without occupation cost about 13% more. The bagged trees, the balanced logistic regression and the recall-tuned decision tree cost about \$390,000, \$550,000 and \$607,000 at their own best thresholds. So the forest wins on the chosen yardstick as well as on ranking quality.
+Fully grown trees beat limited trees for every weighting, and Stage 1 chose the unweighted forest. Stage 2 is the counterpart of choosing how many principal components to keep. We ranked the inputs by the chosen forest's importance and removed the weakest input first. We removed the occupation and loan-purpose columns only as whole groups. We scored each input set on the same folds with three forest seeds. Three seeds are necessary because the randomness of a single forest moves the cost by about one standard error. The rule kept 22 inputs. It removed the missing flags of `MORTDUE`, `DELINQ`, `CLAGE`, `NINQ` and `CLNO`, which together carry about 2% of the model's decision power. In Stage 3 the forest on all 27 inputs had the lowest cost (about \$317,000 per 1,000 applicants). The 22-input forest cost about \$324,000, within one standard error, so the rule chose it as the simpler model. The forest without occupation cost about 13% more. The bagged trees, the balanced logistic regression and the recall-tuned decision tree cost about \$390,000, \$550,000 and \$607,000 at their own best thresholds. So the forest wins on the chosen yardstick as well as on ranking quality.
 
 **The cost-minimising threshold is 0.15.** It sits just below the textbook break-even of 0.18 for a perfectly calibrated score. The reason is that the forest's scores understate risk in the decision range: applicants scored 0.15 to 0.20 defaulted about 28% of the time. It stays at 0.15 for cost ratios from 4.5:1 to 8:1 and on a finer grid. On two other train/test splits, the unweighted forest on all 27 inputs also chooses 0.15. We scored the forest once on the test set at that threshold. It catches 93% of defaulters at 67% precision, against 68% and 83% at the conventional 0.5. The test cost (about \$310,000 ± \$28,000 per 1,000 applicants) is consistent with the out-of-fold estimate (\$324,000).
 
 **A surrogate decision tree that follows the forest provides interpretability.** We fitted a four-level decision tree to the forest's own out-of-fold decisions at the 0.15 threshold, not to the original labels. It reproduces 93% of the forest's decisions on unseen applicants, against 73% for a rule that never flags anyone. Its rules are the same drivers the analysis found throughout. They flag a missing debt-to-income ratio or a recorded ratio above about 44%. Otherwise they flag a delinquent credit line together with a credit history of about 93 months or less. For each decline, the adverse-action notice gives the applicant's own top risk drivers from the forest.
+
+**What is new in this approach.** Three choices set this project apart from a standard scorecard, and any lender with its own loan outcomes can repeat them. First, we treated each blank field as information and gave it a flag. The models then used those flags as their strongest signal. Second, we chose the model, its inputs and its threshold on the dollar cost of out-of-fold mistakes. A rule fixed in advance decided each choice, not a convention. Third, a surrogate tree fitted to the forest's own decisions gives a plain-language rule list for a 200-tree model. Together these steps give a scoring engine that is both cheaper in credit errors and defensible to a regulator.
 
 ### How the solution affects the business
 
