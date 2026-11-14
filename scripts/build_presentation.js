@@ -295,7 +295,7 @@ pres.addSection({ title: "Modelling" });
   stat(s, 7.85, 1.3, 1.65, "67%", "of flagged applicants truly default", C.accent1, 34);
   stat(s, 6.1, 2.75, 1.65, "0.96", "ROC-AUC: risk ranking quality", C.accent1, 34);
   stat(s, 7.85, 2.75, 1.65, "90%", "overall accuracy", C.accent1, 34);
-  s.addText("At the 0.15 threshold alone, per 1,000 applicants: 185 of 200 defaulters flagged in advance, 15 missed, 90 good customers flagged.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
+  s.addText("At the 0.15 threshold alone, per 1,000 applicants: 185 of 200 defaulters flagged in advance, 15 missed, about 90 good customers flagged.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
   notes(s, "The proposal. A Random Forest on 22 inputs scores the applicants. After we chose the configuration, the same cost rule removed five weak missing flags, so the forest uses 22 of the 27 inputs. A final check compared it with the forest on all 27 inputs on the same folds and kept the smaller one. Appendices B and D hold the detail. The decision rule has three bands around the threshold: approve below 0.10, refer 0.10 to 0.25 to an underwriter, and decline above 0.25. A surrogate decision tree, fitted to the forest's out-of-fold decisions, reproduces 93 percent of the forest's decisions on unseen applicants. Its rules are short: flag a missing debt-to-income ratio, flag a ratio above about 44 percent, and otherwise flag a delinquent credit line with a short credit history. Per-applicant risk drivers, built before the shadow run, give each decline its own reason. The result on 1,788 unseen applicants: 93 percent of defaulters caught, and two of every three flagged applicants really defaulted. At the single 0.15 threshold, 73 percent of applicants pass.");
 }
 
@@ -311,14 +311,14 @@ pres.addSection({ title: "Modelling" });
        showLegend: true, legendPos: "b", legendFontSize: 10, valAxisMinVal: 40, valAxisMaxVal: 100, valAxisLabelFormatCode: "0", catAxisTitle: "probability threshold", showCatAxisTitle: true, catAxisTitleFontSize: 10, catAxisTitleColor: H.accent6,
        title: "Selected Random Forest, out-of-fold on training rows", objectName: "threshold chart" });
   [["At 0.50, the usual threshold", "64 defaulters missed per 1,000", "28 good customers flagged per 1,000", "$635k indicative cost per 1,000", C.accent6],
-   ["At 0.15, proposed", "15 defaulters missed per 1,000", "90 good customers flagged per 1,000", "$310k indicative cost per 1,000", C.accent5]].forEach(([t, a, b, c, col], i) => {
+   ["At 0.15, proposed", "15 defaulters missed per 1,000", "About 90 good customers flagged per 1,000", "$310k indicative cost per 1,000", C.accent5]].forEach(([t, a, b, c, col], i) => {
     const y = 1.25 + i * 1.75;
     card(s, 5.9, y, 3.7, 1.6, { name: `threshold card ${i + 1}` });
     s.addText(t, { x: 6.1, y: y + 0.1, w: 3.3, h: 0.4, fontSize: 14, bold: true, color: col, margin: 0, isTextBox: true, objectName: `threshold card title ${i + 1}` });
     s.addText(bullets([a, b, c], 12), { x: 6.1, y: y + 0.52, w: 3.3, h: 1.0, valign: "top", margin: 0, isTextBox: true, objectName: `threshold card body ${i + 1}` });
   });
   s.addText("Curves: out-of-fold predictions on the training rows. Cards: test set, at $9,000 per missed defaulter and $2,000 per wrongly declined customer. The optimum stays at 0.15 for cost ratios 4.5:1 to 8:1 and on a finer grid.", { x: 0.5, y: 4.78, w: 9.0, h: 0.36, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
-  notes(s, "The model outputs a probability, and 0.5 is only a convention. We chose the threshold on out-of-fold predictions of the training rows, so the test set played no part. Moving it to 0.15 cuts missed defaulters from 64 to 15 per thousand applicants on the test set. The price is flagging 90 instead of 28 good customers. It is the cheapest operating point for any cost ratio between four and a half and eight to one. Our assumed ratio of four and a half to one sits at the lower edge of that range. The threshold sits just below the textbook break-even of 0.18, because the forest's scores understate risk in the decision range.");
+  notes(s, "The model outputs a probability, and 0.5 is only a convention. We chose the threshold on out-of-fold predictions of the training rows, so the test set played no part. Moving it to 0.15 cuts missed defaulters from 64 to 15 per thousand applicants on the test set. The price is flagging about 90 instead of 28 good customers. It is the cheapest operating point for any cost ratio between four and a half and eight to one. Our assumed ratio of four and a half to one sits at the lower edge of that range. The threshold sits just below the textbook break-even of 0.18, because the forest's scores understate risk in the decision range.");
 }
 
 // =====================================================================================
@@ -420,21 +420,21 @@ pres.addSection({ title: "Appendix" });
   const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
   const rows = [
     [hdr("Model"), hdr("Recall"), hdr("Precision"), hdr("F1"), hdr("Accuracy"), hdr("ROC-AUC"), hdr("Train recall")],
-    ["Logistic Regression (plain)", "0.566", "0.774", "0.654", "0.880", "0.907", "0.635"],
-    ["Logistic Regression (balanced, C tuned)", "0.796", "0.608", "0.689", "0.857", "0.906", "0.821"],
-    ["Decision Tree (default)", "0.686", "0.706", "0.696", "0.880", "0.807", "1.000"],
-    ["Decision Tree (class weights)", "0.616", "0.719", "0.664", "0.875", "0.778", "1.000"],
-    ["Decision Tree (tuned: balanced, min 20 per leaf)", "0.821", "0.531", "0.645", "0.819", "0.877", "0.921"],
-    ["Bagging (200 fully grown trees)", "0.683", "0.827", "0.748", "0.908", "0.945", "1.000"],
-    ["Bagging (class-weighted trees)", "0.597", "0.810", "0.687", "0.891", "0.946", "1.000"],
-    ["Random Forest (default, 200 trees)", "0.686", "0.842", "0.756", "0.912", "0.963", "1.000"],
-    ["Random Forest (class weights 0.2/0.8)", "0.773", "0.769", "0.771", "0.908", "0.959", "1.000"],
-    ["Random Forest (tuned for recall)", "0.790", "0.656", "0.717", "0.875", "0.932", "0.918"],
-    ["Random Forest (tuned, 12 inputs)", "0.784", "0.660", "0.717", "0.876", "0.929", "0.916"],
-    [{ text: "Proposed: RF unweighted, 22 inputs, threshold 0.15", options: { bold: true } }, { text: "0.927", options: { bold: true } }, { text: "0.674", options: { bold: true } }, { text: "0.781", options: { bold: true } }, { text: "0.896", options: { bold: true } }, { text: "0.961", options: { bold: true } }, "-"],
+    ["Logistic Regression (plain)", "57%", "77%", "0.65", "88%", "0.91", "63%"],
+    ["Logistic Regression (balanced, regularisation tuned)", "80%", "61%", "0.69", "86%", "0.91", "82%"],
+    ["Decision Tree (standard settings)", "69%", "71%", "0.70", "88%", "0.81", "100%"],
+    ["Decision Tree (class weights 0.2/0.8)", "62%", "72%", "0.66", "88%", "0.78", "100%"],
+    ["Decision Tree (tuned: balanced, at least 20 per leaf)", "82%", "53%", "0.64", "82%", "0.88", "92%"],
+    ["Bagged trees (200 fully grown trees)", "68%", "83%", "0.75", "91%", "0.95", "100%"],
+    ["Bagged trees (class-weighted trees)", "60%", "81%", "0.69", "89%", "0.95", "100%"],
+    ["Random Forest (standard settings, 200 trees)", "69%", "84%", "0.76", "91%", "0.96", "100%"],
+    ["Random Forest (class weights 0.2/0.8)", "77%", "77%", "0.77", "91%", "0.96", "100%"],
+    ["Random Forest (tuned for recall)", "79%", "66%", "0.72", "88%", "0.93", "92%"],
+    ["Random Forest (tuned for recall, 12 inputs)", "78%", "66%", "0.72", "88%", "0.93", "92%"],
+    [{ text: "Proposed: Random Forest, 22 inputs, threshold 0.15", options: { bold: true } }, { text: "93%", options: { bold: true } }, { text: "67%", options: { bold: true } }, { text: "0.78", options: { bold: true } }, { text: "90%", options: { bold: true } }, { text: "0.96", options: { bold: true } }, "-"],
   ];
-  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [3.3, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.27, valign: "middle", margin: 0.03, align: "left", objectName: "full comparison table" });
-  s.addText("Test set of 1,788 applicants at the 0.5 threshold except the proposed model. Train recall of 1.000 marks un-pruned models that memorised the training rows. We chose the proposed model, its 22 inputs and its threshold on repeated out-of-fold expected cost (training rows only).", { x: 0.5, y: 4.82, w: 9.0, h: 0.33, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "table footnote" });
+  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [3.9, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85], fontSize: 10.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.27, valign: "middle", margin: 0.03, align: "left", objectName: "full comparison table" });
+  s.addText("Test set of 1,788 applicants at the 0.5 threshold except the proposed model. A train recall of 100% marks un-pruned models that memorised the training rows. We chose the proposed model, its 22 inputs and its threshold on repeated out-of-fold expected cost (training rows only).", { x: 0.5, y: 4.82, w: 9.0, h: 0.33, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "table footnote" });
   notes(s, "All models on the test set. We fixed the selection rule beforehand: lowest mean cost, and the simplest set-up among those within one standard error, about 10,500 dollars per thousand applicants. On the seed-averaged input curve one standard error is about 9,700 dollars, and the same rule kept 22 inputs. The mean out-of-fold ROC-AUC of the proposed model is 0.960, against 0.961 on the test set.");
 }
 
