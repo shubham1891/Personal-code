@@ -327,7 +327,7 @@ children.push(table(
   [1800, 7560],
 ));
 children.push(caption("Table A2. The 12 data fields named in this report, as the dataset defines them."));
-children.push(p([txt("The project notebook "), new TextRun({ text: "Loan_Default_Prediction_Capstone.html", font: FONT, size: 22, italics: true }), txt(" holds the complete analysis, including all exploratory charts, model code, cross-validation results and the full decision-tree rules. This report does not depend on it.")]));
+children.push(p([txt("The project notebook "), new TextRun({ text: "Loan_Default_Prediction_Low_Code.html", font: FONT, size: 22, italics: true }), txt(" holds the complete analysis, including all exploratory charts, model code, cross-validation results and the full decision-tree rules. This report does not depend on it.")]));
 
 // ---------- document ----------
 const doc = new Document({

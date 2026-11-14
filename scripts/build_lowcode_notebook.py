@@ -132,6 +132,12 @@ code(20, r"""
 # Check the percentage of missing values in the each column.
 (data.isnull().sum() / len(data) * 100).round(2).sort_values(ascending=False)
 """)
+add_after(20, "code", r"""
+# Share of applications (rows) with at least one blank field, and the number of duplicate rows
+rows_with_na = data.isnull().any(axis=1).sum()
+print(f'Rows with at least one missing value: {rows_with_na:,} of {len(data):,} ({rows_with_na / len(data):.1%})')
+print('Duplicate rows:', data.duplicated().sum())
+""")
 md(21, r"""
 **Insights:**
 - `DEBTINC` (debt-to-income ratio) is missing in 21.3% of applications, by far the most. It is the single most important affordability measure a lender has, so its absence is suspicious in itself.
@@ -536,6 +542,16 @@ value_status = data["VALUE"].isna().map({False: "value recorded", True: "value m
 both_missing = bad_int.groupby([ratio_status, value_status]).agg(default_rate_pct="mean", applicants="size")
 both_missing["default_rate_pct"] = (100 * both_missing["default_rate_pct"]).round(1)
 both_missing
+""")
+add_after(76, "code", r"""
+#@title
+# The numbers behind the first heat map: default rate (%) and applicants by debt-to-income band and delinquent credit lines
+g_rate, g_n = rate_grid(dti_band, delinq_group, ['under 30', '30-35', '35-40', '40-45', 'over 45', 'missing'], ['0', '1', '2+', 'missing'])
+print('Default rate (%) by debt-to-income band (rows) and delinquent credit lines (columns)')
+print(g_rate.round(1).to_string())
+print()
+print('Applicants in each cell')
+print(g_n.to_string())
 """)
 add_after(76, "markdown", r"""
 **Insights - interactions between the strongest drivers:**
@@ -1216,6 +1232,41 @@ add_after(166, "markdown", r"""
 - Every un-pruned tree model (the single tree, bagging and the default and class-weighted forests) scores 100% on the training data. Only the test columns show differences between the models.
 - On the test set at the 0.5 threshold, the tuned decision tree has the highest recall (82%) but the lowest precision (53%). The class-weighted Random Forest has the best balance (77% recall, 77% precision, 91% accuracy). The default, unweighted forest is the most precise (84%) and ranks applicants best (out-of-fold ROC-AUC 0.96 in the selection cell below). But it misses almost a third of defaulters at this threshold. The balanced logistic regression reaches 80% recall at 61% precision. We decide next which forest is best for the bank, on expected cost and training data only.
 """)
+add_after(166, "code", r"""
+#@title
+# Three more variants for reference, and the full test metrics (with F1 and ROC-AUC) of every variant at the 0.5 threshold
+dt_standard = DecisionTreeClassifier(random_state=1).fit(X_train, y_train)          # fully grown tree, standard settings, no class weights
+bagging_weighted = BaggingClassifier(estimator=DecisionTreeClassifier(random_state=1, class_weight={0: 0.2, 1: 0.8}),
+                                     n_estimators=200, random_state=1, n_jobs=-1).fit(X_train, y_train)   # bagging over class-weighted trees
+top_inputs = pd.Series(rf_estimator_tuned.feature_importances_, index=X_train.columns).sort_values(ascending=False)
+top_inputs = top_inputs[top_inputs > 0.01].index.tolist()                            # the inputs with an importance above 1%
+rf_tuned_reduced = RandomForestClassifier(**grid_obj.best_params_, random_state=1, n_jobs=-1).fit(X_train[top_inputs], y_train)
+print(f'Tuned Random Forest refitted on its {len(top_inputs)} most important inputs:', top_inputs)
+
+# every variant with the input matrix it was trained on (the logistic regression uses the capped and scaled data)
+all_variants = [('Logistic Regression (plain)', lg, X_train_lr, X_test_lr), ('Logistic Regression (balanced)', lg_bal, X_train_lr, X_test_lr),
+                ('Decision Tree (standard settings)', dt_standard, X_train, X_test), ('Decision Tree (class weights)', dt, X_train, X_test),
+                ('Tuned Decision Tree', dtree_estimator, X_train, X_test), ('Bagging (200 trees)', bagging, X_train, X_test),
+                ('Bagging (class-weighted trees)', bagging_weighted, X_train, X_test), ('Random Forest', rf_estimator, X_train, X_test),
+                ('Random Forest (class weights)', rf_estimator_weighted, X_train, X_test), ('Tuned Random Forest', rf_estimator_tuned, X_train, X_test),
+                (f'Tuned Random Forest ({len(top_inputs)} inputs)', rf_tuned_reduced, X_train[top_inputs], X_test[top_inputs])]
+variant_rows = []
+for name, model, Xtr, Xte in all_variants:
+    pred = model.predict(Xte)
+    variant_rows.append({'Model': name, 'Test_Recall': metrics.recall_score(y_test, pred), 'Test_Precision': metrics.precision_score(y_test, pred),
+                         'Test_F1': metrics.f1_score(y_test, pred), 'Test_Accuracy': metrics.accuracy_score(y_test, pred),
+                         'Test_ROC_AUC': metrics.roc_auc_score(y_test, model.predict_proba(Xte)[:, 1]),
+                         'Train_Recall': metrics.recall_score(y_train, model.predict(Xtr))})
+all_variants_frame = pd.DataFrame(variant_rows).set_index('Model')
+all_variants_frame.round(4)     # four decimals, so that the report can round each value once
+""")
+add_after(166, "markdown", r"""
+**Observations - all eleven variants:**
+- The table adds three variants: a fully grown tree with standard settings, bagging over class-weighted trees, and the tuned forest refitted on its 12 most important inputs.
+- The standard tree catches 69% of defaulters at 71% precision, but its ROC-AUC is only 0.81. Bagging lifts the ROC-AUC to 0.95, and the forests reach 0.93 to 0.96.
+- Class weights do not help bagging: its recall falls to 60% at 81% precision.
+- The tuned forest keeps its performance on 12 inputs (78% recall at 66% precision, against 79% at 66% on all 27).
+""")
 add_after(166, "markdown", r"""
 ### **Choosing the final model and its decision threshold on training data only**
 
@@ -1568,6 +1619,7 @@ final_pred = (proba_test > FINAL_THRESHOLD).astype(int)
 print(f'Final model: {winner} at threshold {FINAL_THRESHOLD:.2f} - TEST SET')
 metrics_score(y_test, final_pred)
 print('Test ROC-AUC:', round(metrics.roc_auc_score(y_test, proba_test), 3))
+print('Inputs of the final model:', final_model.n_features_in_, '| inputs tried at each split:', final_model.estimators_[0].max_features_)
 cost_per_applicant = np.where((y_test == 1) & (final_pred == 0), COST_FN, np.where((y_test == 0) & (final_pred == 1), COST_FP, 0.0))
 print(f"Today's process on these applicants (all approved, every defaulter missed): expected cost ${1000 * y_test.mean() * COST_FN:,.0f} per 1,000; the final model at {FINAL_THRESHOLD:.2f} cuts it by {1 - cost_per_applicant.mean() / (y_test.mean() * COST_FN):.1%}")
 print(f"Test expected cost per 1,000 applicants: ${1000 * cost_per_applicant.mean():,.0f} (standard error about ${1000 * cost_per_applicant.std(ddof=1) / np.sqrt(len(y_test)):,.0f}); out-of-fold estimate ${oof[winner]['best']['expected_cost_per_1000_$']:,.0f}")
