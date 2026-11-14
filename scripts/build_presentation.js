@@ -481,6 +481,45 @@ pres.addSection({ title: "Appendix" });
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.8, 3.7], fontSize: 9.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
 }
 
+// A5. Solution code highlights (condensed from the notebook's final-pipeline cells)
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
+  s.addText("Appendix E: solution code highlights", { placeholder: "title" });
+  const code = [
+    "# Every statistic is learned on the 4,172 training rows only",
+    "for c in cols_with_gaps:                 # 1 if the field was blank",
+    "    data[f\"{c}_missing\"] = data[c].isna().astype(int)",
+    "data[num_cols] = data[num_cols].fillna(train_medians)  # DEBTINC 34.84",
+    "data[cat_cols] = data[cat_cols].fillna(train_modes)    # DebtCon, Other",
+    "X = pd.get_dummies(data.drop(columns=\"BAD\"), columns=cat_cols,",
+    "                   drop_first=True)                    # 27 columns",
+    "",
+    "# Final model: 200 fully grown trees on the 22 inputs Stage 2 kept",
+    "final_model = RandomForestClassifier(n_estimators=200, random_state=1)",
+    "final_model.fit(X_train[final_cols], y_train)   # len(final_cols) == 22",
+    "",
+    "# Decision rule: flag when the default probability exceeds 0.15",
+    "proba = final_model.predict_proba(X_test[final_cols])[:, 1]",
+    "flag = (proba > FINAL_THRESHOLD).astype(int)    # FINAL_THRESHOLD = 0.15",
+    "",
+    "# Explanation layer: a depth-4 tree fitted to the forest's decisions",
+    "surrogate = DecisionTreeClassifier(max_depth=4, min_samples_leaf=20)",
+    "surrogate.fit(X_train[final_cols], forest_decision_oof)  # 93% agreement",
+  ];
+  s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 1.25, w: 6.45, h: 3.95, fill: { color: "F4F5F7" }, line: { color: "D9DCE1", width: 0.75 }, objectName: "code panel" });
+  s.addText(code.map((t, i) => ({ text: t, options: { breakLine: i < code.length - 1, color: t.trim().startsWith("#") ? H.accent1 : H.dk1, bold: t.trim().startsWith("#") } })),
+    { x: 0.62, y: 1.34, w: 6.25, h: 3.8, fontSize: 9, fontFace: "Consolas", margin: 0, isTextBox: true, valign: "top", paraSpaceAfter: 1, objectName: "code highlights" });
+  const points = [
+    "Test set reserved first. Medians, modes and the model see only the 4,172 training rows.",
+    "Model, inputs and threshold chosen on out-of-fold cost under a rule fixed in advance.",
+    "Fixed seeds: every number in this deck is reproducible from the notebook, which runs top to bottom in about 15 minutes.",
+    "Full code: the submitted notebook, 85 code cells, every one commented.",
+  ];
+  s.addText(points.map((t, i) => ({ text: t, options: { bullet: { indent: 14 }, fontSize: 11, color: C.text1, paraSpaceAfter: 10, breakLine: i < points.length - 1 } })),
+    { x: 7.15, y: 1.25, w: 2.4, h: 3.95, margin: 0, isTextBox: true, valign: "top", objectName: "code notes" });
+  notes(s, "Appendix E shows the heart of the solution in a dozen lines, condensed from the notebook's final-pipeline cells. Flag each blank, fill it from the training rows, one-hot encode, fit the forest on the 22 selected inputs, flag above 0.15, and fit the surrogate tree to the forest's own decisions. The full notebook holds every step with comments.");
+}
+
 // ---------------- write ----------------
 (async () => {
   await pres.writeFile({ fileName: OUT });
