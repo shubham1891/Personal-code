@@ -1638,6 +1638,46 @@ band_tbl.round(3)
 """)
 add_after(166, "code", r"""
 #@title
+# A second cost scenario and the underwriting effort. They change no model choice: they show how the benefit and the
+# threshold react to other reasonable assumptions. The scenario states both unit costs as shares of the loan amount.
+mean_loan = hm.groupby('BAD')['LOAN'].mean()
+LGD, PROFIT = 0.40, 0.04                       # loss given default on a defaulted loan; lifetime profit on a good loan
+alt_fn, alt_fp = LGD * mean_loan[1], PROFIT * mean_loan[0]
+print(f'Mean loan amount: ${mean_loan[1]:,.0f} for loans that defaulted, ${mean_loan[0]:,.0f} for loans that were repaid')
+print(f'Main case: ${COST_FN:,} per missed defaulter ({COST_FN / mean_loan[1]:.0%} of the mean defaulted loan) and ${COST_FP:,} per wrongly declined '
+      f'good applicant ({COST_FP / mean_loan[0]:.1%} of the mean repaid loan), ratio {COST_FN / COST_FP:.1f}:1')
+print(f'Second scenario: ${alt_fn:,.0f} per missed defaulter ({LGD:.0%} of the mean defaulted loan) and ${alt_fp:,.0f} per wrongly declined '
+      f'good applicant ({PROFIT:.0%} of the mean repaid loan), ratio {alt_fn / alt_fp:.1f}:1')
+alt_oof = oof[winner]['table'][['threshold', 'missed_defaulters_per_1000', 'good_customers_declined_per_1000']].copy()
+alt_oof['second_scenario_cost_per_1000_$'] = alt_oof['missed_defaulters_per_1000'] * alt_fn + alt_oof['good_customers_declined_per_1000'] * alt_fp
+print('\nOut-of-fold cost of the selected forest under the second scenario (training rows), thresholds 0.05 to 0.30:')
+print(alt_oof.head(6).round({'threshold': 2, 'missed_defaulters_per_1000': 1, 'good_customers_declined_per_1000': 1, 'second_scenario_cost_per_1000_$': 0}).to_string(index=False))
+alt_test = cost_table(y_test, proba_test, thresholds=np.array([FINAL_THRESHOLD, 0.5]))
+alt_test_cost = alt_test['missed_defaulters_per_1000'] * alt_fn + alt_test['good_customers_declined_per_1000'] * alt_fp
+alt_today = 1000 * y_test.mean() * alt_fn
+APPLICATIONS = 6000
+print(f'\nTest set, second scenario, per 1,000 applicants: today ${alt_today:,.0f}; final model at {FINAL_THRESHOLD:.2f} ${alt_test_cost.iloc[0]:,.0f}; '
+      f'at 0.50 ${alt_test_cost.iloc[1]:,.0f}; reduction at {FINAL_THRESHOLD:.2f}: {1 - alt_test_cost.iloc[0] / alt_today:.1%}')
+print(f'For {APPLICATIONS:,} applications a year: ${APPLICATIONS / 1000 * alt_today / 1e6:.1f} million today, '
+      f'${APPLICATIONS / 1000 * alt_test_cost.iloc[0] / 1e6:.1f} million with the model, benefit ${APPLICATIONS / 1000 * (alt_today - alt_test_cost.iloc[0]) / 1e6:.1f} million')
+SALARY, OVERHEAD, REVIEWS_PER_YEAR = 62000, 0.15, 1000   # yearly salary of an underwriter, overhead rate, applications that one underwriter reviews in a year
+review_cost = SALARY * (1 + OVERHEAD) / REVIEWS_PER_YEAR
+reviews_model = APPLICATIONS * band_tbl.loc['refer to underwriter (0.10 - 0.25)', 'share_of_applicants']
+print(f'\nUnderwriting: one underwriter costs ${SALARY * (1 + OVERHEAD):,.0f} a year (${SALARY:,} salary plus {OVERHEAD:.0%} overhead) and reviews about '
+      f'{REVIEWS_PER_YEAR:,} applications, so one manual review costs about ${review_cost:,.0f}')
+print(f'Manual reviews a year: {APPLICATIONS:,} today (${APPLICATIONS * review_cost:,.0f}); about {reviews_model:,.0f} in the referral band with the model '
+      f'(${reviews_model * review_cost:,.0f}); saving ${(APPLICATIONS - reviews_model) * review_cost:,.0f} a year')
+""")
+add_after(166, "markdown", r"""
+**Observations: a second cost scenario and the underwriting effort**
+
+- The main case uses \$9,000 for a missed defaulter and \$2,000 for a wrongly declined good applicant. That is about 53% of the mean defaulted loan and about 10.5% of the mean repaid loan.
+- The second scenario uses a loss given default of 40% and a profit of 4% on a good loan. A missed defaulter then costs about \$6,800 and a wrongly declined good applicant about \$760. The ratio is about 9:1, at the upper edge of the range where 0.15 is the cheapest threshold.
+- Under the second scenario, the thresholds 0.10 and 0.15 cost almost the same on the out-of-fold predictions. The yearly benefit for 6,000 applications is about \$7.1 million, against about \$8.9 million in the main case. The model, its inputs and the bands do not change. The bank sets the final threshold with its own loss figures.
+- The bands also decrease the underwriting effort. Underwriters review about 440 applications a year in the referral band, not all 6,000. At about \$71 for each review, the saving is about \$0.4 million a year. The benefit figures above do not include this saving.
+""")
+add_after(166, "code", r"""
+#@title
 # Where does the performance come from? The final model on the test applicants with a recorded debt-to-income ratio and on those without one
 rows = []
 for label, mask in [('ratio recorded', X_test['DEBTINC_missing_values_flag'] == 0), ('ratio missing', X_test['DEBTINC_missing_values_flag'] == 1)]:
@@ -1678,6 +1718,63 @@ surrogate = DecisionTreeClassifier(max_depth=4, min_samples_leaf=20, random_stat
 fidelity = (surrogate.predict(X_test[final_cols]) == final_pred).mean()
 print(f'\nThe depth-4 surrogate tree (fitted to the out-of-fold decisions) reproduces {fidelity:.1%} of the forest decisions on unseen applicants.\n')
 print(export_text(surrogate, feature_names=final_cols, max_depth=4, show_weights=False))
+""")
+add_after(166, "code", r"""
+#@title
+# Per-applicant risk drivers: SHAP values of the final forest for the test applicants.
+# For one applicant, the SHAP value of an input is the contribution of that input to the score.
+# The contributions add up to the difference between the score of the applicant and the average score (the base value).
+import shap
+explainer = shap.TreeExplainer(final_model)
+X_shap = X_test[final_cols]
+sv = explainer.shap_values(X_shap)
+shap_default = sv[1] if isinstance(sv, list) else (sv[:, :, 1] if sv.ndim == 3 else sv)   # contributions to the default score
+base_value = float(np.ravel(explainer.expected_value)[-1])
+print(f'Test applicants explained: {len(X_shap):,} | base value (average score of the forest): {base_value:.3f}')
+print(f'Largest gap between base value + contributions and the score: {np.abs(base_value + shap_default.sum(axis=1) - proba_test).max():.1e}')
+
+mean_abs = pd.Series(np.abs(shap_default).mean(axis=0), index=final_cols).sort_values(ascending=False)
+print('\nInputs with the largest mean absolute contribution to the score (share of the total):')
+print((mean_abs / mean_abs.sum()).head(8).round(3).to_string())
+
+contrib = pd.DataFrame(shap_default, columns=final_cols, index=X_shap.index)
+# Reasons for one applicant: when a value is missing, the forest uses the missing-value flag and the imputed value together,
+# so the reason adds the two contributions and gives them to the flag
+reasons = contrib.copy()
+for flag in [c for c in final_cols if '_missing' in c]:
+    field = flag.split('_missing')[0]
+    if field in reasons.columns:
+        is_missing = X_shap[flag].values == 1
+        reasons.loc[is_missing, flag] += reasons.loc[is_missing, field]
+        reasons.loc[is_missing, field] = 0.0
+flagged = np.asarray(final_pred) == 1
+top_driver = reasons[flagged].idxmax(axis=1)          # for each flagged applicant, the input that raises the score most
+print(f'\nInput with the largest positive contribution, for the {flagged.sum()} flagged test applicants (share):')
+print(top_driver.value_counts(normalize=True).head(6).round(3).to_string())
+
+def explain(position, k=3):
+    row = reasons.iloc[position].sort_values(ascending=False)          # largest positive contributions first
+    drivers = '; '.join(f'{c} = {X_shap.iloc[position][c]:g} ({row[c]:+.3f})' for c in row.index[:k])
+    outcome = 'defaulted' if y_test.iloc[position] == 1 else 'repaid'
+    return f'score {proba_test[position]:.3f} ({outcome}): {drivers}'
+
+ratio_flag = [c for c in final_cols if c.startswith('DEBTINC_missing')][0]
+recorded = X_shap[ratio_flag].values == 0
+pos = np.arange(len(X_shap))
+group_a, group_b = flagged & recorded, flagged & ~recorded
+examples = {
+    'Flagged, ratio recorded, highest score': pos[group_a][np.argmax(proba_test[group_a])],
+    'Flagged, ratio missing, median score': pos[group_b][np.argsort(proba_test[group_b])[group_b.sum() // 2]],
+    'Flagged, score nearest above the threshold': pos[flagged][np.argmin(proba_test[flagged])],
+}
+print('\nTop three drivers of example applicants (input = value, contribution to the score):')
+for label, position in examples.items():
+    print(f'  {label}: {explain(position)}')
+""")
+add_after(166, "markdown", r"""
+**Observations: per-applicant risk drivers (SHAP values)**
+
+- SHAP_OBSERVATIONS_PLACEHOLDER
 """)
 md(167, r"""
 **Insights (model selection and final model):**

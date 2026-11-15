@@ -184,6 +184,18 @@ const CRIB = [
     "The cost of a replacement customer is also in this number.",
     "Both numbers are indicative, and the finance team should replace them.",
   ]],
+  ["What if the costs are different?", [
+    "I tested a second cost scenario.",
+    "It uses a loss given default of 40 percent and a profit of 4 percent on a good loan.",
+    "Then the indicative benefit is about 7 million dollars each year.",
+    "The thresholds 0.10 and 0.15 cost almost the same.",
+    "So the model and the bands do not change.",
+  ]],
+  ["How much underwriter time does the model save?", [
+    "Underwriters review about 440 applications each year, not 6,000.",
+    "With my assumptions, one review costs about 71 dollars.",
+    "So the saving is about 0.4 million dollars each year.",
+  ]],
   ["How do the bands change the numbers?", [
     "The numbers in the talk are for the single threshold of 0.15.",
     "With the bands, the model catches between 88 and 96 percent of defaulters.",

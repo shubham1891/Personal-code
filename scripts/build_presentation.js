@@ -360,7 +360,7 @@ pres.addSection({ title: "Recommendations" });
     "Assumptions: 6,000 applications a year. $9,000 lost per missed defaulter. $2,000 margin forgone per wrongly declined applicant. Test performance holds in production",
     "Measured on the loans the bank approves today, before mandatory checks",
     "Cost: $300-400k one-off and about $100k a year. Repaid in the first year live even at a quarter of the benefit",
-    "Also: faster, consistent decisions and an auditable reason for every decline",
+    "Also: about 440 manual reviews a year in place of 6,000 (about $0.4M of underwriter time), and an auditable reason for every decline",
   ], 11.5), { x: 0.5, y: 3.6, w: 9.1, h: 1.55, valign: "top", margin: 0, isTextBox: true, objectName: "impact bullets" });
   notes(s, 12);
 }
@@ -526,7 +526,7 @@ pres.addSection({ title: "Appendix" });
     ["Cross-validation", "Every candidate scored on training applicants it had not seen: 5 folds, repeated 3 times", "The noise is known: one standard error is about $10,500 per 1,000 applicants"],
     ["Rule set in advance", "Lowest mean cost wins. Within one standard error, the simplest model wins", "The forest without class weights chosen from 15 forest settings"],
     ["Fewer inputs", "Weakest input removed one at a time, averaged over three random seeds", "22 of 27 inputs kept. With 21 the cost leaves the one-standard-error band"],
-    ["Threshold stress test", "Other cost ratios, a finer grid, two other train/test splits", "0.15 holds from 4.5:1 to 8:1 and on the finer grid. On both other splits the 27-input forest also chose 0.15"],
+    ["Threshold stress test", "Other cost ratios, a finer grid, two other train/test splits, a second cost scenario (loss given default 40%, profit 4%)", "0.15 holds from 4.5:1 to 8:1 and on the finer grid. On both other splits the 27-input forest also chose 0.15. Second scenario (about 9:1): 0.10 and 0.15 cost almost the same, benefit about $7.1M"],
     ["Paired comparison", "22 inputs against 27 inputs on the same 15 folds", "$6,800 apart, paired standard error $6,300: about one standard error, within noise"],
     ["Calibration", "Do the scores behave like default rates?", "Brier score 0.063 against 0.160 for the base rate. Near the threshold the scores understate risk: 0.15-0.20 defaulted 28%"],
     ["Explanation fidelity", "Small tree fitted to the forest's cross-validated decisions", "Agrees with 93% of the forest's test decisions. Never flagging would agree 73%"],
