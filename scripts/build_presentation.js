@@ -102,7 +102,7 @@ pres.addSection({ title: "Opening" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Opening" });
   s.addText("Key takeaways", { placeholder: "title" });
   const items = [
-    ["1 in 5", "The problem. ", "One in five home equity loans in the data ended in default. Accuracy alone misleads."],
+    ["1 in 5", "The problem. ", "One in five home equity loans in the data ended in default. Accuracy alone misleads: approving everyone is 80% accurate."],
     ["62%", "Key finding. ", "Default rate when the debt-to-income ratio is missing, against 8.6% when it is present."],
     ["93%", "The solution. ", "Of eleven model variants, a Random Forest wins on business cost. It catches 93% of defaulters among unseen applicants."],
     ["~$9M", "The benefit. ", "Indicative yearly saving on 6,000 applications: the cost of credit errors falls from $10.8M to $1.9M."],
@@ -171,7 +171,7 @@ pres.addSection({ title: "Key insights" });
 // 5. Insight 1: missing information
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Key insights" });
-  s.addText("Insight 1: missing information is the strongest warning sign", { placeholder: "title" });
+  s.addText("Insight 1: a missing debt-to-income ratio or property value is the strongest warning sign", { placeholder: "title" });
   s.addChart(pres.charts.BAR, [
     { name: "Field missing", labels: ["Property value", "Debt-to-income", "Credit-line age", "No. of credit lines", "Derogatory reports", "Occupation"], values: [93.8, 62.0, 25.3, 23.9, 12.3, 8.2] },
     { name: "Field present", labels: ["Property value", "Debt-to-income", "Credit-line age", "No. of credit lines", "Derogatory reports", "Occupation"], values: [18.5, 8.6, 19.7, 19.8, 21.0, 20.5] },
@@ -181,7 +181,7 @@ pres.addSection({ title: "Key insights" });
   s.addText(bullets([
     "No recorded debt-to-income ratio: 62% default (1,267 applicants, 21% of the data)",
     "No property valuation: 94% default (112 applicants)",
-    "Overall default rate 20%: these two missing values multiply risk 3 to 5 times, because the bank could not check income or collateral",
+    "Overall default rate 20%: these two missing values multiply risk 3 to 5 times, probably because the bank could not check income or collateral",
     "Action: a 'was missing' flag for every field with missing values, and mandatory verification in the process",
   ], 12.5), { x: 6.2, y: 1.25, w: 3.4, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "insight 1 bullets" });
   notes(s, 5);
@@ -213,15 +213,15 @@ pres.addSection({ title: "Key insights" });
   s.addChart(pres.charts.BAR, [
     { name: "Default rate", labels: ["<5 yrs", "5-10", "10-15", "15-20", "20-25", "25+"], values: [44.0, 26.2, 22.8, 15.3, 9.3, 10.7] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 2.9, h: 3.0, barDir: "col", chartColors: [H.accent3], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
-       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", title: "By age of oldest credit line", objectName: "credit age chart" });
+       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", titleFontSize: 11, title: "Default rate (%) by credit-line age", objectName: "credit age chart" });
   s.addChart(pres.charts.BAR, [
     { name: "Default rate", labels: ["<5k", "5-10k", "10-15k", "15-20k", "20-30k", "30k+"], values: [57.2, 25.1, 20.48, 16.2, 14.4, 19.5] },
   ], { ...chartFrame(), x: 3.3, y: 1.2, w: 2.9, h: 3.0, barDir: "col", chartColors: [H.accent2], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
-       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", title: "By loan amount ($)", objectName: "loan amount chart" });
+       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", titleFontSize: 11, title: "Default rate (%) by loan amount", objectName: "loan amount chart" });
   s.addChart(pres.charts.BAR, [
     { name: "Default rate", labels: ["Sales", "Self-employed", "Manager", "Other", "Professional / executive", "Office"], values: [34.9, 30.1, 23.3, 23.2, 16.6, 13.2] },
   ], { ...chartFrame(), x: 6.2, y: 1.2, w: 3.4, h: 3.0, barDir: "bar", catAxisOrientation: "maxMin", catAxisLabelFontSize: 9, chartColors: [H.accent6], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
-       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", title: "By occupation", objectName: "occupation chart" });
+       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", titleFontSize: 11, title: "Default rate (%) by occupation", objectName: "occupation chart" });
   s.addText(bullets([
     "Credit history under 5 years: 44% default, four times the rate at 20 years or more",
     "Loans under $5,000: 57% default, the riskiest band",
@@ -251,7 +251,7 @@ pres.addSection({ title: "Modelling" });
     "A missed defaulter costs about 4.5 times a wrongly declined applicant",
     "Primary metric: Recall, the share of future defaulters the model catches",
     "Guard-rails: Precision (share of flagged applicants who really default), F1 and ROC-AUC (risk-ranking quality)",
-    "Final model and threshold chosen on expected cost, training rows only. Test set scored once",
+    "Final model and threshold chosen on expected cost, training rows only, then scored once on the test set",
   ], 13.5), { x: 0.5, y: 3.7, w: 9.0, h: 1.45, valign: "top", margin: 0, isTextBox: true, objectName: "metric bullets" });
   notes(s, 8);
 }
@@ -265,7 +265,7 @@ pres.addSection({ title: "Modelling" });
     { name: "Defaulters caught (recall)", labels, values: [79.6, 82.1, 68.3, 67.8, 77.3, 92.7] },
     { name: "Flagged applicants who really default (precision)", labels, values: [60.8, 53.1, 82.7, 82.9, 76.9, 67.4] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.9, h: 3.3, barDir: "bar", barGrouping: "clustered", barGapWidthPct: 50, catAxisLabelFontSize: 10,
-       chartColors: [H.accent1, H.accent4], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
+       chartColors: [H.accent5, H.accent1], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
        showLegend: true, legendPos: "b", legendFontSize: 10, catAxisOrientation: "maxMin", title: "Test set (1,788 unseen applicants), % ", objectName: "model comparison chart" });
   s.addText(bullets([
     "Logistic regression: 80% caught at 61% precision. A straight line misses the step changes in risk",
@@ -295,9 +295,9 @@ pres.addSection({ title: "Modelling" });
     ["Debt-to-income ratio missing: flag", 1],
     ["Ratio above about 44%: flag", 1],
     ["Otherwise: flag a delinquent credit line with a credit history of about 8 years or less", 1],
-    ["Per-applicant risk drivers give each decline its ECOA reason", 0],
+    ["Per-applicant risk drivers will give each decline its ECOA reason", 0],
   ];
-  s.addText(spec.map(([t, level], i) => ({ text: t, options: { bullet: { indent: 14 }, indentLevel: level, fontSize: level ? 10.5 : 11, color: C.text1, paraSpaceAfter: level ? 3 : 8, breakLine: i < spec.length - 1 } })),
+  s.addText(spec.map(([t, level], i) => ({ text: t, options: { bullet: { indent: 14 }, indentLevel: level, fontSize: level ? 10.5 : 11, color: C.text1, paraSpaceAfter: level && spec[i + 1] && spec[i + 1][1] ? 3 : 8, breakLine: i < spec.length - 1 } })),
     { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
   stat(s, 6.1, 1.3, 1.65, "93%", "of defaulters caught", C.accent5, 34);
   stat(s, 7.85, 1.3, 1.65, "67%", "of flagged applicants truly default", C.accent1, 34);
@@ -312,12 +312,21 @@ pres.addSection({ title: "Modelling" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Modelling" });
   s.addText("Why a 0.15 threshold: it is a business dial, not a constant", { placeholder: "title" });
   const labels = ["0.05", "0.10", "0.15", "0.20", "0.25", "0.30", "0.35", "0.40", "0.45", "0.50", "0.55", "0.60", "0.65", "0.70"];
+  const CH = { x: 0.4, y: 1.2, w: 5.3, h: 3.5 };            // chart frame, inches
+  const PLOT = { x: 0.08, y: 0.17, w: 0.89, h: 0.50 };      // plot area, as fractions of the chart frame
   s.addChart(pres.charts.LINE, [
     { name: "Defaulters caught (recall) %", labels, values: [98.4, 96.2, 93.7, 90.2, 86.7, 83.9, 81.2, 78.2, 75.1, 71.0, 66.7, 61.3, 53.0, 45.4] },
     { name: "Flagged applicants who really default (precision) %", labels, values: [43.8, 56.6, 63.9, 68.0, 70.7, 73.0, 75.4, 77.8, 80.2, 82.7, 85.5, 87.8, 89.4, 91.0] },
-  ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.3, h: 3.5, chartColors: [H.accent5, H.accent1], lineSize: 2.5, lineDataSymbol: "circle", lineDataSymbolSize: 6,
-       showLegend: true, legendPos: "b", legendFontSize: 10, valAxisMinVal: 40, valAxisMaxVal: 100, valAxisLabelFormatCode: "0", catAxisTitle: "probability threshold", showCatAxisTitle: true, catAxisTitleFontSize: 10, catAxisTitleColor: H.accent6,
+  ], { ...chartFrame(), x: CH.x, y: CH.y, w: CH.w, h: CH.h, layout: PLOT, chartColors: [H.accent5, H.accent1], lineSize: 2.5, lineDataSymbol: "circle", lineDataSymbolSize: 6,
+       showLegend: true, legendPos: "b", legendFontSize: 10, valAxisMinVal: 40, valAxisMaxVal: 100, valAxisLabelFormatCode: "0", catAxisTitle: "probability threshold", showCatAxisTitle: true, catAxisTitleFontSize: 10, catAxisTitleColor: H.accent6, catAxisTitleFontFace: "+mn-lt",
        title: "Selected Random Forest, cross-validated on training applicants", objectName: "threshold chart" });
+  // Guide lines at the two thresholds that the cards compare. The plot area is fixed, so the lines pass through the markers
+  [[2, C.accent5, "0.15 proposed"], [9, C.accent6, "0.50 usual"]].forEach(([i, col, t]) => {
+    const x = CH.x + CH.w * (PLOT.x + PLOT.w * (i + 0.5) / labels.length);
+    const y = CH.y + CH.h * PLOT.y, h = CH.h * PLOT.h;
+    s.addShape(pres.shapes.LINE, { x, y, w: 0, h, line: { color: col, width: 1.25, dashType: "dash" }, objectName: `threshold guide ${t}` });
+    s.addText(t, { x: x + 0.04, y: y + h - 0.24, w: 1.1, h: 0.2, fontSize: 9, bold: true, color: col, margin: 0, isTextBox: true, objectName: `threshold guide label ${t}` });
+  });
   [["At 0.50, the usual threshold", "64 defaulters missed per 1,000", "28 good applicants flagged per 1,000", "$635k indicative cost per 1,000", C.accent6],
    ["At 0.15, proposed", "15 defaulters missed per 1,000", "About 90 good applicants flagged per 1,000", "$310k indicative cost per 1,000", C.accent5]].forEach(([t, a, b, c, col], i) => {
     const y = 1.25 + i * 1.75;
@@ -325,7 +334,7 @@ pres.addSection({ title: "Modelling" });
     s.addText(t, { x: 6.1, y: y + 0.1, w: 3.3, h: 0.4, fontSize: 14, bold: true, color: col, margin: 0, isTextBox: true, objectName: `threshold card title ${i + 1}` });
     s.addText(bullets([a, b, c], 12), { x: 6.1, y: y + 0.52, w: 3.3, h: 1.0, valign: "top", margin: 0, isTextBox: true, objectName: `threshold card body ${i + 1}` });
   });
-  s.addText("Curves: cross-validated predictions on the training applicants. Cards: test set, at $9,000 per missed defaulter and $2,000 per wrongly declined applicant. The optimum stays at 0.15 for cost ratios 4.5:1 to 8:1 and on a finer grid.", { x: 0.5, y: 4.78, w: 9.0, h: 0.36, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
+  s.addText("Curves: cross-validated predictions on the training applicants. Cards: test set, at $9,000 per missed defaulter and $2,000 per wrongly declined applicant. Costs use the unrounded counts. The optimum stays at 0.15 for cost ratios 4.5:1 to 8:1 and on a finer grid.", { x: 0.5, y: 4.78, w: 9.0, h: 0.36, fontSize: 9, color: C.accent6, margin: 0, isTextBox: true, objectName: "threshold footnote" });
   notes(s, 11);
 }
 
@@ -473,7 +482,7 @@ pres.addSection({ title: "Appendix" });
     ["1", "Is the debt-to-income ratio missing?", "Yes: flag, whatever the credit history (62% of these applicants defaulted). Check income before approving."],
     ["2", "If recorded, is the ratio above about 44%?", "Yes: flag (87-100% of applicants above 45% defaulted)."],
     ["3", "Ratio at or below 44%: a delinquent credit line and a credit history of about 8 years or less?", "Yes: flag. Otherwise clear. In this group, applicants with no delinquent line default only about 5% of the time."],
-    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on unseen applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers give each decline its own reason."],
+    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on unseen applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers will give each decline its own reason."],
     ["5", "What the rules do not use", "Loan size, derogatory reports, occupation and loan purpose do not change the surrogate's outcome. They matter only in combination inside the forest."],
   ];
   rules.forEach(([n, q, a], i) => {
@@ -502,7 +511,7 @@ pres.addSection({ title: "Appendix" });
     ["Imbalance", "Class weights inside the individual models, then the decision threshold for the final model. No resampling", "Keeps every real applicant. Class weights added nothing once I chose the threshold on cost"],
     ["Model inputs", "22 of 27 columns: the 10 numeric attributes, 6 missing flags (property value, loan purpose, occupation, years at job, derogatory reports, debt-to-income) and 6 loan-purpose and occupation indicators", "The input-reduction step removed five flags (mortgage balance, delinquent lines, credit-line age, inquiries, number of credit lines). A final check compared 22 inputs against all 27"],
   ];
-  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.9, 3.6], fontSize: 10.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
+  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.9, 3.6], fontSize: 10, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
   notes(s, 19);
 }
 
@@ -513,13 +522,13 @@ pres.addSection({ title: "Appendix" });
   const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
   const rows = [
     [hdr("Check"), hdr("What I did"), hdr("Result")],
-    ["Honest final test", "30% of applicants reserved before I fitted any statistic. Scored once, after all choices", "No leakage. Test cost $310k per 1,000 applicants against $324k estimated beforehand"],
+    ["Honest final test", "30% of applicants reserved before I fitted any statistic. Final model scored once, after all choices", "No test-set leakage. Test cost $310k per 1,000 applicants (standard error $28k) against $324k estimated beforehand"],
     ["Cross-validation", "Every candidate scored on training applicants it had not seen: 5 folds, repeated 3 times", "The noise is known: one standard error is about $10,500 per 1,000 applicants"],
     ["Rule set in advance", "Lowest mean cost wins. Within one standard error, the simplest model wins", "The forest without class weights chosen from 15 forest settings"],
     ["Fewer inputs", "Weakest input removed one at a time, averaged over three random seeds", "22 of 27 inputs kept. With 21 the cost leaves the one-standard-error band"],
     ["Threshold stress test", "Other cost ratios, a finer grid, two other train/test splits", "0.15 holds from 4.5:1 to 8:1 and on the finer grid. On both other splits the 27-input forest also chose 0.15"],
-    ["Paired comparison", "22 inputs against 27 inputs on the same 15 folds", "$6,800 apart, with a standard error of $6,300: within noise"],
-    ["Calibration", "Do the scores behave like default rates?", "They rank well (Brier score 0.063 against 0.160). Near the threshold they understate risk: scores of 0.15-0.20 defaulted 28%"],
+    ["Paired comparison", "22 inputs against 27 inputs on the same 15 folds", "$6,800 apart, paired standard error $6,300: about one standard error, within noise"],
+    ["Calibration", "Do the scores behave like default rates?", "Brier score 0.063 against 0.160 for the base rate. Near the threshold the scores understate risk: 0.15-0.20 defaulted 28%"],
     ["Explanation fidelity", "Small tree fitted to the forest's cross-validated decisions", "Agrees with 93% of the forest's test decisions. Never flagging would agree 73%"],
     ["Sub-group check", "Applicants with a recorded debt-to-income ratio", "81% of defaulters caught at 78% precision"],
   ];

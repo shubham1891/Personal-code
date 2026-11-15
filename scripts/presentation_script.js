@@ -182,7 +182,9 @@ const CRIB = [
     "The average defaulted loan is 16,900 dollars.",
     "The collateral recovers about half, and collection adds costs.",
     "So a missed defaulter costs about 9,000 dollars.",
-    "With a wrong decline, the bank loses about 2,000 dollars of interest margin.",
+    "With a wrong decline, the bank loses about 2,000 dollars.",
+    "That is about three points of net margin on a balance of 16,000 to 17,000 dollars for three to four years.",
+    "The cost of a replacement customer is also in this number.",
     "Both numbers are indicative, and the finance team should replace them.",
   ]],
   ["How do the bands change the numbers?", [
