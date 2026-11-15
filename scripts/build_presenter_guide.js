@@ -55,7 +55,7 @@ const step = (t, ref) => new Paragraph({ numbering: { reference: `steps-${ref}`,
 const BUSINESS = [
   ["How much does the model save, and how sure are you?", "The indicative benefit is about $9 million each year for 6,000 applications. The cost of credit errors decreases from about $10.8 million to about $1.9 million. The number uses stated assumptions, so the finance team should replace them with real data. With only a quarter of the benefit, the bank still recovers the project cost in the first year."],
   ["What does the project cost?", "The project costs about $300,000 to $400,000 one time. Then it costs about $100,000 each year to operate and monitor the model."],
-  ["What should the bank do first?", "Make the income check and the property valuation check mandatory. Limit the debt-to-income ratio to 45%. Refer applicants with two or more delinquent credit lines, or two or more derogatory reports, to an underwriter. These rules do not need a model."],
+  ["What should the bank do first?", "Make the income check and the property valuation check mandatory. Set a limit of 45% on the debt-to-income ratio. Refer applicants with two or more delinquent credit lines, or two or more derogatory reports, to an underwriter. These rules do not need a model."],
   ["How many good applicants does the bank lose?", "At the 0.15 threshold, the model flags about 90 good applicants in each 1,000. That is 11% of the good applicants. With the three bands, the bank declines about 64 good applicants in each 1,000 automatically. It refers about 58 good applicants to an underwriter. These two numbers add to 122, which is more than 90. The reason is that the referral band starts at a score of 0.10, below the threshold. So the bands send some good applicants to an underwriter, not to a decline."],
   ["How do you explain a declined application?", "Three plain rules summarise the model. Rule 1: the ratio is missing. Rule 2: the ratio is above about 44%. Rule 3: the applicant has a delinquent credit line and a short credit history. Each decline notice will also give the top risk drivers of that applicant. The bank builds these risk drivers in months 0 to 2."],
   ["Is the model fair?", "The model uses no protected characteristic as an input. Occupation and the length of the credit history could be proxies. So the compliance team tests approval rates and error rates across protected groups before the start. A model without occupation is ready. It costs about 13% more."],
@@ -73,7 +73,7 @@ const ACADEMIC = [
     ["How did you tune the models?", "I used grid search with cross-validation on the training applicants, and I scored recall. The logistic regression search tried four regularisation strengths on 5 folds. The decision tree search tried 210 combinations on 5 folds. The Random Forest search tried 72 combinations on 3 folds. Tuning increased the recall of each technique in cross-validation to 0.81 or more, but it decreased precision each time. So a second search scored cost: 15 forest settings on 15 folds."],
     ["Why does the recall-tuned forest score lower than the standard forest?", "Tuning for recall alone selected larger leaves: at least 10 applicants in each leaf. Larger leaves give less exact scores. The ROC-AUC in cross-validation decreased from 0.954 to 0.921. At its own best threshold, the recall-tuned forest costs about $490,000 for each 1,000 applicants. The proposed forest costs $324,000. That is why I selected the final model by the cost of credit errors, not by recall."],
     ["Is the cost comparison fair? Only the forest got a cost search.", "The cost search selected the standard forest: no class weights and fully grown trees. So the forest gained nothing from the additional search. The decision tree and the logistic regression used their recall-tuned settings, each at its own cheapest threshold. The differences are large: $550,000 and $607,000 against $324,000. One standard error is about $10,500. A cost-tuned decision tree is a fair additional check."],
-    ["A fully grown forest fits the training data perfectly. Is it over-fitted?", "No, the test results show that it is not over-fitted. Each tree fits its own training sample, but the average of 200 trees generalises. The ROC-AUC is 0.960 in cross-validation and 0.961 on the test applicants. The test cost of $310,000 agrees with the cost of $324,000 in cross-validation."],
+    ["A fully grown forest fits the training data perfectly. Is it over-fitted?", "Each tree fits its own training sample, but the average of 200 trees generalises. The ROC-AUC is 0.960 in cross-validation and 0.961 on the test applicants. The test cost of $310,000 agrees with the cost of $324,000 in cross-validation."],
     ["Why did you not resample the data to correct the imbalance?", "Class weights and the threshold correct the imbalance, so I keep every real applicant. For the final model, the threshold alone was sufficient."],
   ]],
   ["Threshold and cost", [
@@ -153,7 +153,7 @@ children.push(p([bold("Before the session")], 60));
 [
   "Open the deck in Presenter View. The notes show one sentence on each line.",
   "Adjust the size of the notes pane and the size of the text. Make sure that you see the full note of slide 10 without the scroll bar.",
-  "If the session is online, test Presenter View in the meeting tool. Make sure that the panel sees only the slide.",
+  "If the session is online, test Presenter View in the meeting tool. Make sure that the panel sees only the slide. Make sure that you can see your notes.",
   "Read the script aloud with a timer. Do this three times or more.",
   "At each slide change, compare the timer with the time cue.",
   "If the talk is longer than 7:45, apply the two rules for a late talk in section 2.",
@@ -174,7 +174,7 @@ children.push(p([bold("During the questions")], 60));
 [
   "Give the short answer first. Then give one number as evidence.",
   "Show a backup slide only if it helps the answer. To show it, type its slide number. Then press Enter.",
-  "To go back to the short answers, type 15. Then press Enter.",
+  "To go back to the short answers, type 15. Then press Enter. Test these keys before the session.",
   "If you do not know the answer, tell the panel. Then tell them how you would find it.",
 ].forEach((t) => children.push(step(t, "questions")));
 children.push(new Paragraph({ pageBreakBefore: true, keepNext: true, spacing: { after: 60, line: 264 }, children: [bold("How to say the numbers and the terms")] }));
@@ -225,9 +225,9 @@ children.push(table(
     ["Surrogate tree", "A small tree that I trained to copy the decisions of the forest", "I fitted it to the out-of-fold decisions of the forest. It agrees with 93% of the test decisions of the forest (93.2%). This is not the share of defaulters caught (92.7%). I did not score the three rules as a separate model"],
     ["Risk drivers (SHAP values)", "For one applicant, how much each input moved the score up or down", "This project did not calculate them. The bank builds them in months 0 to 2. They will give the specific reason on each decline notice"],
     ["Calibration", "Whether a score of 0.15 really means a 15% chance of default", "Near the threshold the scores are too low: 28% of applicants with scores of 0.15 to 0.20 defaulted"],
-    ["Brier score", "The average squared difference between the score and the result (1 or 0). Lower is better", "0.063 for the forest and 0.160 for the base rate. It measures the accuracy of the probabilities, not the ranking"],
+    ["Brier score", "The average squared difference between the score and the result (1 or 0). Lower is better", "0.063 for the forest and 0.160 for the base rate. It measures the accuracy of the scores, not the ranking"],
     ["Feature importance", "How much the forest uses each input", "The share of the decision power (impurity-based). I checked it with permutation importance: the decrease in ROC-AUC when I shuffle the values of one input"],
-    ["Reject inference", "An estimate of the results of declined applicants", "It is necessary because the data has only loans that the bank approved"],
+    ["Reject inference", "An estimate of the loan results of declined applicants", "It is necessary because the data has only loans that the bank approved"],
     ["Gradient boosting", "Trees that the model builds in sequence. Each tree corrects the errors of the tree before it", "The next technique to test. This project did not test it"],
   ],
   [2000, 3560, 3800],

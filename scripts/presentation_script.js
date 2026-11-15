@@ -105,13 +105,13 @@ const TALK = [
   { slide: 13, name: "Recommendations", message: "Three phases, and policy rules that the bank can adopt now", lines: [
     "The roadmap has three phases: prepare, shadow run, and scale.",
     "In a shadow run, the model scores each application, but the underwriter decides.",
-    "The bank can adopt the policy rules on this slide now, without the model.",
-    "For example, limit the debt-to-income ratio to 45 percent.",
+    "The bank can adopt the first three policy rules now, without the model.",
+    "For example, set a limit of 45 percent on the debt-to-income ratio.",
   ] },
   { slide: 14, name: "Risks", message: "Selection bias, weaker missing-value effect, fair lending", lines: [
     "First, the data has only loans that the bank approved.",
     "So the shadow run must score all applications.",
-    "Second, mandatory checks will weaken the effect of missing values.",
+    "Second, mandatory checks will decrease the effect of missing values.",
     "For applicants with a recorded debt-to-income ratio, the model still catches 81 percent of defaulters.",
     "Third, no input is a protected characteristic, but occupation could be a proxy for one.",
     "So the compliance team tests approval rates across protected groups before the start.",

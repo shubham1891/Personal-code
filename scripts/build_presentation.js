@@ -104,7 +104,7 @@ pres.addSection({ title: "Opening" });
   const items = [
     ["1 in 5", "The problem. ", "One in five home equity loans in the data ended in default. Accuracy alone misleads: approving everyone is 80% accurate."],
     ["62%", "Key finding. ", "Default rate when the debt-to-income ratio is missing, against 8.6% when it is present."],
-    ["93%", "The solution. ", "Of eleven model variants, a Random Forest has the lowest cost of credit errors. It catches 93% of defaulters among the test applicants."],
+    ["93%", "The solution. ", "Of eleven model variants, a Random Forest has the lowest cost of credit errors. It catches 93% of defaulters among unseen applicants."],
     ["~$9M", "The benefit. ", "Indicative yearly saving on 6,000 applications: the cost of credit errors falls from $10.8M to $1.9M."],
   ];
   items.forEach(([big, lead, text], i) => {
@@ -266,7 +266,7 @@ pres.addSection({ title: "Modelling" });
     { name: "Flagged applicants who really default (precision)", labels, values: [60.8, 53.1, 82.7, 82.9, 76.9, 67.4] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.9, h: 3.3, barDir: "bar", barGrouping: "clustered", barGapWidthPct: 50, catAxisLabelFontSize: 10,
        chartColors: [H.accent5, H.accent1], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
-       showLegend: true, legendPos: "b", legendFontSize: 10, catAxisOrientation: "maxMin", title: "Test applicants (1,788, not used in training), %", objectName: "model comparison chart" });
+       showLegend: true, legendPos: "b", legendFontSize: 10, catAxisOrientation: "maxMin", title: "Test set (1,788 unseen applicants), %", objectName: "model comparison chart" });
   s.addText(bullets([
     "Logistic regression: 80% caught at 61% precision. A straight line misses the step changes in risk",
     "Tuned decision tree: 82% caught, but almost one good applicant flagged per defaulter caught (53% precision)",
@@ -482,7 +482,7 @@ pres.addSection({ title: "Appendix" });
     ["1", "Is the debt-to-income ratio missing?", "Yes: flag, whatever the credit history (62% of these applicants defaulted). Check income before approving."],
     ["2", "If recorded, is the ratio above about 44%?", "Yes: flag (87-100% of applicants above 45% defaulted)."],
     ["3", "Ratio at or below 44%: a delinquent credit line and a credit history of about 8 years or less?", "Yes: flag. Otherwise clear. In this group, applicants with no delinquent line default only about 5% of the time."],
-    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on the test applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers will give each decline its own reason."],
+    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on unseen applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers will give each decline its own reason."],
     ["5", "What the rules do not use", "Loan size, derogatory reports, occupation and loan purpose do not change the surrogate's outcome. They matter only in combination inside the forest."],
   ];
   rules.forEach(([n, q, a], i) => {
