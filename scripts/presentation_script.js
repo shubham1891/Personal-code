@@ -32,10 +32,10 @@ const TALK = [
     "The law requires a specific reason for each declined application.",
     "So the bank wants a model that it can explain.",
   ] },
-  { slide: 4, name: "Approach", message: "Five steps. I reserved the final test first", lines: [
+  { slide: 4, name: "Approach", message: "Five steps. I reserved the final test before the data preparation", lines: [
     "My approach has five steps.",
     "I explored each attribute.",
-    "Before all other work, I reserved 30 percent of the applicants for a final test.",
+    "Before the data preparation, I reserved 30 percent of the applicants for a final test.",
     "I built eleven models with four techniques.",
     "I measured the share of defaulters that each model catches, and then the cost of credit errors.",
   ] },
@@ -49,8 +49,8 @@ const TALK = [
     "The left chart shows the debt-to-income ratio.",
     "Up to 40 percent, few applicants defaulted.",
     "Above 45 percent, almost all defaulted.",
-    "The right chart shows delinquent credit lines, which are credit lines with late payments.",
-    "One delinquent line more than doubles the default rate.",
+    "The right chart shows delinquent credit lines, which have late payments.",
+    "With one delinquent line, the default rate was more than double.",
   ] },
   { slide: 7, name: "Insight 3", message: "Long credit history: lower risk. Small loans: highest risk", lines: [
     "Three more attributes have an effect.",
@@ -58,18 +58,18 @@ const TALK = [
     "Small loans have the highest risk, not the lowest.",
     "Occupation has a moderate effect.",
   ] },
-  { slide: 8, name: "Measure of success", message: "A missed defaulter costs about 4.5 times more, so recall is the primary measure", lines: [
+  { slide: 8, name: "Measure of success", message: "A missed defaulter costs about 4.5 times as much, so recall is the primary measure", lines: [
     "The model can make two credit errors, and their costs are different.",
-    "A missed defaulter costs the bank about 9,000 dollars.",
+    "I assume that a missed defaulter costs about 9,000 dollars.",
     "A wrongly declined good applicant costs about 2,000 dollars.",
     "So the primary measure is the share of defaulters that the model catches, named recall.",
     "The second measure is the share of flagged applicants who really default, named precision.",
   ] },
   { slide: 9, name: "Model comparison", message: "The Random Forest gives the best risk ranking and the lowest cost", lines: [
-    "The logistic regression cannot follow sudden changes in risk.",
+    "My logistic regression cannot follow sudden changes in risk.",
     "A single decision tree flags almost one good applicant for each defaulter that it catches.",
     "A Random Forest is an average of many decision trees, and it gives the best risk ranking.",
-    "I selected the final model by the cost of credit errors on training applicants that the model did not see.",
+    "I selected the final model by the cost of credit errors, without the test applicants.",
     "Before the comparison, I set the selection rule.",
     "It selects the lowest cost, or the simplest model when costs are almost equal.",
     "With the Random Forest, credit errors cost the least: 324 thousand dollars for each 1,000 applicants.",
@@ -91,8 +91,8 @@ const TALK = [
     "At 0.5, the model misses 64 defaulters in each 1,000 applicants.",
     "At 0.15, it misses 15.",
     "In exchange, it flags about 90 good applicants, not 28.",
-    "In dollars, the cost of credit errors decreases by half.",
-    "The proposed threshold stays the cheapest when a missed defaulter costs 4.5 to 8 times a wrongly declined applicant.",
+    "The lower threshold decreases the cost of credit errors by half.",
+    "It stays the cheapest when a missed defaulter costs 4.5 to 8 times a wrongly declined applicant.",
   ] },
   { slide: 12, name: "Business impact", message: "About $9 million each year, with stated assumptions", lines: [
     "Today, credit errors cost about 10.8 million dollars each year for 6,000 applications.",
@@ -308,9 +308,14 @@ function timing() {
 const totalWords = () => timing().reduce((a, t) => a + t.words, 0);
 const totalSpokenWords = () => timing().reduce((a, t) => a + t.spoken, 0);
 
-// A talk is late when the timer is this many seconds after the plan at the start of slide 7 or slide 12
-const LATE_SECONDS = 10;
-const lateAt = (slide) => clockText(timing().find((x) => x.slide === slide - 1).clock + LATE_SECONDS);
+// A talk is late when the pace up to the start of slide 7 or slide 12 is this number of spoken words per minute, or
+// slower. Both checkpoints use the same pace, so a presenter with a constant pace passes both or fails both.
+const LATE_WORDS_PER_MINUTE = 124;
+function lateAt(slide) {
+  const before = TALK.filter((t) => t.slide < slide);
+  const spoken = before.reduce((a, t) => a + t.lines.reduce((b, l) => b + spokenWords(l), 0), 0);
+  return clockText(roundTo5((spoken / LATE_WORDS_PER_MINUTE) * 60 + before.length * SLIDE_CHANGE_SECONDS));
+}
 // What to do when the talk is late. The cue of each slide shows its own instruction, so the presenter does not
 // need to remember the rules.
 const LATE_HINT = {

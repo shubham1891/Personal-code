@@ -37,20 +37,20 @@ const PARTS = [
 // The words to stress in each slide. Each phrase must be in exactly one line of that slide.
 // The self-test replaces the same words with blanks.
 const STRESS = {
-  1: ["Saloni Priya", "about 80 percent"],
-  2: ["four key takeaways", "one in five", "62 percent", "lowest cost", "93 percent", "nine million dollars", "after a shadow run"],
+  1: ["80 percent"],
+  2: ["four key takeaways", "one in five", "62 percent", "lowest cost", "93 percent", "nine million dollars", "shadow run"],
   3: ["remove this profit", "slow and inconsistent", "specific reason", "can explain"],
   4: ["five steps", "30 percent", "eleven models", "cost of credit errors"],
   5: ["two missing values", "62 percent", "94 percent", "separate input"],
-  6: ["Up to 40 percent", "Above 45 percent", "more than doubles"],
+  6: ["40 percent", "few", "45 percent", "almost all", "more than double"],
   7: ["decreases the risk", "highest risk", "moderate"],
   8: ["their costs are different", "9,000 dollars", "2,000 dollars", "recall", "precision"],
-  9: ["sudden changes", "almost one good applicant", "best risk ranking", "did not see", "Before the comparison", "cost the least"],
-  10: ["200 trees", "22 inputs", "above 0.15", "93 percent of the defaulters", "Two of every three", "three bands", "three rules"],
-  11: ["only a convention", "64 defaulters", "it misses 15", "not 28", "by half", "stays the cheapest"],
-  12: ["10.8 million dollars", "1.9 million dollars", "nine million dollars", "a quarter of the benefit", "real data"],
-  13: ["three phases", "the underwriter decides", "now, without the model", "45 percent"],
-  14: ["First", "all applications", "Second", "81 percent", "Third", "before the start", "is ready"],
+  9: ["sudden changes", "one good applicant", "best risk ranking", "without the test applicants", "Before the comparison", "324 thousand dollars"],
+  10: ["200 trees", "22 inputs", "above 0.15", "93 percent of the defaulters", "Two of every three", "three bands", "93 percent of its decisions", "three rules"],
+  11: ["only a convention", "64 defaulters", "misses 15", "not 28", "by half", "stays the cheapest"],
+  12: ["10.8 million dollars", "1.9 million dollars", "nine million dollars", "400 thousand dollars", "a quarter", "real data"],
+  13: ["three phases", "the underwriter decides", "without the model", "45 percent"],
+  14: ["approved", "all applications", "missing values", "81 percent", "proxy", "before the start", "without occupation"],
   15: ["93 percent", "three simple rules", "nine million dollars"],
 };
 
@@ -60,8 +60,8 @@ const PAUSE_AFTER = {
   2: ["Fourth, the indicative benefit"],
   5: ["When the property valuation was missing"],
   8: ["A wrongly declined good applicant"],
-  10: ["On the test applicants, the model catches"],
-  11: ["In dollars, the cost of credit errors"],
+  10: ["Two of every three"],
+  11: ["The lower threshold decreases"],
   12: ["The indicative benefit is about nine million"],
   14: ["So the shadow run must score"],
   15: ["The indicative benefit is about nine million"],
@@ -70,12 +70,16 @@ const PAUSE_SECONDS = 1;
 
 // Where to point. Each entry: the start of one line of that slide, then the part of the slide.
 const POINT = {
+  2: [["First, one in five", "each card when you say its number"]],
+  5: [["When the debt-to-income ratio was missing", "the red bar 62, and then the red bar 94"]],
   6: [["The left chart shows", "the left chart"], ["The right chart shows", "the right chart"]],
+  7: [["A long credit history", "the three charts from left to right, one for each sentence"]],
+  8: [["I assume that a missed defaulter", "the left card, and then the right card"]],
   9: [["With the Random Forest, credit errors cost", "the cost line below the chart"]],
-  10: [["The slide shows its three rules", "the three rules"]],
-  11: [["At 0.5, the model misses", "the two cards on the right"]],
-  12: [["Today, credit errors cost", "the last row of the table"]],
-  13: [["The bank can adopt the first three", "the first three policy rules"]],
+  10: [["On the test applicants, the model catches", "the green 93%"], ["The slide shows its three rules", "the three rules"]],
+  11: [["At 0.5, the model misses", "the upper card, and then the lower card"]],
+  12: [["Today, credit errors cost", "the last row of the table"], ["The indicative benefit is about nine million", "the dark blue box"]],
+  13: [["The roadmap has three phases", "the three boxes, and then the policy rules below them"]],
 };
 
 // A reminder for the presenter below the blue bar. It is not spoken.
@@ -85,42 +89,46 @@ const REMINDER = {
 
 // One line for each slide: the fewest words that bring the thread back.
 const MEMORY = {
-  1: "My name. Cost of credit errors: about 80% lower",
-  2: "1 in 5. 62%. Random Forest, 93%. $9M. Checks, then model",
-  3: "Defaults remove profit. A reason for each decline",
-  4: "Five steps. 30% test first. Eleven models. Cost",
-  5: "Missing ratio 62%. Missing valuation 94%. Separate inputs",
-  6: "Ratio above 45%. One delinquent line doubles the rate",
-  7: "Long history: lower risk. Small loans: highest risk",
-  8: "$9,000 against $2,000. Recall, then precision",
-  9: "Forest: best ranking, lowest cost, $324k. Rule set first",
-  10: "200 trees, 22 inputs, 0.15, 93%, three bands, three rules",
-  11: "0.5 misses 64. 0.15 misses 15. Cost: half",
-  12: "$10.8M to $1.9M. $9M. Cost repaid in year one",
-  13: "Prepare, shadow run, scale. Three rules now",
-  14: "Approved loans only. Missing values. Fair lending",
-  15: "93%. Three simple rules. $9M. Thank you",
+  1: "Name. Predicts defaults. Cost of credit errors: 80% lower",
+  2: "1 in 5. 62% missing. Forest, 93% caught. $9M. Checks, then model",
+  3: "Defaults remove profit. Manual is slow. Law needs a reason",
+  4: "5 steps: explore, reserve 30%, 11 models, measure",
+  5: "Missing ratio 62%. Missing valuation 94%. Separate input",
+  6: "Left: ratio above 45%. Right: 1 delinquent line, double",
+  7: "Long history lower. Small loans highest. Occupation moderate",
+  8: "I assume $9,000 against $2,000. Recall first, then precision",
+  9: "Regression, tree, forest. No test applicants. Rule first. $324k",
+  10: "200 trees, 22 inputs, 0.15, 93%, 2 of 3, bands, 3 rules",
+  11: "0.5 misses 64. 0.15 misses 15. 90, not 28. Cost by half",
+  12: "$10.8M to $1.9M. $9M. Cost $400k. A quarter. Real data",
+  13: "Prepare, shadow run, scale. 3 policy rules now. 45%",
+  14: "Approved loans only. Missing values, 81%. Occupation proxy",
+  15: "93% caught. 3 simple rules. $9M each year. Thank you",
 };
 
 // How to say the words of the speech that are hard to say
 const SAY = [
   ["0.15, 0.5", "'zero point one five', 'zero point five'"],
-  ["4.5 to 8 times", "'four and a half to eight times'"],
+  ["4.5 to 8 times", "'four and a half, to eight times'"],
   ["10.8 million, 1.9 million", "'ten point eight million', 'one point nine million'"],
-  ["324 thousand", "'three hundred and twenty-four thousand'"],
+  ["80 percent", "'AY-tee' (not 'eighteen')"],
+  ["15, 90", "'fif-TEEN' (not 'fifty'), 'NINE-tee' (not 'nineteen')"],
+  ["debt-to-income", "'DET to IN-kum' (the letter b is silent)"],
   ["delinquent", "'de-LIN-kwent'"],
-  ["underwriter", "'UN-der-ry-ter'"],
-  ["characteristic", "'ka-rak-te-RIS-tik'"],
   ["indicative", "'in-DIK-a-tiv'"],
+  ["underwriter", "'UN-der-ry-ter'"],
+  ["characteristic", "'ka-rak-ter-IS-tik'"],
+  ["logistic regression", "'lo-JIS-tik re-GRESH-un'"],
+  ["three", "'THREE', with the tongue between the teeth (not 'tree')"],
 ];
 
 // ---------- helpers ----------
 const run = (text, opts = {}) => new TextRun({ text, font: FONT, size: 21, ...opts });
 const p = (runs, after = 100) => new Paragraph({ spacing: { after, line: 264 }, children: Array.isArray(runs) ? runs : [run(runs)] });
 const h1 = (t, pageBreakBefore = false) => new Paragraph({ pageBreakBefore, keepNext: true, spacing: { before: pageBreakBefore ? 0 : 240, after: 100 }, children: [run(t, { bold: true, size: 28, color: NAVY })] });
-const h2 = (t) => new Paragraph({ keepNext: true, spacing: { before: 190, after: 50, line: 264 }, children: [run(t, { bold: true })] });
-const bullet = (runs) => new Paragraph({ numbering: { reference: "bullets", level: 0 }, spacing: { after: 45, line: 260 }, children: Array.isArray(runs) ? runs : [run(runs)] });
-const step = (t) => new Paragraph({ numbering: { reference: "steps", level: 0 }, spacing: { after: 45, line: 260 }, children: [run(t)] });
+const h2 = (t) => new Paragraph({ keepNext: true, spacing: { before: 160, after: 45, line: 264 }, children: [run(t, { bold: true })] });
+const bullet = (runs) => new Paragraph({ numbering: { reference: "bullets", level: 0 }, spacing: { after: 35, line: 256 }, children: Array.isArray(runs) ? runs : [run(runs)] });
+const step = (t) => new Paragraph({ numbering: { reference: "steps", level: 0 }, spacing: { after: 35, line: 256 }, children: [run(t)] });
 
 const border = { style: BorderStyle.SINGLE, size: 4, color: "BFBFBF" };
 const borders = { top: border, bottom: border, left: border, right: border };
@@ -173,7 +181,7 @@ const SPEECH_SIZE = 28; // 14 pt
 function spokenLine(text, stress, pause, keepNext) {
   const runs = pieces(text, stress).map(([t, strong]) => run(t, strong ? { size: SPEECH_SIZE, bold: true, color: NAVY } : { size: SPEECH_SIZE }));
   if (pause) runs.push(run("   (pause)", { size: 19, italics: true, color: GREY }));
-  return new Paragraph({ keepLines: true, keepNext, spacing: { after: 80, line: 290 }, indent: { left: 200 }, children: runs });
+  return new Paragraph({ keepLines: true, keepNext, spacing: { after: 70, line: 280 }, indent: { left: 200 }, children: runs });
 }
 // The same line for the self-test: a blank replaces each group of stressed words
 function testLine(text, stress, keepNext) {
@@ -256,7 +264,7 @@ PARTS.forEach((part) => {
 
     // the blue bar: slide number and name on the left, the time on the right
     children.push(new Paragraph({
-      keepNext: true, spacing: { before: 170, after: 60 },
+      keepNext: true, spacing: { before: 150, after: 55 },
       shading: { type: ShadingType.CLEAR, fill: LIGHT, color: "auto" },
       tabStops: [{ type: TabStopType.RIGHT, position: WIDTH - 80 }], indent: { left: 80 },
       children: [
@@ -277,13 +285,13 @@ PARTS.forEach((part) => {
 children.push(h1("Memory card", true));
 children.push(p("Use this page when you learn the speech, and when you lose your place. Each row gives the first words of the slide and its main words. It also gives the timer value at the end of the slide."));
 children.push(table(
-  ["Slide", "First words", "Remember", "Finish at"],
+  ["Slide", "First words", "Remember", "Timer"],
   SCRIPT.TALK.map((talk) => {
     if (!MEMORY[talk.slide]) throw new Error(`No memory line for slide ${talk.slide}`);
     const first = talk.lines[0].split(/\s+/).slice(0, 4).join(" ").replace(/[.,:]$/, "");
     return [`${talk.slide}. ${talk.name}`, `${first} ...`, MEMORY[talk.slide], SCRIPT.clockText(timeOf(talk.slide).clock)];
   }),
-  [2050, 2350, 4060, 900], [0],
+  [1850, 2150, 4560, 800], [0],
 ));
 children.push(h2("If you are late"));
 [
