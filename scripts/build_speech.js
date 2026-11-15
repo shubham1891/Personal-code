@@ -275,7 +275,7 @@ PARTS.forEach((part) => {
 
 // ---------------------------------------------------------------- memory card
 children.push(h1("Memory card", true));
-children.push(p("Use this page when you learn the speech, and when you lose your place. Each row gives the first words of the slide, its main words and the timer value at the end of the slide."));
+children.push(p("Use this page when you learn the speech, and when you lose your place. Each row gives the first words of the slide and its main words. It also gives the timer value at the end of the slide."));
 children.push(table(
   ["Slide", "First words", "Remember", "Finish at"],
   SCRIPT.TALK.map((talk) => {
