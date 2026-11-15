@@ -192,9 +192,10 @@ const CRIB = [
     "So the model and the bands do not change.",
   ]],
   ["How much underwriter time does the model save?", [
-    "Underwriters review about 440 applications each year, not 6,000.",
+    "With the bands, underwriters review about 440 applications each year, not 6,000.",
     "With my assumptions, one review costs about 71 dollars.",
-    "So the saving is about 0.4 million dollars each year.",
+    "So the saving is up to 0.4 million dollars each year.",
+    "The policy rules on slide 13 refer more applicants, and I did not count these referrals.",
   ]],
   ["Can you show the reasons for one applicant?", [
     "Yes. I calculated SHAP values for all test applicants.",

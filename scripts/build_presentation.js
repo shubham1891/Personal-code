@@ -355,12 +355,12 @@ pres.addSection({ title: "Recommendations" });
   s.addTable(rows, { x: 0.5, y: 1.3, w: 5.8, colW: [2.4, 1.5, 1.9], fontSize: 11.5, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, rowH: 0.42, valign: "middle", margin: 0.06, objectName: "impact table" });
   card(s, 6.6, 1.3, 3.0, 2.1, { fill: C.accent1, line: C.accent1, name: "benefit card" });
   s.addText("~$9M", { x: 6.7, y: 1.4, w: 2.8, h: 0.95, fontSize: 40, bold: true, color: C.background1, align: "center", valign: "bottom", margin: 0, isTextBox: true, objectName: "benefit number" });
-  s.addText("indicative gross annual benefit. About $8.8M after running costs, $8.5M in the first year live", { x: 6.7, y: 2.4, w: 2.8, h: 0.9, fontSize: 11, color: C.background2, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: "benefit label" });
+  s.addText("indicative gross annual benefit.\nAbout $8.8M after running costs,\n$8.5M in the first year live", { x: 6.7, y: 2.4, w: 2.8, h: 0.9, fontSize: 11, color: C.background2, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: "benefit label" });
   s.addText(bullets([
     "Assumptions: 6,000 applications a year. $9,000 lost per missed defaulter. $2,000 margin forgone per wrongly declined applicant. Test performance holds in production",
     "Measured on the loans the bank approves today, before mandatory checks",
     "Cost: $300-400k one-off and about $100k a year. Repaid in the first year live even at a quarter of the benefit",
-    "Also: about 440 manual reviews a year in place of 6,000 (about $0.4M of underwriter time), and an auditable reason for every decline",
+    "Also: about 440 referral-band reviews a year in place of 6,000 (up to $0.4M of underwriter time), and an auditable reason for every decline",
   ], 11.5), { x: 0.5, y: 3.6, w: 9.1, h: 1.55, valign: "top", margin: 0, isTextBox: true, objectName: "impact bullets" });
   notes(s, 12);
 }
@@ -539,19 +539,19 @@ pres.addSection({ title: "Appendix" });
 // A6. Per-applicant risk drivers
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
-  s.addText("Appendix F: the reasons for one applicant, SHAP values of the forest", { placeholder: "title" });
+  s.addText("Appendix F: per-applicant risk drivers (SHAP values)", { placeholder: "title" });
   const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
   const rows = [
     [hdr("Flagged test applicant"), hdr("Score and result"), hdr("Three largest reasons (contribution to the score)")],
-    ["Ratio recorded, highest score", "0.925, defaulted", "Debt-to-income ratio 63% (+0.39). Three derogatory reports (+0.11). 65 credit lines (+0.09)"],
-    ["Ratio missing, median score", "0.625, defaulted", "Debt-to-income ratio missing (+0.34). Two years at current job (+0.10). Oldest credit line 91 months (+0.05)"],
-    ["Score nearest above the threshold", "0.155, repaid", "Oldest credit line 97 months (+0.04). Loan amount $6,600 (+0.04). Debt-to-income ratio 42% (+0.01)"],
+    ["Ratio recorded, highest score", "0.925, defaulted", "Debt-to-income ratio 63% (+0.39). Three derogatory reports (+0.11).\n65 credit lines (+0.09)"],
+    ["Ratio missing, median score", "0.625, defaulted", "Debt-to-income ratio missing (+0.34). Two years at current job (+0.10).\nCredit history 91 months (+0.05)"],
+    ["Score nearest above the threshold", "0.155, repaid", "Credit history 97 months (+0.04). Loan amount $6,600 (+0.04).\nDebt-to-income ratio 42% (+0.01)"],
   ];
-  s.addTable(rows, { x: 0.5, y: 1.3, w: 9.0, colW: [2.5, 1.6, 4.9], fontSize: 11, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.05, align: "left", objectName: "risk drivers table" });
+  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [2.5, 1.6, 4.9], fontSize: 11, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.05, align: "left", objectName: "risk drivers table" });
   s.addText(bullets([
     "A SHAP value is the contribution of one input to the score of one applicant. The average score (0.20) plus the 22 contributions equals the score, for each of the 1,788 test applicants",
     "Largest reason for the 491 flagged applicants: missing debt-to-income ratio 66%, delinquent credit lines 8%, missing property value 7%, high debt-to-income ratio 6%",
-    "By mean contribution, the same four inputs lead as in Appendix B: ratio missing 24%, delinquent lines 13%, ratio 13%, credit-history length 10%",
+    "By mean absolute contribution, the same four inputs lead as in Appendix B: ratio missing 24%, delinquent lines 13%, ratio 13%, credit-history length 10%",
     "Demonstration on the test applicants. The bank puts the calculation into the scoring pipeline in months 0-2, so each decline notice gives its own reasons",
   ], 12), { x: 0.5, y: 3.2, w: 9.0, h: 1.9, valign: "top", margin: 0, isTextBox: true, objectName: "risk drivers bullets" });
   notes(s, 21);
