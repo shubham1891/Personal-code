@@ -45,7 +45,7 @@ const TALK = [
     "When the property valuation was missing, 94 percent defaulted.",
     "So I recorded each missing value as a separate input.",
   ] },
-  { slide: 6, name: "Insight 2", message: "The default rate jumps above a 45% ratio. Late payments repeat", lines: [
+  { slide: 6, name: "Insight 2", message: "Above a 45% ratio, almost all applicants defaulted. Late payments repeat", lines: [
     "The left chart shows the debt-to-income ratio.",
     "Up to 40 percent, few applicants defaulted.",
     "Above 45 percent, almost all defaulted.",
@@ -58,7 +58,7 @@ const TALK = [
     "Small loans have the highest risk, not the lowest.",
     "Occupation has a moderate effect.",
   ] },
-  { slide: 8, name: "Measure of success", message: "A missed defaulter costs 4.5 times more, so recall comes first", lines: [
+  { slide: 8, name: "Measure of success", message: "A missed defaulter costs about 4.5 times more, so recall is the primary measure", lines: [
     "The model can make two credit errors, and their costs are different.",
     "A missed defaulter costs the bank about 9,000 dollars.",
     "A wrongly declined good applicant costs about 2,000 dollars.",
