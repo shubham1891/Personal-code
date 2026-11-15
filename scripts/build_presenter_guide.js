@@ -55,31 +55,31 @@ const step = (t, ref) => new Paragraph({ numbering: { reference: `steps-${ref}`,
 const BUSINESS = [
   ["How much does the model save, and how sure are you?", "About $9 million each year for 6,000 applications. The cost of credit errors decreases from $10.8 million to $1.9 million. The number uses stated assumptions, so the finance team must replace them. With only a quarter of the benefit, the bank still recovers the project cost in the first year."],
   ["What does the project cost?", "About $300,000 to $400,000 one time. Then about $100,000 each year to operate and monitor the model."],
-  ["What should the bank do first?", "Make the income check and the property valuation check mandatory. Set a limit of 45% on the debt-to-income ratio. Refer applicants with two or more delinquent credit lines or derogatory reports to an underwriter. These rules do not need a model."],
+  ["What should the bank do first?", "Make the income check and the property valuation check mandatory. Limit the debt-to-income ratio to 45%. Refer applicants with two or more delinquent credit lines or derogatory reports to an underwriter. These rules do not need a model."],
   ["How many good applicants does the bank lose?", "At the 0.15 threshold, the model flags about 90 good applicants in each 1,000. That is 11% of the good applicants. With the three bands, the bank declines about 64 automatically and refers about 58 to an underwriter. These two numbers add to 122, which is more than 90. The reason is that the referral band starts at a score of 0.10, below the threshold. So the bands send some good applicants to an underwriter, not to a decline."],
   ["How do you explain a declined application?", "Three plain rules summarise the model. Rule 1: the ratio is missing. Rule 2: the ratio is above about 44%. Rule 3: the applicant has a delinquent credit line and a short credit history. Each decline notice will also give the top risk drivers of that applicant. The bank builds these risk drivers in months 0 to 2."],
   ["Is the model fair?", "No input is a protected characteristic. Occupation and the length of the credit history could be proxies. So the compliance team tests approval rates and error rates across protected groups before the start. A model without occupation is ready. It costs about 13% more."],
   ["What if the economy changes?", "The bank monitors the approval rate each month. It monitors recall and precision when the loan results arrive. It trains the model again at least one time each year."],
-  ["Why not use the model now?", "The data has only loans that the bank approved. First, a shadow run of one to two months scores all applications in parallel with the manual decision."],
-  ["How did you select the band limits of 0.10 and 0.25?", "They are round numbers near the 0.15 threshold. They are my proposal, not the result of an optimisation. I set them before I examined the test applicants, where the expected cost is 10% to 20% above its minimum. In cross-validation, 1% of the applicants in the approve band defaulted, 20% in the referral band and 71% in the decline band. The test applicants give 1%, 21% and 73%. The shadow run adjusts the two limits to the capacity of the underwriters."],
-  ["What is the source of the $9,000 and $2,000 costs?", "The average defaulted loan is $16,900. The collateral recovers about half, and collection adds costs. So a missed defaulter costs about $9,000. With a wrong decline, the bank loses about $2,000. That is about three points of net margin on a balance of $16,000 to $17,000 for three to four years. The cost of a replacement customer is also in this number. Both numbers are indicative."],
+  ["Why does the bank not use the model now?", "The data has only loans that the bank approved. First, a shadow run of one to two months scores all applications in parallel with the manual decision."],
+  ["How did you select the band limits of 0.10 and 0.25?", "They are round numbers near the 0.15 threshold. They are my proposal, not the result of an optimisation. I set them before I examined the test applicants, where the cost of credit errors is 10% to 20% above its minimum. In cross-validation, 1% of the applicants in the approve band defaulted, 20% in the referral band and 71% in the decline band. The test applicants give 1%, 21% and 73%. The shadow run adjusts the two limits to the capacity of the underwriters."],
+  ["What is the source of the $9,000 and $2,000 costs?", "The average defaulted loan is $16,900. I assume that the collateral recovers about half, and that collection adds costs. So a missed defaulter costs about $9,000. For a wrongly declined applicant, the bank loses about $2,000. That is about three points of net margin on a balance of $16,000 to $17,000 for three to four years. The cost of a replacement customer is also in this number. Both numbers are indicative."],
 ];
 // Academic questions in groups: [group title, [[question, answer], ...]]
 const ACADEMIC = [
   ["Model selection and tuning", [
-    ["Why a Random Forest and not logistic regression?", "The risk changes in steps, and the attributes combine. Trees can follow both. At its own best threshold, the logistic regression costs $550,000 for each 1,000 applicants. The forest costs $324,000."],
-    ["Why not accuracy?", "Four of five applicants repay. So a model that approves all applicants is 80% accurate and catches no defaulter. The final forest is 91% accurate at the 0.5 threshold and 90% at 0.15. But at 0.15 it misses 15 defaulters in each 1,000 applicants, not 64. The cost of credit errors decreases from $635,000 to $310,000 for each 1,000 applicants."],
-    ["Why recall, if cost makes the final selection?", "Recall is the primary measure for each model, because a missed defaulter costs about 4.5 times a wrong decline. The expected cost converts recall and precision to dollars. So it makes the final selection of the model and the threshold."],
+    ["Why did you select a Random Forest and not logistic regression?", "The risk changes in steps, and the attributes combine. Trees can follow both. At its own best threshold, the logistic regression costs $550,000 for each 1,000 applicants. The forest costs $324,000."],
+    ["Why is accuracy not the primary measure?", "Four of five applicants repay. So a model that approves all applicants is 80% accurate and catches no defaulter. The final forest is 91% accurate at the 0.5 threshold and 90% at 0.15. But at 0.15 it misses 15 defaulters in each 1,000 applicants, not 64. The cost of credit errors decreases from $635,000 to $310,000 for each 1,000 applicants."],
+    ["Why is recall the primary measure, if you select the final model by cost?", "A missed defaulter costs about 4.5 times a wrongly declined applicant. So recall is the primary measure for each model. The cost of credit errors converts recall and precision to dollars. So I used this cost to select the final model and the threshold."],
     ["How did you tune the models?", "I used grid search with cross-validation on the training applicants, and I scored recall. The logistic regression search tried four regularisation strengths on 5 folds. The decision tree search tried 210 combinations on 5 folds. The Random Forest search tried 72 combinations on 3 folds. Tuning increased the recall of each technique in cross-validation to 0.81 or more, but it decreased precision each time. So a second search scored cost: 15 forest settings on 15 folds."],
-    ["Why does the recall-tuned forest score lower than the standard forest?", "Tuning for recall alone selected larger leaves: at least 10 applicants in each leaf. Larger leaves give less exact scores. The ROC-AUC in cross-validation decreased from 0.954 to 0.921. At its own best threshold, the recall-tuned forest costs about $490,000 for each 1,000 applicants. The proposed forest costs $324,000. That is why I selected the final model by expected cost, not by recall."],
+    ["Why does the recall-tuned forest score lower than the standard forest?", "Tuning for recall alone selected larger leaves: at least 10 applicants in each leaf. Larger leaves give less exact scores. The ROC-AUC in cross-validation decreased from 0.954 to 0.921. At its own best threshold, the recall-tuned forest costs about $490,000 for each 1,000 applicants. The proposed forest costs $324,000. That is why I selected the final model by the cost of credit errors, not by recall."],
     ["Is the cost comparison fair? Only the forest got a cost search.", "The cost search selected the standard forest: no class weights and fully grown trees. So the forest gained nothing from the additional search. The decision tree and the logistic regression used their recall-tuned settings, each at its own cheapest threshold. The differences are large: $550,000 and $607,000 against $324,000. One standard error is about $10,500. A cost-tuned decision tree is a fair additional check."],
     ["A fully grown forest fits the training data perfectly. Is it over-fitted?", "Each tree fits its own sample, but the average of 200 trees generalises. The ROC-AUC is 0.960 in cross-validation and 0.961 on the test applicants. The test cost of $310,000 agrees with the cost of $324,000 in cross-validation."],
     ["Why did you not resample the data to correct the imbalance?", "Class weights and the threshold correct the imbalance, so I keep every real applicant. For the final model, the threshold alone was sufficient."],
   ]],
   ["Threshold and cost", [
-    ["Why 0.15, and is it stable with other assumptions?", "It gives the lowest expected cost in cross-validation. It stays the same for cost ratios from 4.5:1 to 8:1 and on a finer grid. On two other train and test splits, the forest with all 27 inputs also selected 0.15."],
+    ["Why is the threshold 0.15, and is it stable with other assumptions?", "It gives the lowest cost of credit errors in cross-validation. It stays the same for cost ratios from 4.5:1 to 8:1 and on a finer grid. On two other train and test splits, 0.15 was also the cheapest threshold for the forest with all 27 inputs."],
     ["What if a missed defaulter costs less than you assume?", "My ratio of 4.5:1 is at the lower edge of the stable range. At 3:1 the best threshold is 0.20, and at 9:1 it is 0.10. I did not test ratios between 3:1 and 4.5:1. The cost curve is flat near the minimum. Thresholds from 0.13 to 0.18 cost at most about $9,000 more for each 1,000 applicants. That is less than one standard error. So the bank sets the final threshold with its own loss data in months 0 to 2."],
-    ["How do the bands change the numbers?", "The headline numbers are for the single threshold of 0.15. With the bands, the model catches between 88% and 96% of defaulters. The result depends on the decisions of the underwriters for the 7% of applicants that they review."],
+    ["How do the bands change the numbers?", "The numbers in the talk are for the single threshold of 0.15. With the bands, the model catches between 88% and 96% of defaulters. The result depends on the decisions of the underwriters for the 7% of applicants that they review."],
   ]],
   ["Validation and leakage", [
     ["How did you prevent data leakage?", "I reserved the test applicants before I fitted any statistic. The medians, modes, caps and scaling come from the training applicants only. No selection used the test applicants. I scored the final model on them one time, after all selections."],
@@ -92,11 +92,11 @@ const ACADEMIC = [
     ["Why did you remove five inputs?", "They have about 2% of the decision power. As an average of three seeds, 22 inputs cost about $321,000 and all 27 inputs cost about $320,000. The rule keeps the smallest set within one standard error. The slides show $324,000: that is the forest with one seed, against $317,000 for all 27 inputs."],
   ]],
   ["Data and missing values", [
-    ["Why median imputation, and why keep the flags?", "The median is not sensitive to the skew and the outliers. The flag keeps the information that the value was missing. For the ratio and the valuation, that information is the strongest signal in the data."],
-    ["Is the missing ratio a real warning sign, or an artefact of the data?", "I cannot prove it from this data. I read a missing ratio as income that the bank could not check. If the bank recorded the missing value after the default, the flag would leak the result. So I also report the model on test applicants with a recorded ratio. There it catches 81% of the defaulters at 78% precision, with a ROC-AUC of 0.965. Two thirds of all defaulters are in the missing-ratio group, so the headline 93% depends on the flag. The 81% is the safer estimate after verification becomes mandatory."],
+    ["Why did you use median imputation, and why did you keep the flags?", "The median is not sensitive to the skew and the outliers. The flag keeps the information that the value was missing. For the ratio and the valuation, that information is the strongest signal in the data."],
+    ["Is the missing ratio a real warning sign, or an artefact of the data?", "I cannot prove it from this data. I read a missing ratio as income that the bank could not check. If the bank recorded the missing value after the default, the flag would leak the result. So I also report the model on test applicants with a recorded ratio. There it catches 81% of the defaulters at 78% precision, with a ROC-AUC of 0.965. Two thirds of all defaulters are in the missing-ratio group, so the 93% in the talk depends on the flag. The 81% is the safer estimate after verification becomes mandatory."],
     ["Why do some missing values occur with fewer defaults?", "This is true for derogatory reports, delinquent credit lines, years at job, credit inquiries and occupation. There, 8% to 15% of applicants defaulted when the value was missing, against 20% to 21% with a recorded value. This is probably an effect of how the bank recorded the data. The forest keeps the flags of derogatory reports, years at job and occupation, so it learns that direction. The input reduction removed the flags of delinquent credit lines and credit inquiries."],
     ["How many loans are behind the 45% limit?", "Only 84 of 5,960: 39 loans with a ratio from 45% to 50%, and 45 loans above 50%. 87% and 100% of them defaulted. The rate is far above the 20% average, so the rule is safe as a signal to decline or refer. But the data has only approved loans. It cannot show the results if the bank approved many applicants above 45%. The shadow run examines this."],
-    ["Why no outlier caps for the trees?", "Trees split on the rank order of the values, so extreme values do not distort them. I capped outliers only for the logistic regression."],
+    ["Why did you not cap outliers for the trees?", "Trees split on the rank order of the values, so extreme values do not distort them. I capped outliers only for the logistic regression."],
     ["What are the limits of the data?", "It has 5,960 loans that the bank approved, and no application dates. So I cannot test the model across time or on declined applicants now. The shadow run and reject inference correct both limits."],
   ]],
   ["Explanation and calibration", [
@@ -116,6 +116,8 @@ children.push(new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ 
 const PLAN = SCRIPT.timing();
 const clockAt = (slide) => SCRIPT.clockText(PLAN.find((t) => t.slide === slide).clock);
 const END = clockAt(15);
+// A talk is late when the timer is 15 seconds or more after the plan
+const lateAt = (slide) => SCRIPT.clockText(PLAN.find((t) => t.slide === slide).clock + 15);
 
 children.push(h1("1. The session and the marks"));
 children.push(
@@ -124,23 +126,26 @@ children.push(
   bullet([bold("Language. "), txt("Explain each result in plain words first. Then give the technical term. Say 'share of defaulters caught' before 'recall'.")]),
   bullet([bold("Marks (40). "), txt("Quality of slides: 10. Understanding of the solution (your ability to explain concepts): 15. Depth of analysis (methodology and rigour): 15.")]),
 );
-children.push(p(`The script in the speaker notes has ${SCRIPT.totalWords()} words. At a calm pace of ${SCRIPT.WORDS_PER_MINUTE} words each minute, the talk ends at about ${END}. This gives you a margin before the 8-minute limit.`));
+const SPOKEN = SCRIPT.totalSpokenWords();
+const CHANGES = (PLAN.length - 1) * SCRIPT.SLIDE_CHANGE_SECONDS;
+const endAt = (pace) => SCRIPT.clockText(Math.round((SPOKEN / pace) * 60 + CHANGES));
+children.push(p(`The script in the speaker notes has ${SCRIPT.totalWords()} written words. When you say the numbers in full, it has about ${SPOKEN} spoken words. At a calm pace of ${SCRIPT.WORDS_PER_MINUTE} spoken words each minute, with 2 seconds for each slide change, the talk ends at about ${END}. At a slow pace of 120 spoken words each minute, it ends at about ${endAt(120)}.`));
 
 // ---------------------------------------------------------------- 2. timing plan
 children.push(h1("2. Timing plan"));
 children.push(table(
-  ["Slide", "The one message", "Target", "Clock at the end"],
+  ["Slide", "The one message", "Target", "Timer at the end"],
   PLAN.map((t) => [`${t.slide}. ${t.name}`, t.message, SCRIPT.clockText(t.target), SCRIPT.clockText(t.clock)]),
-  [1900, 5160, 900, 1400],
+  [2100, 5360, 800, 1100],
 ));
 children.push(gap());
 children.push(
-  bullet([bold("Time cue. "), txt("The first line of each speaker note gives the same target and the same clock time.")]),
-  bullet([bold("Checkpoints. "), txt(`Start slide 9 before ${clockAt(8)}. Start slide 12 before ${clockAt(11)}.`)]),
-  bullet([bold("If you are late at slide 7. "), txt("Say one sentence on slide 7 and continue.")]),
-  bullet([bold("If you are late at slide 12. "), txt("On slide 13, say only the first sentence and the third sentence. On slide 14, say only the sentences that start with First, Second and Third.")]),
+  bullet([bold("Time cue. "), txt("The first line of each speaker note gives the same target and the same timer value.")]),
+  bullet([bold("Checkpoints. "), txt(`Start slide 9 before ${clockAt(8)} on the timer. Start slide 12 before ${clockAt(11)}.`)]),
+  bullet([bold("If you are late at slide 7. "), txt(`Apply this rule only if the timer shows more than ${lateAt(6)} at the start of slide 7. Say only the third sentence of slide 7.`)]),
+  bullet([bold("If you are late at slide 12. "), txt(`Apply this rule only if the timer shows more than ${lateAt(11)} at the start of slide 12. On slide 13, say only the first sentence and the third sentence. On slide 14, say only the sentences that start with First, Second and Third.`)]),
   bullet([bold("Do not cut. "), txt("Slides 2, 10 and 12 contain the takeaways, the solution and the benefit.")]),
-  bullet([bold("Backup slides. "), txt("Appendix A shows all eleven models. Appendix B shows the importance of the inputs. Appendix C shows the three rules. Appendix D shows the data treatment. Appendix E shows the rigour checks.")]),
+  bullet([bold("Backup slides. "), txt("Slide 16 (Appendix A) shows all eleven models. Slide 17 (Appendix B) shows the importance of the inputs. Slide 18 (Appendix C) shows the three rules. Slide 19 (Appendix D) shows the data treatment. Slide 20 (Appendix E) shows the rigour checks.")]),
 );
 
 // ---------------------------------------------------------------- 3. how to present
@@ -148,24 +153,27 @@ children.push(h1("3. How to present"));
 children.push(p([bold("Before the session")], 60));
 [
   "Open the deck in Presenter View. The notes show one sentence on each line.",
+  "Adjust the size of the notes pane and the size of the text. Make sure that you see the full note of slide 10 without the scroll bar.",
+  "If the session is online, test Presenter View in the meeting tool. Make sure that the panel sees only the slide.",
   "Read the script aloud with a timer. Do this three times or more.",
-  "At each slide change, compare the timer with the clock time in the cue.",
+  "At each slide change, compare the timer with the time in the cue.",
   "If the talk is longer than 7 minutes 45 seconds, apply the two rules for a late talk in section 2.",
   "Say the answers in sections 5 and 6 aloud. Use your own words when you know the answer.",
-  "Print section 7 as a paper copy of the script.",
+  "Print sections 5, 6 and 7. Keep the pages on the desk during the session.",
 ].forEach((t) => children.push(step(t, "before")));
 children.push(p([bold("During the talk")], 60));
 [
-  "Start the timer when you say 'Good morning'.",
+  "Start the slide show before your turn. When you start to speak, restart the timer in Presenter View.",
+  "If the session is not in the morning, say 'Good afternoon' or 'Good evening'.",
   "Say one sentence. Then stop for a short breath.",
-  "Point to the chart or the number when you say it.",
-  "Look at the clock cue each time you change the slide.",
-  "After 'Thank you', keep slide 15 on the screen. Its note has short answers.",
+  "Point to the chart or the number when you say it. On slide 9, point to the cost line below the chart. On slide 11, point to the two cards on the right.",
+  "Look at the timer and the time cue each time you change the slide.",
+  "After 'Thank you', keep slide 15 on the screen. Its note has short answers, but the note is long. Use the paper copy of sections 5 and 6 first.",
 ].forEach((t) => children.push(step(t, "during")));
 children.push(p([bold("During the questions")], 60));
 [
   "Give the short answer first. Then give one number as evidence.",
-  "Show a backup slide only if it helps the answer.",
+  "Show a backup slide only if it helps the answer. To show it, type its slide number and press Enter. To go back, type 15 and press Enter.",
   "If you do not know the answer, tell the panel. Then tell them how you would find it.",
 ].forEach((t) => children.push(step(t, "questions")));
 children.push(new Paragraph({ pageBreakBefore: true, keepNext: true, spacing: { after: 60, line: 264 }, children: [bold("How to say the numbers and the terms")] }));
@@ -176,7 +184,10 @@ children.push(table(
     ["$324k", "'three hundred and twenty-four thousand dollars'"],
     ["$10.8M, $1.9M, ~$9M", "'ten point eight million dollars', 'one point nine million dollars', 'about nine million dollars'"],
     ["4.5:1 to 8:1", "'from four and a half to one, to eight to one'"],
-    ["ROC-AUC 0.96", "'R, O, C, A, U, C of zero point nine six'. In plain words: the quality of the risk ranking"],
+    ["4.5 times", "'four and a half times'"],
+    ["ROC-AUC 0.96", "'R-O-C, A-U-C of zero point nine six'. In plain words: the quality of the risk ranking"],
+    ["0.960, 0.961", "'zero point nine six zero', 'zero point nine six one'"],
+    ["Indicative", "'in-DIK-a-tiv'"],
     ["F1", "'F one'"],
     ["ECOA", "'the Equal Credit Opportunity Act'"],
     ["HMEQ", "'the home equity data'"],
@@ -197,7 +208,7 @@ children.push(table(
     ["Accuracy", "Of all decisions, the share that is correct", "It misleads when one in five applicants defaults. A model that approves all applicants is 80% accurate and catches no defaulter. This model: 90% at 0.15, against 91% at 0.5"],
     ["F1", "One number that balances recall and precision", "The harmonic mean of recall and precision. This model: 0.78"],
     ["ROC-AUC", "How well the model ranks applicants by risk", "The chance that a random defaulter gets a higher score than a random good applicant. A value of 0.5 is a random guess. This model: 0.96"],
-    ["Threshold", "The score above which the model flags an applicant", "The value 0.5 is a convention. I selected 0.15 by the expected cost"],
+    ["Threshold", "The score above which the model flags an applicant", "The value 0.5 is a convention. I selected 0.15 by the cost of credit errors"],
     ["Expected cost (cost of credit errors)", "The dollar cost of the wrong decisions of the model", "Missed defaulters times $9,000, plus wrongly declined applicants times $2,000, for each 1,000 applicants"],
     ["Decision tree", "A list of yes-or-no questions that ends in a decision", "People can read it, but it is unstable: small changes in the data change the tree"],
     ["Bagging", "Many trees, each trained on a random resample of the data. The model uses their average", "The average decreases the instability (the variance) of a single tree"],
@@ -234,7 +245,7 @@ ACADEMIC.forEach(([group, items]) => {
 
 // ---------------------------------------------------------------- 7. the script
 children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, pageBreakBefore: true, keepNext: true, spacing: { before: 0, after: 140 }, children: [new TextRun({ text: "7. The script", font: FONT, bold: true, size: 28, color: NAVY })] }));
-children.push(p("This is the text of the speaker notes. Each line is one sentence. The cue gives the target time and the clock time at the end of the slide."));
+children.push(p("This is the text of the speaker notes. Each line is one sentence. The cue gives the target time and the timer value at the end of the slide."));
 children.push(p("The script follows the ASD-STE100 rules (Simplified Technical English). Each sentence is complete, short and in the active voice. One term has one meaning."));
 SCRIPT.TALK.forEach((t) => {
   children.push(new Paragraph({ keepNext: true, spacing: { before: 140, after: 50 }, children: [bold(`Slide ${t.slide}: ${t.name}  `), new TextRun({ text: SCRIPT.cue(t.slide), font: FONT, size: 19, color: GREY })] }));

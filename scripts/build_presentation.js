@@ -104,7 +104,7 @@ pres.addSection({ title: "Opening" });
   const items = [
     ["1 in 5", "The problem. ", "One in five home equity loans in the data ended in default. Accuracy alone misleads: approving everyone is 80% accurate."],
     ["62%", "Key finding. ", "Default rate when the debt-to-income ratio is missing, against 8.6% when it is present."],
-    ["93%", "The solution. ", "Of eleven model variants, a Random Forest wins on business cost. It catches 93% of defaulters among unseen applicants."],
+    ["93%", "The solution. ", "Of eleven model variants, a Random Forest has the lowest cost of credit errors. It catches 93% of defaulters among the test applicants."],
     ["~$9M", "The benefit. ", "Indicative yearly saving on 6,000 applications: the cost of credit errors falls from $10.8M to $1.9M."],
   ];
   items.forEach(([big, lead, text], i) => {
@@ -182,7 +182,7 @@ pres.addSection({ title: "Key insights" });
     "No recorded debt-to-income ratio: 62% default (1,267 applicants, 21% of the data)",
     "No property valuation: 94% default (112 applicants)",
     "Overall default rate 20%: these two missing values multiply risk 3 to 5 times, probably because the bank could not check income or collateral",
-    "Action: a 'was missing' flag for every field with missing values, and mandatory verification in the process",
+    "Action: a 'was missing' flag for every field with missing values, and mandatory checks in the process",
   ], 12.5), { x: 6.2, y: 1.25, w: 3.4, h: 3.9, valign: "top", margin: 0, isTextBox: true, objectName: "insight 1 bullets" });
   notes(s, 5);
 }
@@ -266,7 +266,7 @@ pres.addSection({ title: "Modelling" });
     { name: "Flagged applicants who really default (precision)", labels, values: [60.8, 53.1, 82.7, 82.9, 76.9, 67.4] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.9, h: 3.3, barDir: "bar", barGrouping: "clustered", barGapWidthPct: 50, catAxisLabelFontSize: 10,
        chartColors: [H.accent5, H.accent1], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
-       showLegend: true, legendPos: "b", legendFontSize: 10, catAxisOrientation: "maxMin", title: "Test set (1,788 unseen applicants), % ", objectName: "model comparison chart" });
+       showLegend: true, legendPos: "b", legendFontSize: 10, catAxisOrientation: "maxMin", title: "Test applicants (1,788, not used in training), %", objectName: "model comparison chart" });
   s.addText(bullets([
     "Logistic regression: 80% caught at 61% precision. A straight line misses the step changes in risk",
     "Tuned decision tree: 82% caught, but almost one good applicant flagged per defaulter caught (53% precision)",
@@ -358,7 +358,7 @@ pres.addSection({ title: "Recommendations" });
   s.addText("indicative gross annual benefit. About $8.8M after running costs, $8.5M in the first year live", { x: 6.7, y: 2.4, w: 2.8, h: 0.9, fontSize: 11, color: C.background2, align: "center", valign: "top", margin: 0, isTextBox: true, objectName: "benefit label" });
   s.addText(bullets([
     "Assumptions: 6,000 applications a year. $9,000 lost per missed defaulter. $2,000 margin forgone per wrongly declined applicant. Test performance holds in production",
-    "Measured on the loans the bank approves today, before mandatory verification",
+    "Measured on the loans the bank approves today, before mandatory checks",
     "Cost: $300-400k one-off and about $100k a year. Repaid in the first year live even at a quarter of the benefit",
     "Also: faster, consistent decisions and an auditable reason for every decline",
   ], 11.5), { x: 0.5, y: 3.6, w: 9.1, h: 1.55, valign: "top", margin: 0, isTextBox: true, objectName: "impact bullets" });
@@ -370,7 +370,7 @@ pres.addSection({ title: "Recommendations" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Recommendations" });
   s.addText("Recommendations and implementation roadmap", { placeholder: "title" });
   const phases = [
-    ["Months 0-2: prepare", ["Mandatory income and valuation verification", "Scoring pipeline and per-applicant risk drivers", "Threshold check with real loss figures. Fairness review"]],
+    ["Months 0-2: prepare", ["Mandatory income and valuation checks", "Scoring pipeline and per-applicant risk drivers", "Threshold check with real loss figures. Fairness review"]],
     ["Months 2-4: shadow run", ["Score every application alongside the manual decision", "Test on past applicants with a recorded ratio. Tune the bands", "Train underwriters on risk drivers and referrals"]],
     ["Month 4 onwards: scale", ["Automate clear approvals and declines", "Monitor the approval rate monthly, recall and precision as outcomes arrive", "Re-train after 12+ months of verified outcomes, then yearly"]],
   ];
@@ -399,7 +399,7 @@ pres.addSection({ title: "Recommendations" });
   s.addText("Risks and mitigations", { x: 0.7, y: 1.4, w: 5.0, h: 0.4, fontSize: 14, bold: true, color: C.accent2, margin: 0, isTextBox: true, objectName: "risks title" });
   s.addText(bullets([
     "Selection bias (the data holds approved loans only): shadow run on all applications, then estimate outcomes for declined applicants (reject inference)",
-    "The missing-ratio signal fades once verification is mandatory: re-test on applicants with a recorded ratio before go-live (81% caught at 78% precision)",
+    "The missing-ratio signal fades once the checks are mandatory: re-test on applicants with a recorded ratio before go-live (81% caught at 78% precision)",
     "Economic drift: monitor monthly, re-train yearly, review the threshold",
     "Fair lending: 11% of good applicants flagged at 0.15 (3% at 0.5). Test approval and error rates across protected groups before go-live. Version without occupation ready (about 13% more cost)",
     "Over-reliance on the score: per-applicant risk drivers, a referral band, documented overrides",
@@ -482,7 +482,7 @@ pres.addSection({ title: "Appendix" });
     ["1", "Is the debt-to-income ratio missing?", "Yes: flag, whatever the credit history (62% of these applicants defaulted). Check income before approving."],
     ["2", "If recorded, is the ratio above about 44%?", "Yes: flag (87-100% of applicants above 45% defaulted)."],
     ["3", "Ratio at or below 44%: a delinquent credit line and a credit history of about 8 years or less?", "Yes: flag. Otherwise clear. In this group, applicants with no delinquent line default only about 5% of the time."],
-    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on unseen applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers will give each decline its own reason."],
+    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on the test applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers will give each decline its own reason."],
     ["5", "What the rules do not use", "Loan size, derogatory reports, occupation and loan purpose do not change the surrogate's outcome. They matter only in combination inside the forest."],
   ];
   rules.forEach(([n, q, a], i) => {
