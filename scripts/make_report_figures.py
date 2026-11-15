@@ -149,9 +149,9 @@ fig.tight_layout(); fig.savefig(OUT / "report_missing_vs_present.png"); plt.clos
 # Figure: bands (debt-to-income, credit age, loan amount)
 fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.4))
 specs = [
-    ("DEBTINC", [0, 20, 30, 35, 40, 45, 50, 210], ["0-20", "20-30", "30-35", "35-40", "40-45", "45-50", "50+"], "Debt-to-income ratio (%)", RED),
+    ("DEBTINC", [0, 20, 30, 35, 40, 45, 50, 210], ["0-20", "20-30", "30-35", "35-40", "40-45", "45-50", "50+"], "Debt-to-income ratio (%)", BLUE),
     ("CLAGE", [0, 60, 120, 180, 240, 300, 1200], ["<5", "5-10", "10-15", "15-20", "20-25", "25+"], "Age of oldest credit line (years)", BLUE),
-    ("LOAN", [0, 5000, 10000, 15000, 20000, 30000, 90000], ["<5k", "5-10k", "10-15k", "15-20k", "20-30k", "30k+"], "Loan amount ($)", RED),
+    ("LOAN", [0, 5000, 10000, 15000, 20000, 30000, 90000], ["<5k", "5-10k", "10-15k", "15-20k", "20-30k", "30k+"], "Loan amount ($)", BLUE),
 ]
 for ax, (col, bins, labels, xlabel, color) in zip(axes, specs):
     r, n = rate_by_band(col, bins, labels)
@@ -172,7 +172,7 @@ for ax, (col, cap, xlabel) in zip(axes, [("DEROG", 5, "Major derogatory reports"
     g = df.groupby(s, observed=True)["BAD"]
     r, n = g.mean() * 100, g.count()
     labels = [f"{int(i)}+" if i == cap else f"{int(i)}" for i in r.index]
-    bar_with_labels(ax, labels, r.values, BLUE if col != "DEROG" else RED, counts=n.values, ymax=118, n_prefix="")
+    bar_with_labels(ax, labels, r.values, BLUE, counts=n.values, ymax=118, n_prefix="")
     ax.set_xlabel(xlabel); ax.set_title(f"By {xlabel.lower()}", fontsize=10, color=NAVY, loc="left")
 for ax in axes[1:]:
     ax.set_ylabel("")
@@ -231,7 +231,7 @@ show = [
     ("Logistic Regression (balanced)", "Logistic Regression\n(balanced)"),
     ("Decision Tree (tuned)", "Decision Tree\n(tuned)"),
     ("Bagging (200 trees)", "Bagged trees\n(200)"),
-    ("Random Forest (default)", "Random Forest\n(default)"),
+    ("Random Forest (default)", "Random Forest\n(standard)"),
     ("Random Forest (class weights)", "Random Forest\n(class weights)"),
     ("Random Forest (tuned, recall)", "Random Forest\n(tuned)"),
     ("Proposed (own threshold)", PROPOSED_LABEL),
@@ -247,7 +247,7 @@ for i, (col, label, color) in enumerate(metrics):
 ax.set_xticks(x); ax.set_xticklabels([lab for _, lab in show], fontsize=8)
 ax.set_ylim(0, 112); ax.set_ylabel("Score on unseen applicants (%)")
 ax.legend(frameon=False, fontsize=8, ncol=3, loc="upper left")
-ax.set_title("Techniques on the 1,788 held-out applicants (0.5 threshold; proposed model at 0.15)", fontsize=11, color=NAVY, loc="left")
+ax.set_title("Techniques on the 1,788 held-out applicants (0.5 threshold, proposed model at 0.15)", fontsize=11, color=NAVY, loc="left")
 fig.tight_layout(); fig.savefig(OUT / "report_model_comparison.png"); plt.close(fig)
 
 # Figure: threshold trade-off - two stacked panels that share the threshold axis (one y-axis each, no dual-axis chart)
@@ -274,7 +274,7 @@ for ax in (ax1, ax2):
     ax.axvline(best, color=RED, linewidth=1, linestyle=":")
     ax.axvline(0.5, color=GREY, linewidth=1, linestyle=":")
 ax1.text(best + 0.006, 97, f"Recommended threshold {best:.2f}", color="#333333", fontsize=8, va="top")
-ax1.text(0.506, 97, "Default threshold 0.50", color="#333333", fontsize=8, va="top")
+ax1.text(0.506, 97, "Conventional threshold 0.50", color="#333333", fontsize=8, va="top")
 fig.suptitle("Moving the decision threshold of the selected Random Forest (out-of-fold, training rows)", fontsize=11, color=NAVY, x=0.01, ha="left")
 fig.tight_layout(); fig.savefig(OUT / "report_threshold.png"); plt.close(fig)
 
@@ -305,7 +305,7 @@ ax.plot([sel_n], [red_cost[sel_n]], marker="o", markersize=13, markerfacecolor="
 for n in [27, sel_n, 21, 16, 10]:
     dy = -14 if n == sel_n else 9
     ax.text(n, red_cost[n] + dy, f"${r0(red_cost[n])}k", ha="center", fontsize=8, color="#333333")
-ax.annotate(f"Selected: {sel_n} inputs\n(5 minor missing flags removed)", xy=(sel_n, red_cost[sel_n]), xytext=(26.6, red_cost[sel_n] + 45),
+ax.annotate(f"Selected: {sel_n} inputs\n(5 minor missing-value flags removed)", xy=(sel_n, red_cost[sel_n]), xytext=(26.6, red_cost[sel_n] + 45),
             fontsize=8, color="#333333", arrowprops={"arrowstyle": "-", "color": GREY, "linewidth": 0.8})
 ax.text(10, red_cost[10] - 9, "Occupation\nremoved", fontsize=8, color="#333333", ha="center", va="top")
 ax.invert_xaxis(); ax.set_xticks(red_cost.index)
