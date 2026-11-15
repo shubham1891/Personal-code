@@ -21,7 +21,7 @@ const TALK = [
     "I start with four key takeaways.",
     "First, one in five loans in the data defaulted.",
     "Second, when the debt-to-income ratio was missing, 62 percent of applicants defaulted.",
-    "Third, among eleven models, a Random Forest has the lowest cost of credit errors.",
+    "Third, among four techniques, a Random Forest has the lowest cost of credit errors.",
     "It catches 93 percent of defaulters.",
     "Fourth, the indicative benefit is about nine million dollars each year.",
     "I recommend mandatory income and valuation checks, and then the model after a shadow run.",
@@ -117,8 +117,8 @@ const TALK = [
     "So the compliance team tests approval rates across protected groups before the start.",
     "A model without occupation is ready.",
   ] },
-  { slide: 15, name: "Close", message: "93% caught, each decision explained, about $9 million each year", lines: [
-    "In summary, the model catches 93 percent of defaulters, and the bank can explain each decision.",
+  { slide: 15, name: "Close", message: "93% caught, three simple rules, about $9 million each year", lines: [
+    "In summary, the model catches 93 percent of defaulters, and three simple rules explain its decisions.",
     "The indicative benefit is about nine million dollars each year.",
     "Thank you.",
   ] },
@@ -180,7 +180,7 @@ const CRIB = [
     "I assume that the collateral recovers about half, and that collection adds costs.",
     "So a missed defaulter costs about 9,000 dollars.",
     "For a wrongly declined applicant, the bank loses about 2,000 dollars.",
-    "That is about three points of net margin on a balance of 16,000 to 17,000 dollars for three to four years.",
+    "That is about three points of net margin on 16,000 to 17,000 dollars for three to four years.",
     "The cost of a replacement customer is also in this number.",
     "Both numbers are indicative, and the finance team should replace them.",
   ]],
@@ -202,7 +202,7 @@ const BACKUP_USE = {
 const BACKUP = {
   16: [
     "The table shows all eleven models on the test applicants.",
-    "I set the selection rule before the comparison.",
+    "I set the selection rule before the cost search on the training applicants.",
     "The rule finds the lowest mean cost.",
     "Then it selects the simplest model within one standard error of this cost.",
     "One standard error is about 10,500 dollars for each 1,000 applicants.",

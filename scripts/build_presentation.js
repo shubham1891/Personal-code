@@ -104,7 +104,7 @@ pres.addSection({ title: "Opening" });
   const items = [
     ["1 in 5", "The problem. ", "One in five home equity loans in the data ended in default. Accuracy alone misleads: approving everyone is 80% accurate."],
     ["62%", "Key finding. ", "Default rate when the debt-to-income ratio is missing, against 8.6% when it is present."],
-    ["93%", "The solution. ", "Of eleven model variants, a Random Forest has the lowest cost of credit errors. It catches 93% of defaulters among unseen applicants."],
+    ["93%", "Approach and solution. ", "Of four techniques, a Random Forest has the lowest cost of credit errors. It catches 93% of defaulters among unseen applicants."],
     ["~$9M", "The benefit. ", "Indicative yearly saving on 6,000 applications: the cost of credit errors falls from $10.8M to $1.9M."],
   ];
   items.forEach(([big, lead, text], i) => {
@@ -173,8 +173,8 @@ pres.addSection({ title: "Key insights" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Key insights" });
   s.addText("Insight 1: a missing debt-to-income ratio or property value is the strongest warning sign", { placeholder: "title" });
   s.addChart(pres.charts.BAR, [
-    { name: "Field missing", labels: ["Property value", "Debt-to-income", "Credit-line age", "No. of credit lines", "Derogatory reports", "Occupation"], values: [93.8, 62.0, 25.3, 23.9, 12.3, 8.2] },
-    { name: "Field present", labels: ["Property value", "Debt-to-income", "Credit-line age", "No. of credit lines", "Derogatory reports", "Occupation"], values: [18.5, 8.6, 19.7, 19.8, 21.0, 20.5] },
+    { name: "Field missing", labels: ["Property value", "Debt-to-income", "Credit history", "No. of credit lines", "Derogatory reports", "Occupation"], values: [93.8, 62.0, 25.3, 23.9, 12.3, 8.2] },
+    { name: "Field present", labels: ["Property value", "Debt-to-income", "Credit history", "No. of credit lines", "Derogatory reports", "Occupation"], values: [18.5, 8.6, 19.7, 19.8, 21.0, 20.5] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.6, h: 3.9, barDir: "bar", catAxisOrientation: "maxMin", barGrouping: "clustered", barGapWidthPct: 60,
        chartColors: [H.accent2, H.accent3], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0", valAxisMaxVal: 100, valAxisLabelFormatCode: "0",
        showLegend: true, legendPos: "b", legendFontSize: 10, title: "Default rate (%) when a field is missing vs present", objectName: "missing fields chart" });
@@ -213,7 +213,7 @@ pres.addSection({ title: "Key insights" });
   s.addChart(pres.charts.BAR, [
     { name: "Default rate", labels: ["<5 yrs", "5-10", "10-15", "15-20", "20-25", "25+"], values: [44.0, 26.2, 22.8, 15.3, 9.3, 10.7] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 2.9, h: 3.0, barDir: "col", chartColors: [H.accent3], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
-       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", titleFontSize: 11, title: "Default rate (%) by credit-line age", objectName: "credit age chart" });
+       valAxisMaxVal: 70, valAxisLabelFormatCode: "0", titleFontSize: 11, title: "Default rate (%) by credit history", objectName: "credit age chart" });
   s.addChart(pres.charts.BAR, [
     { name: "Default rate", labels: ["<5k", "5-10k", "10-15k", "15-20k", "20-30k", "30k+"], values: [57.2, 25.1, 20.48, 16.2, 14.4, 19.5] },
   ], { ...chartFrame(), x: 3.3, y: 1.2, w: 2.9, h: 3.0, barDir: "col", chartColors: [H.accent2], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0",
@@ -300,7 +300,7 @@ pres.addSection({ title: "Modelling" });
   s.addText(spec.map(([t, level], i) => ({ text: t, options: { bullet: { indent: 14 }, indentLevel: level, fontSize: level ? 10.5 : 11, color: C.text1, paraSpaceAfter: level && spec[i + 1] && spec[i + 1][1] ? 3 : 8, breakLine: i < spec.length - 1 } })),
     { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
   stat(s, 6.1, 1.3, 1.65, "93%", "of defaulters caught", C.accent5, 34);
-  stat(s, 7.85, 1.3, 1.65, "67%", "of flagged applicants truly default", C.accent1, 34);
+  stat(s, 7.85, 1.3, 1.65, "67%", "of flagged applicants really default", C.accent1, 34);
   stat(s, 6.1, 2.75, 1.65, "0.96", "ROC-AUC: risk ranking quality", C.accent1, 34);
   stat(s, 7.85, 2.75, 1.65, "90%", "overall accuracy", C.accent1, 34);
   s.addText("At the 0.15 threshold alone, per 1,000 applicants: 185 of 200 defaulters flagged in advance, 15 missed, about 90 good applicants flagged.", { x: 6.1, y: 4.25, w: 3.4, h: 0.85, fontSize: 11.5, italic: true, color: C.text1, margin: 0, isTextBox: true, valign: "top", objectName: "per 1000 note" });
@@ -400,8 +400,8 @@ pres.addSection({ title: "Recommendations" });
   s.addText(bullets([
     "Selection bias (the data holds approved loans only): shadow run on all applications, then estimate outcomes for declined applicants (reject inference)",
     "The missing-ratio signal fades once the checks are mandatory: re-test on applicants with a recorded ratio before go-live (81% caught at 78% precision)",
-    "Economic drift: monitor monthly, re-train yearly, review the threshold",
     "Fair lending: 11% of good applicants flagged at 0.15 (3% at 0.5). Test approval and error rates across protected groups before go-live. Version without occupation ready (about 13% more cost)",
+    "Economic drift: monitor monthly, re-train yearly, review the threshold",
     "Over-reliance on the score: per-applicant risk drivers, a referral band, documented overrides",
   ], 12.5), { x: 0.7, y: 1.88, w: 5.0, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "risks bullets" });
   card(s, 6.1, 1.3, 3.5, 3.85, { name: "next steps card" });
@@ -421,7 +421,7 @@ pres.addSection({ title: "Recommendations" });
   s.addText("Thank you", { placeholder: "title" });
   s.addText([
     { text: "Questions and discussion", options: { fontSize: 18, color: C.background2, breakLine: true } },
-    { text: "Catch 93% of defaulters. Explain every decision. Save an indicative $9M a year.", options: { fontSize: 13, color: C.accent4 } },
+    { text: "Catch 93% of defaulters. Explain the decisions. Save an indicative $9M a year.", options: { fontSize: 13, color: C.accent4 } },
   ], { placeholder: "body" });
   s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.45, w: 0.9, h: 0.08, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "close marker" });
   notes(s, 15);
@@ -460,10 +460,10 @@ pres.addSection({ title: "Appendix" });
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
   s.addText("Appendix B: what the Random Forest relies on", { placeholder: "title" });
   s.addChart(pres.charts.BAR, [
-    { name: "Importance", labels: ["Debt-to-income ratio missing", "Debt-to-income ratio", "Age of oldest credit line", "Delinquent credit lines", "Property value", "Loan amount", "Number of credit lines", "Mortgage balance", "Years at current job", "Major derogatory reports", "Recent credit inquiries", "Property value missing"],
+    { name: "Importance", labels: ["Debt-to-income ratio missing", "Debt-to-income ratio", "Credit-history length", "Delinquent credit lines", "Property value", "Loan amount", "Number of credit lines", "Mortgage balance", "Years at current job", "Major derogatory reports", "Recent credit inquiries", "Property value missing"],
       values: [17.2, 14.4, 8.7, 8.0, 7.5, 7.2, 6.8, 6.7, 5.3, 4.7, 3.6, 2.9] },
   ], { ...chartFrame(), x: 0.4, y: 1.2, w: 5.8, h: 3.9, barDir: "bar", chartColors: [H.accent1], showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.0",
-       valAxisMaxVal: 24, valAxisLabelFormatCode: "0", catAxisOrientation: "maxMin", title: "Impurity-based importance (%), final Random Forest", objectName: "feature importance chart" });
+       valAxisMaxVal: 24, valAxisLabelFormatCode: "0", catAxisOrientation: "maxMin", title: "Impurity-based importance (%), top 12 of 22 inputs", objectName: "feature importance chart" });
   s.addText(bullets([
     "The debt-to-income ratio and its missing flag carry a third of the forest's decision power. With delinquent lines and credit-history length, about half",
     "Permutation importance ranks the same four at the top, delinquent credit lines first",
@@ -509,7 +509,7 @@ pres.addSection({ title: "Appendix" });
     ["Encoding and scaling", "One-hot encoding of loan purpose and occupation (first level dropped). Standard scaling for the linear model only. Flags stay 0/1", "Comparable coefficients for the linear model"],
     ["Split", "70% train / 30% test, stratified on the target, fixed seed, reserved before I fitted any statistic", "No leakage from test rows into medians, caps or scaling"],
     ["Imbalance", "Class weights inside the individual models, then the decision threshold for the final model. No resampling", "Keeps every real applicant. Class weights added nothing once I chose the threshold on cost"],
-    ["Model inputs", "22 of 27 columns: the 10 numeric attributes, 6 missing flags (property value, loan purpose, occupation, years at job, derogatory reports, debt-to-income) and 6 loan-purpose and occupation indicators", "The input-reduction step removed five flags (mortgage balance, delinquent lines, credit-line age, inquiries, number of credit lines). A final check compared 22 inputs against all 27"],
+    ["Model inputs", "22 of 27 columns: the 10 numeric attributes, 6 missing flags (property value, loan purpose, occupation, years at job, derogatory reports, debt-to-income) and 6 loan-purpose and occupation indicators", "The input-reduction step removed five flags (mortgage balance, delinquent lines, credit history, inquiries, number of credit lines). A final check compared 22 inputs against all 27"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.5, 3.9, 3.6], fontSize: 10, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "preprocessing table" });
   notes(s, 19);
@@ -522,7 +522,7 @@ pres.addSection({ title: "Appendix" });
   const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
   const rows = [
     [hdr("Check"), hdr("What I did"), hdr("Result")],
-    ["Honest final test", "30% of applicants reserved before I fitted any statistic. Final model scored once, after all choices", "No test-set leakage. Test cost $310k per 1,000 applicants (standard error $28k) against $324k estimated beforehand"],
+    ["Honest final test", "30% of applicants reserved before I fitted any statistic. Final model scored once, after all choices", "Test cost $310k per 1,000 applicants (standard error $28k) against $324k estimated beforehand"],
     ["Cross-validation", "Every candidate scored on training applicants it had not seen: 5 folds, repeated 3 times", "The noise is known: one standard error is about $10,500 per 1,000 applicants"],
     ["Rule set in advance", "Lowest mean cost wins. Within one standard error, the simplest model wins", "The forest without class weights chosen from 15 forest settings"],
     ["Fewer inputs", "Weakest input removed one at a time, averaged over three random seeds", "22 of 27 inputs kept. With 21 the cost leaves the one-standard-error band"],
