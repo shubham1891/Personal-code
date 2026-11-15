@@ -172,7 +172,7 @@ children.push(p([bold("Before the session")], 60));
   "If the talk is longer than 7:45, apply the two rules for a late talk in section 2.",
   "If the talk is still longer than 7:45, do not say the last sentence of slide 11.",
   "Say the answers in sections 5 and 6 aloud. Use your own words when you know the answer.",
-  "Print sections 5, 6 and 7. Keep the pages on the desk during the session.",
+  "Print sections 5 and 6 and the speech sheet. Keep the pages on the desk during the session.",
 ].forEach((t) => children.push(step(t, "before")));
 children.push(p([bold("During the talk")], 60));
 [
@@ -266,7 +266,7 @@ ACADEMIC.forEach(([group, items]) => {
 
 // ---------------------------------------------------------------- 7. the script
 children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, pageBreakBefore: true, keepNext: true, spacing: { before: 0, after: 140 }, children: [new TextRun({ text: "7. The script", font: FONT, bold: true, size: 28, color: NAVY })] }));
-children.push(p("This is the text of the speaker notes. Each line is one sentence. The cue gives the target time and the timer value at the end of the slide."));
+children.push(p("This is the text of the speaker notes. Each line is one sentence. The cue gives the target time and the timer value at the end of the slide. The speech sheet (Loan_Default_Prediction_Speech.pdf) has the same words in large print, with the words to stress and the pauses."));
 children.push(p("The script follows the ASD-STE100 rules (Simplified Technical English). Each sentence is complete, short and in the active voice. One term has one meaning."));
 SCRIPT.TALK.forEach((t) => {
   children.push(new Paragraph({ keepNext: true, spacing: { before: 140, after: 50 }, children: [bold(`Slide ${t.slide}: ${t.name}  `), new TextRun({ text: SCRIPT.cue(t.slide), font: FONT, size: 19, color: GREY })] }));

@@ -1,5 +1,5 @@
-// The spoken script of the live presentation: one source for the speaker notes of the deck and for the presenter guide.
-// build_presentation.js and build_presenter_guide.js read it.
+// The spoken script of the live presentation: one source for the speaker notes of the deck, for the presenter guide
+// and for the speech sheet. build_presentation.js, build_presenter_guide.js and build_speech.js read it.
 //
 // The text follows the ASD-STE100 writing rules (Simplified Technical English):
 //   - one complete sentence for each line, 20 words or fewer in the timed talk (25 is the hard limit)
