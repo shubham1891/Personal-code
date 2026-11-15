@@ -116,8 +116,6 @@ children.push(new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ 
 const PLAN = SCRIPT.timing();
 const clockAt = (slide) => SCRIPT.clockText(PLAN.find((t) => t.slide === slide).clock);
 const END = clockAt(15);
-// A talk is late when the timer is 15 seconds or more after the plan
-const lateAt = (slide) => SCRIPT.clockText(PLAN.find((t) => t.slide === slide).clock + 15);
 
 children.push(h1("1. The session and the marks"));
 children.push(
@@ -141,9 +139,10 @@ children.push(table(
 children.push(gap());
 children.push(
   bullet([bold("Time cue. "), txt("The first line of each speaker note gives the same target and the same timer value.")]),
-  bullet([bold("Checkpoints. "), txt(`Start slide 9 before ${clockAt(8)} on the timer. Start slide 12 before ${clockAt(11)}.`)]),
-  bullet([bold("If you are late at slide 7. "), txt(`Apply this rule only if the timer shows more than ${lateAt(6)} at the start of slide 7. Say only the third sentence of slide 7.`)]),
-  bullet([bold("If you are late at slide 12. "), txt(`Apply this rule only if the timer shows more than ${lateAt(11)} at the start of slide 12. On slide 13, say only the first sentence and the third sentence. On slide 14, say only the sentences that start with First, Second and Third.`)]),
+  bullet([bold("Checkpoints. "), txt(`Look at the timer at the start of slide 7 and at the start of slide 12. The plan is ${clockAt(6)} and ${clockAt(11)}. You are late if the timer shows more than ${SCRIPT.lateAt(7)} or ${SCRIPT.lateAt(12)}.`)]),
+  bullet([bold("If you are late at slide 7. "), txt("Say only the third sentence of slide 7.")]),
+  bullet([bold("If you are late at slide 12. "), txt("On slide 13, say only the first sentence and the third sentence. On slide 14, say only the sentences that start with First, Second and Third.")]),
+  bullet([bold("Reminder in the notes. "), txt("The cues of slides 7, 12, 13 and 14 repeat these rules, so you do not need to remember them.")]),
   bullet([bold("Do not cut. "), txt("Slides 2, 10 and 12 contain the takeaways, the solution and the benefit.")]),
   bullet([bold("Backup slides. "), txt("Slide 16 (Appendix A) shows all eleven models. Slide 17 (Appendix B) shows the importance of the inputs. Slide 18 (Appendix C) shows the three rules. Slide 19 (Appendix D) shows the data treatment. Slide 20 (Appendix E) shows the rigour checks.")]),
 );
@@ -158,6 +157,7 @@ children.push(p([bold("Before the session")], 60));
   "Read the script aloud with a timer. Do this three times or more.",
   "At each slide change, compare the timer with the time in the cue.",
   "If the talk is longer than 7 minutes 45 seconds, apply the two rules for a late talk in section 2.",
+  "If the talk is still longer than 7 minutes 45 seconds, do not say the last sentence of slide 11.",
   "Say the answers in sections 5 and 6 aloud. Use your own words when you know the answer.",
   "Print sections 5, 6 and 7. Keep the pages on the desk during the session.",
 ].forEach((t) => children.push(step(t, "before")));

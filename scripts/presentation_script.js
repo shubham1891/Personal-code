@@ -280,10 +280,23 @@ function timing() {
 const totalWords = () => timing().reduce((a, t) => a + t.words, 0);
 const totalSpokenWords = () => timing().reduce((a, t) => a + t.spoken, 0);
 
+// A talk is late when the timer is this many seconds after the plan at the start of slide 7 or slide 12
+const LATE_SECONDS = 10;
+const lateAt = (slide) => clockText(timing().find((x) => x.slide === slide - 1).clock + LATE_SECONDS);
+// What to do when the talk is late. The cue of each slide shows its own instruction, so the presenter does not
+// need to remember the rules.
+const LATE_HINT = {
+  7: () => `If the timer shows more than ${lateAt(7)} now, say only the third sentence.`,
+  12: () => `If the timer shows more than ${lateAt(12)} now, use the short version of slides 13 and 14.`,
+  13: () => "For the short version, say only the first sentence and the third sentence.",
+  14: () => "For the short version, say only the sentences that start with First, Second and Third.",
+};
+
 // The time cue that starts the notes of a timed slide
 function cue(slide) {
   const t = timing().find((x) => x.slide === slide);
-  return `[Speak for ${t.target} seconds. Finish at ${clockText(t.clock)} on the timer.]`;
+  const hint = LATE_HINT[slide] ? ` ${LATE_HINT[slide]()}` : "";
+  return `[Speak for ${t.target} seconds. Finish at ${clockText(t.clock)} on the timer.${hint}]`;
 }
 
 // The full text of the speaker notes of one slide
@@ -301,7 +314,7 @@ function noteText(slide) {
   throw new Error(`No notes for slide ${slide}`);
 }
 
-module.exports = { TALK, CRIB, BACKUP, WORDS_PER_MINUTE, SLIDE_CHANGE_SECONDS, timing, totalWords, totalSpokenWords, cue, noteText, clockText, countWords, spokenWords };
+module.exports = { TALK, CRIB, BACKUP, WORDS_PER_MINUTE, SLIDE_CHANGE_SECONDS, timing, totalWords, totalSpokenWords, cue, lateAt, noteText, clockText, countWords, spokenWords };
 
 // Run this file directly to print the timing plan and a plain-text copy of the script (for the linter).
 if (require.main === module) {
