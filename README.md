@@ -12,7 +12,7 @@ The program grades one of two tracks. The participant chooses this track on the 
 |---|---|---|
 | Milestone (20 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` (executed full-code notebook, with the `.ipynb` file next to it) | `reports/Loan_Default_Prediction_Milestone_Report.pdf` (business report, supported by the completed template notebook `notebooks/Loan_Default_Prediction_Low_Code.html`) |
 | Final report (40 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` again: the same notebook now ends with the three final-submission sections (executive summary, problem and solution summary, recommendations for implementation) | `reports/Loan_Default_Prediction_Final_Report.pdf` (Word source alongside) |
-| Live presentation (40 pts) | not prepared for this track | `presentation/Loan_Default_Prediction_Presentation.pptx` (19 slides with speaker notes, PDF copy alongside) |
+| Live presentation (40 pts) | not prepared for this track | `presentation/Loan_Default_Prediction_Presentation.pptx` (20 slides with speaker notes for an 8-minute talk, PDF copy alongside). `presentation/Loan_Default_Prediction_Presenter_Guide.pdf` is a preparation sheet for the presenter and is not a submission file |
 
 Upload exactly one file for each stage. If you upload a notebook and a report together, the graders mark only the report. They do not mark a submission that has more than one file. The program's final-submission guideline asks full-code learners to add the final sections to their notebook and to submit it as HTML, and low-code learners to submit the report as PDF.
 
@@ -25,7 +25,8 @@ reports/        milestone report and final submission report (Word and PDF), rep
 presentation/   live presentation slides (PowerPoint and PDF)
 scripts/        build_notebook.py / build_lowcode_notebook.py (generate the notebooks), run_notebook.py (executes a
                 notebook and exports HTML), make_report_figures.py, build_milestone_report.js, build_report.js,
-                build_presentation.js (generate the report figures, reports and slides), dump_text.py (review dumps)
+                build_presentation.js (generate the report figures, reports and slides), build_presenter_guide.js
+                (preparation sheet for the live presentation), dump_text.py (review dumps)
 ```
 
 ## Reproducing
