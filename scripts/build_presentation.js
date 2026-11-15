@@ -295,7 +295,7 @@ pres.addSection({ title: "Modelling" });
     ["Debt-to-income ratio missing: flag", 1],
     ["Ratio above about 44%: flag", 1],
     ["Otherwise: flag a delinquent credit line with a credit history of about 8 years or less", 1],
-    ["Per-applicant risk drivers will give each decline its ECOA reason", 0],
+    ["Per-applicant risk drivers (SHAP values) give each decline its ECOA reason", 0],
   ];
   s.addText(spec.map(([t, level], i) => ({ text: t, options: { bullet: { indent: 14 }, indentLevel: level, fontSize: level ? 10.5 : 11, color: C.text1, paraSpaceAfter: level && spec[i + 1] && spec[i + 1][1] ? 3 : 8, breakLine: i < spec.length - 1 } })),
     { x: 0.7, y: 1.8, w: 4.9, h: 3.2, valign: "top", margin: 0, isTextBox: true, objectName: "spec bullets" });
@@ -482,7 +482,7 @@ pres.addSection({ title: "Appendix" });
     ["1", "Is the debt-to-income ratio missing?", "Yes: flag, whatever the credit history (62% of these applicants defaulted). Check income before approving."],
     ["2", "If recorded, is the ratio above about 44%?", "Yes: flag (87-100% of applicants above 45% defaulted)."],
     ["3", "Ratio at or below 44%: a delinquent credit line and a credit history of about 8 years or less?", "Yes: flag. Otherwise clear. In this group, applicants with no delinquent line default only about 5% of the time."],
-    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on unseen applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers will give each decline its own reason."],
+    ["4", "How faithful are these rules?", "They reproduce 93% of the forest's decisions on unseen applicants. A rule that never flags anyone would agree 73% of the time. Per-applicant risk drivers (Appendix F) give each decline its own reason."],
     ["5", "What the rules do not use", "Loan size, derogatory reports, occupation and loan purpose do not change the surrogate's outcome. They matter only in combination inside the forest."],
   ];
   rules.forEach(([n, q, a], i) => {
@@ -518,7 +518,7 @@ pres.addSection({ title: "Appendix" });
 // A5. Methodology and rigour
 {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
-  s.addText("Appendix E: methodology and rigour, the checks behind the numbers", { placeholder: "title" });
+  s.addText("Appendix E: methodology and rigour checks", { placeholder: "title" });
   const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
   const rows = [
     [hdr("Check"), hdr("What I did"), hdr("Result")],
@@ -532,8 +532,29 @@ pres.addSection({ title: "Appendix" });
     ["Explanation fidelity", "Small tree fitted to the forest's cross-validated decisions", "Agrees with 93% of the forest's test decisions. Never flagging would agree 73%"],
     ["Sub-group check", "Applicants with a recorded debt-to-income ratio", "81% of defaulters caught at 78% precision"],
   ];
-  s.addTable(rows, { x: 0.5, y: 1.25, w: 9.0, colW: [1.7, 3.5, 3.8], fontSize: 10, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "rigour table" });
+  s.addTable(rows, { x: 0.5, y: 1.1, w: 9.0, colW: [1.7, 3.5, 3.8], fontSize: 10, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.04, align: "left", objectName: "rigour table" });
   notes(s, 20);
+}
+
+// A6. Per-applicant risk drivers
+{
+  const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Appendix" });
+  s.addText("Appendix F: the reasons for one applicant, SHAP values of the forest", { placeholder: "title" });
+  const hdr = (t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: H.dk2 } } });
+  const rows = [
+    [hdr("Flagged test applicant"), hdr("Score and result"), hdr("Three largest reasons (contribution to the score)")],
+    ["Ratio recorded, highest score", "0.925, defaulted", "Debt-to-income ratio 63% (+0.39). Three derogatory reports (+0.11). 65 credit lines (+0.09)"],
+    ["Ratio missing, median score", "0.625, defaulted", "Debt-to-income ratio missing (+0.34). Two years at current job (+0.10). Oldest credit line 91 months (+0.05)"],
+    ["Score nearest above the threshold", "0.155, repaid", "Oldest credit line 97 months (+0.04). Loan amount $6,600 (+0.04). Debt-to-income ratio 42% (+0.01)"],
+  ];
+  s.addTable(rows, { x: 0.5, y: 1.3, w: 9.0, colW: [2.5, 1.6, 4.9], fontSize: 11, fontFace: "Calibri", color: H.dk1, border: { type: "solid", pt: 0.5, color: "BFBFBF" }, valign: "middle", margin: 0.05, align: "left", objectName: "risk drivers table" });
+  s.addText(bullets([
+    "A SHAP value is the contribution of one input to the score of one applicant. The average score (0.20) plus the 22 contributions equals the score, for each of the 1,788 test applicants",
+    "Largest reason for the 491 flagged applicants: missing debt-to-income ratio 66%, delinquent credit lines 8%, missing property value 7%, high debt-to-income ratio 6%",
+    "By mean contribution, the same four inputs lead as in Appendix B: ratio missing 24%, delinquent lines 13%, ratio 13%, credit-history length 10%",
+    "Demonstration on the test applicants. The bank puts the calculation into the scoring pipeline in months 0-2, so each decline notice gives its own reasons",
+  ], 12), { x: 0.5, y: 3.2, w: 9.0, h: 1.9, valign: "top", margin: 0, isTextBox: true, objectName: "risk drivers bullets" });
+  notes(s, 21);
 }
 
 // ---------------- write ----------------

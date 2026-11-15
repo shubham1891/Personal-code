@@ -1774,7 +1774,12 @@ for label, position in examples.items():
 add_after(166, "markdown", r"""
 **Observations: per-applicant risk drivers (SHAP values)**
 
-- SHAP_OBSERVATIONS_PLACEHOLDER
+- For each of the 1,788 test applicants, the base value (0.20, the average score) plus the contributions of the 22 inputs equals the score. So each applicant gets an exact list of the inputs that increased or decreased the score.
+- The inputs with the largest mean absolute contribution are the missing-value flag of the debt-to-income ratio (24%), the delinquent credit lines (13%), the debt-to-income ratio (13%) and the age of the oldest credit line (10%). The impurity importance and the permutation importance put the same four inputs at the top.
+- For 66% of the 491 flagged test applicants, the largest reason is the missing debt-to-income ratio. For the other flagged applicants, the largest reason is most frequently the delinquent credit lines (8%), a missing property value (7%), a high debt-to-income ratio (6%) or the derogatory reports (4%).
+- Example: the flagged applicant with a recorded ratio and the highest score (0.925) has a debt-to-income ratio of 62.6%. The ratio adds 0.39 to the score, three derogatory reports add 0.11, and 65 credit lines add 0.09.
+- When a value is missing, the reason adds the contribution of the missing-value flag and the contribution of the imputed value.
+- This is a demonstration on the test applicants. The bank puts the same calculation into the scoring pipeline in the first two months. Then each adverse-action notice gives the top reasons of that applicant.
 """)
 md(167, r"""
 **Insights (model selection and final model):**
@@ -1841,7 +1846,7 @@ md(170, r"""
   - On the held-out applicants it then caught 93% of defaulters at 67% precision and 90% accuracy (ROC-AUC 0.96). That is far better than the single tree (82% recall at 53% precision) and the logistic regression (80% at 61%). It is also well ahead of the recall-tuned forest once we include the cost of lower precision.
   - It is stable because it averages hundreds of trees and because its out-of-fold and test results agree.
   - Its observed default rate rises in every score band. In the decision range its score understates that rate (applicants scored 0.15-0.20 defaulted about 28% of the time). So the 0.15 threshold reads as "refer or decline above roughly one-in-five estimated risk".
-- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's out-of-fold decisions reproduces about 93% of them on unseen applicants. Per-applicant risk drivers from the forest (for example SHAP values, built before the shadow run) give the reason for each decline. This includes the automatic declines above 0.25. The surrogate gives the plain-language summary of the rules:
+- *Performance vs interpretability:* a depth-4 surrogate decision tree fitted to the forest's out-of-fold decisions reproduces about 93% of them on unseen applicants. Per-applicant risk drivers from the forest (SHAP values, calculated above for the test applicants) give the reason for each decline. The bank puts them into the scoring pipeline before the shadow run. This includes the automatic declines above 0.25. The surrogate gives the plain-language summary of the rules:
   - the ratio is missing,
   - the ratio is above about 44%,
   - the ratio is at or below 44%, with a delinquent line and a credit history of about 93 months (7.8 years) or less.

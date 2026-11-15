@@ -196,6 +196,12 @@ const CRIB = [
     "With my assumptions, one review costs about 71 dollars.",
     "So the saving is about 0.4 million dollars each year.",
   ]],
+  ["Can you show the reasons for one applicant?", [
+    "Yes. I calculated SHAP values for all test applicants.",
+    "A SHAP value is the contribution of one input to the score of one applicant.",
+    "Slide 21 shows three flagged applicants.",
+    "For the first applicant, a debt-to-income ratio of 63 percent adds 0.39 to the score.",
+  ]],
   ["How do the bands change the numbers?", [
     "The numbers in the talk are for the single threshold of 0.15.",
     "With the bands, the model catches between 88 and 96 percent of defaulters.",
@@ -210,6 +216,7 @@ const BACKUP_USE = {
   18: "how the bank explains a decision",
   19: "about the data treatment",
   20: "about method and rigour",
+  21: "to see the reasons for one applicant",
 };
 const BACKUP = {
   16: [
@@ -248,6 +255,14 @@ const BACKUP = {
     "The checks are: test applicants that I reserved first, cross-validation, and a selection rule that I set before the comparison.",
     "The next checks are: input reduction with three seeds, a stress test of the threshold, and a paired comparison.",
     "The last checks are: calibration, the fidelity of the small decision tree, and a sub-group check.",
+  ],
+  21: [
+    "The table shows the reasons for three flagged test applicants.",
+    "A SHAP value is the contribution of one input to the score of one applicant.",
+    "The average score of 0.20 plus the contributions of the 22 inputs equals the score.",
+    "For the first applicant, a debt-to-income ratio of 63 percent adds 0.39 to the score.",
+    "For 66 percent of the flagged applicants, the largest reason is the missing debt-to-income ratio.",
+    "The bank puts this calculation into the scoring pipeline in months 0 to 2.",
   ],
 };
 
