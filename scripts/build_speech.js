@@ -1,7 +1,9 @@
-// Builds presentation/Loan_Default_Prediction_Speech.docx: the speech of the live presentation in large print.
+// Builds presentation/Loan_Default_Prediction_Speech.docx: the speech of the live presentation in large print,
+// prepared for a presenter who learns the speech and says it from memory.
 // The words come from presentation_script.js, so they are the same as the speaker notes of the deck and the script
-// in the presenter guide. This file adds only the delivery marks: the words to stress, the pauses, where to point,
-// and a memory card. The build stops if a mark does not match the words of the script.
+// in the presenter guide. This file adds only the delivery marks and the learning aids: the words to stress, the
+// pauses, where to point, four parts to learn, a memory card and a self-test with missing words.
+// The build stops if a mark does not match the words of the script.
 // It is for the presenter only and is not a submission file.
 // Run from the repository root:  node scripts/build_speech.js
 
@@ -23,8 +25,17 @@ const LIGHT = "E8EEF7";
 const FONT = "Calibri";
 const WIDTH = 9360; // text width of a US Letter page with 1-inch margins, in twentieths of a point
 
+// ---------- the four parts to learn: one page for each part ----------
+const PARTS = [
+  { slides: [1, 2, 3, 4], title: "Part 1: the key takeaways, the problem and the approach" },
+  { slides: [5, 6, 7, 8], title: "Part 2: the insights and the measure of success" },
+  { slides: [9, 10, 11], title: "Part 3: the model and the threshold" },
+  { slides: [12, 13, 14, 15], title: "Part 4: the benefit, the recommendations and the risks" },
+];
+
 // ---------- delivery marks ----------
 // The words to stress in each slide. Each phrase must be in exactly one line of that slide.
+// The self-test replaces the same words with blanks.
 const STRESS = {
   1: ["Saloni Priya", "about 80 percent"],
   2: ["four key takeaways", "one in five", "62 percent", "lowest cost", "93 percent", "nine million dollars", "after a shadow run"],
@@ -101,48 +112,31 @@ const SAY = [
   ["underwriter", "'UN-der-ry-ter'"],
   ["characteristic", "'ka-rak-te-RIS-tik'"],
   ["indicative", "'in-DIK-a-tiv'"],
-  ["logistic regression", "'lo-JIS-tik re-GRE-shun'"],
-  ["debt-to-income", "'DET to IN-kum' (the letter b is silent)"],
 ];
 
 // ---------- helpers ----------
 const run = (text, opts = {}) => new TextRun({ text, font: FONT, size: 21, ...opts });
 const p = (runs, after = 100) => new Paragraph({ spacing: { after, line: 264 }, children: Array.isArray(runs) ? runs : [run(runs)] });
-const h1 = (t, pageBreakBefore = false) => new Paragraph({ pageBreakBefore, keepNext: true, spacing: { before: pageBreakBefore ? 0 : 240, after: 120 }, children: [run(t, { bold: true, size: 28, color: NAVY })] });
-const bullet = (runs) => new Paragraph({ numbering: { reference: "bullets", level: 0 }, spacing: { after: 50, line: 260 }, children: Array.isArray(runs) ? runs : [run(runs)] });
+const h1 = (t, pageBreakBefore = false) => new Paragraph({ pageBreakBefore, keepNext: true, spacing: { before: pageBreakBefore ? 0 : 240, after: 100 }, children: [run(t, { bold: true, size: 28, color: NAVY })] });
+const h2 = (t) => new Paragraph({ keepNext: true, spacing: { before: 190, after: 50, line: 264 }, children: [run(t, { bold: true })] });
+const bullet = (runs) => new Paragraph({ numbering: { reference: "bullets", level: 0 }, spacing: { after: 45, line: 260 }, children: Array.isArray(runs) ? runs : [run(runs)] });
+const step = (t) => new Paragraph({ numbering: { reference: "steps", level: 0 }, spacing: { after: 45, line: 260 }, children: [run(t)] });
 
 const border = { style: BorderStyle.SINGLE, size: 4, color: "BFBFBF" };
 const borders = { top: border, bottom: border, left: border, right: border };
-function table(header, rows, widths) {
-  const cell = (text, isHeader, w, strong) => new TableCell({
+// A table with a navy header row. "strong" lists the columns in bold.
+function table(header, rows, widths, strong = [0]) {
+  const cell = (text, isHeader, w, isStrong) => new TableCell({
     width: { size: w, type: WidthType.DXA }, borders,
     shading: isHeader ? { type: ShadingType.CLEAR, fill: NAVY, color: "auto" } : undefined,
-    margins: { top: 55, bottom: 55, left: 90, right: 90 },
-    children: [new Paragraph({ spacing: { after: 0 }, children: [run(String(text), { bold: isHeader || strong, size: 20, color: isHeader ? "FFFFFF" : "000000" })] })],
+    margins: { top: 50, bottom: 50, left: 90, right: 90 },
+    children: [new Paragraph({ spacing: { after: 0 }, children: [run(String(text), { bold: isHeader || isStrong, size: 20, color: isHeader ? "FFFFFF" : "000000" })] })],
   });
   return new Table({
     width: { size: widths.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths: widths,
     rows: [
       new TableRow({ tableHeader: true, cantSplit: true, children: header.map((h, i) => cell(h, true, widths[i], false)) }),
-      ...rows.map((r) => new TableRow({ cantSplit: true, children: r.map((c, i) => cell(c, false, widths[i], i === 0)) })),
-    ],
-  });
-}
-
-// The pronunciation table: the term columns are bold
-function sayTable(rows) {
-  const widths = [1750, 2930, 1750, 2930];
-  const cell = (text, w, isHeader, strong) => new TableCell({
-    width: { size: w, type: WidthType.DXA }, borders,
-    shading: isHeader ? { type: ShadingType.CLEAR, fill: NAVY, color: "auto" } : undefined,
-    margins: { top: 55, bottom: 55, left: 90, right: 90 },
-    children: [new Paragraph({ spacing: { after: 0 }, children: [run(String(text), { bold: isHeader || strong, size: 20, color: isHeader ? "FFFFFF" : "000000" })] })],
-  });
-  return new Table({
-    width: { size: WIDTH, type: WidthType.DXA }, columnWidths: widths,
-    rows: [
-      new TableRow({ tableHeader: true, cantSplit: true, children: ["In the speech", "Say", "In the speech", "Say"].map((h, i) => cell(h, widths[i], true, false)) }),
-      ...rows.map((r) => new TableRow({ cantSplit: true, children: r.map((c, i) => cell(c, widths[i], false, i % 2 === 0)) })),
+      ...rows.map((r) => new TableRow({ cantSplit: true, children: r.map((c, i) => cell(c, false, widths[i], strong.includes(i))) })),
     ],
   });
 }
@@ -153,90 +147,145 @@ function lineIndex(talk, text, start) {
   if (hits.length !== 1) throw new Error(`Slide ${talk.slide}: "${text}" must be in exactly one line, found ${hits.length}`);
   return hits[0];
 }
-
-const SPEECH_SIZE = 29; // 14.5 pt
-// One spoken line: the stressed words are bold, and a pause mark follows the line when the plan has one
-function spokenLine(text, stress, pause, keepNext) {
-  const runs = [];
+// The stressed phrases of each line of a slide
+function stressOf(talk) {
+  const stress = talk.lines.map(() => []);
+  (STRESS[talk.slide] || []).forEach((s) => stress[lineIndex(talk, s, false)].push(s));
+  return stress;
+}
+// A line as pieces: [text, isStressed]. The build stops if two stressed phrases overlap.
+function pieces(text, stress) {
+  const out = [];
   let rest = text;
   stress.map((s) => [text.indexOf(s), s]).sort((a, b) => a[0] - b[0]).forEach(([, s]) => {
     const at = rest.indexOf(s);
     if (at < 0) throw new Error(`Stressed words overlap in: ${text}`);
-    if (at > 0) runs.push(run(rest.slice(0, at), { size: SPEECH_SIZE }));
-    runs.push(run(s, { size: SPEECH_SIZE, bold: true, color: NAVY }));
+    if (at > 0) out.push([rest.slice(0, at), false]);
+    out.push([s, true]);
     rest = rest.slice(at + s.length);
   });
-  if (rest) runs.push(run(rest, { size: SPEECH_SIZE }));
+  if (rest) out.push([rest, false]);
+  return out;
+}
+
+const SPEECH_SIZE = 28; // 14 pt
+// One spoken line: the stressed words are bold, and a pause mark follows the line when the plan has one
+function spokenLine(text, stress, pause, keepNext) {
+  const runs = pieces(text, stress).map(([t, strong]) => run(t, strong ? { size: SPEECH_SIZE, bold: true, color: NAVY } : { size: SPEECH_SIZE }));
   if (pause) runs.push(run("   (pause)", { size: 19, italics: true, color: GREY }));
-  return new Paragraph({ keepLines: true, keepNext, spacing: { after: 90, line: 300 }, indent: { left: 200 }, children: runs });
+  return new Paragraph({ keepLines: true, keepNext, spacing: { after: 80, line: 290 }, indent: { left: 200 }, children: runs });
+}
+// The same line for the self-test: a blank replaces each group of stressed words
+function testLine(text, stress, keepNext) {
+  const runs = pieces(text, stress).map(([t, strong]) => run(strong ? "_".repeat(Math.max(6, Math.round(t.length * 1.1))) : t, { size: 19, color: strong ? GREY : "000000" }));
+  return new Paragraph({ keepLines: true, keepNext, spacing: { after: 14, line: 236 }, indent: { left: 200 }, children: runs });
 }
 
 const plan = SCRIPT.timing();
+const timeOf = (slide) => plan.find((x) => x.slide === slide);
 const endClock = plan[plan.length - 1].clock;
 const pauseCount = Object.values(PAUSE_AFTER).reduce((a, l) => a + l.length, 0);
 const endWithPauses = endClock + pauseCount * PAUSE_SECONDS;
 const SLOW_WORDS_PER_MINUTE = 115;
 const slowEnd = Math.round((SCRIPT.totalSpokenWords() / SLOW_WORDS_PER_MINUTE) * 60 + (plan.length - 1) * SCRIPT.SLIDE_CHANGE_SECONDS + pauseCount * PAUSE_SECONDS);
+const talkOf = (slide) => SCRIPT.TALK.find((t) => t.slide === slide);
+const firstPage = 2; // the page of part 1
+const partPages = `pages ${firstPage} to ${firstPage + PARTS.length - 1}`;
 
 const children = [];
 
-// ---------------------------------------------------------------- title and instructions
+// ---------------------------------------------------------------- page 1: title and instructions
 children.push(new Paragraph({ spacing: { after: 40 }, children: [run("Loan Default Prediction: the speech", { bold: true, size: 40, color: NAVY })] }));
-children.push(new Paragraph({ spacing: { after: 160 }, children: [run("Saloni Priya  |  Live presentation, 8 minutes  |  Slides 1 to 15", { size: 22, color: GREY })] }));
+children.push(new Paragraph({ spacing: { after: 150 }, children: [run("Saloni Priya  |  Live presentation, 8 minutes  |  Slides 1 to 15", { size: 22, color: GREY })] }));
 children.push(p([
   run("Length. ", { bold: true }),
   run(`The speech has ${SCRIPT.totalWords()} words. At a calm pace (${SCRIPT.WORDS_PER_MINUTE} words for each minute), it ends at about ${SCRIPT.clockText(endWithPauses)} on the timer. At a slow pace (${SLOW_WORDS_PER_MINUTE} words for each minute), it ends at about ${SCRIPT.clockText(slowEnd)}. The hard stop is 9:00. These times are estimates, so measure your own time with a stopwatch.`),
 ]));
-children.push(p([run("How to read this sheet", { bold: true })], 50));
+
+children.push(h2("How to read the speech"));
 [
   [run("Each line is one sentence. Say one sentence. Then stop for a short breath.")],
   [run("Stress the words in "), run("bold blue", { bold: true, color: NAVY }), run(". Say them slowly and clearly.")],
   [run("The mark "), run("(pause)", { italics: true, color: GREY }), run(" tells you to stop for one full second. Look at the panel during this time.")],
   [run("Do not say the grey text. It gives the time for the slide, the timer value at the end of the slide, and where to point.")],
   [run("Change the slide when you come to a new blue bar.")],
-  [run("The words are the same as the speaker notes of the deck. Learn only this one version.")],
+  [run("The words are the same as the speaker notes of the deck. There is only one version to learn.")],
 ].forEach((r) => children.push(bullet(r)));
 
-// ---------------------------------------------------------------- the speech
-children.push(h1("The speech"));
-SCRIPT.TALK.forEach((talk) => {
-  const t = plan.find((x) => x.slide === talk.slide);
-  const stress = talk.lines.map(() => []);
-  (STRESS[talk.slide] || []).forEach((s) => stress[lineIndex(talk, s, false)].push(s));
-  const pauses = new Set((PAUSE_AFTER[talk.slide] || []).map((s) => lineIndex(talk, s, true)));
-  const points = new Map((POINT[talk.slide] || []).map(([s, where]) => [lineIndex(talk, s, true), where]));
-  const hint = (SCRIPT.cue(talk.slide).match(/on the timer\.\s*(.+)\]$/) || [])[1] || REMINDER[talk.slide];
+children.push(h2("How to learn the speech"));
+[
+  `The speech has four parts, and each part is one page (${partPages}). Learn one part at a time.`,
+  "Show the slide on the screen. Read the lines of the slide aloud three times.",
+  "Then hide the lines. Say them from memory while you look at the slide.",
+  "If you stop, look at the row of the slide on the memory card. Then say the full slide again.",
+  "When you know one slide, add the next slide. Then say the part again from its first slide.",
+  "Learn the first sentence of each slide and all the numbers exactly. They start your memory of the other lines.",
+  "For the other words, a small change is not an error. Continue with the next sentence.",
+  "Do the self-test on the last pages. It shows each line without its stressed words.",
+  "Learn in short sessions of 20 minutes. Repeat the parts that you know at the start of each session.",
+  "Record the speech on your telephone. Listen to the recording, and say the speech together with it.",
+  "Before the session, say the full speech three times with the slides and a stopwatch.",
+].forEach((t) => children.push(step(t)));
 
-  // the blue bar: slide number and name on the left, the time on the right
-  children.push(new Paragraph({
-    keepNext: true, spacing: { before: 200, after: 70 },
-    shading: { type: ShadingType.CLEAR, fill: LIGHT, color: "auto" },
-    tabStops: [{ type: TabStopType.RIGHT, position: WIDTH - 80 }], indent: { left: 80 },
-    children: [
-      run(`Slide ${talk.slide}`, { bold: true, size: 26, color: NAVY }),
-      run(`   ${talk.name}`, { bold: true, size: 24, color: NAVY }),
-      new TextRun({ children: [new Tab(), `${t.target} seconds  |  finish at ${SCRIPT.clockText(t.clock)}`], font: FONT, size: 20, color: GREY }),
-    ],
-  }));
-  if (hint) children.push(new Paragraph({ keepNext: true, spacing: { after: 60 }, indent: { left: 200 }, children: [run(hint, { size: 19, italics: true, color: GREY })] }));
-  talk.lines.forEach((line, i) => {
-    if (points.has(i)) children.push(new Paragraph({ keepNext: true, spacing: { after: 20 }, indent: { left: 200 }, children: [run(`→ Point to ${points.get(i)}.`, { size: 19, italics: true, color: GREY })] }));
-    children.push(spokenLine(line, stress[i], pauses.has(i), i < talk.lines.length - 1));
+children.push(h2("If you forget a line during the session"));
+[
+  "Stop for one breath. Look at the slide: it shows the numbers of your sentences.",
+  "Look at the notes in Presenter View. They show the same lines in the same sequence.",
+  "Continue with the next sentence that you know. Do not start the slide again, and do not speak faster.",
+].forEach((t) => children.push(bullet(t)));
+
+children.push(h2("How to say the numbers and the hard words"));
+// two word pairs in each row, so that the table stays on the first page
+const sayRows = [];
+for (let i = 0; i < SAY.length; i += 2) sayRows.push([...SAY[i], ...(SAY[i + 1] || ["", ""])]);
+children.push(table(["In the speech", "Say", "In the speech", "Say"], sayRows, [1750, 2930, 1750, 2930], [0, 2]));
+
+// ---------------------------------------------------------------- the speech: one page for each part
+PARTS.forEach((part) => {
+  const talks = part.slides.map(talkOf);
+  const words = part.slides.reduce((a, s) => a + timeOf(s).words, 0);
+  const seconds = part.slides.reduce((a, s) => a + timeOf(s).target, 0);
+  children.push(h1(part.title, true));
+  children.push(new Paragraph({ keepNext: true, spacing: { after: 40 }, children: [run(`Slides ${part.slides[0]} to ${part.slides[part.slides.length - 1]}  |  ${words} words  |  about ${SCRIPT.clockText(seconds)} of the speech`, { size: 20, color: GREY })] }));
+  talks.forEach((talk) => {
+    const t = timeOf(talk.slide);
+    const stress = stressOf(talk);
+    const pauses = new Set((PAUSE_AFTER[talk.slide] || []).map((s) => lineIndex(talk, s, true)));
+    const points = new Map((POINT[talk.slide] || []).map(([s, where]) => [lineIndex(talk, s, true), where]));
+    const hint = (SCRIPT.cue(talk.slide).match(/on the timer\.\s*(.+)\]$/) || [])[1] || REMINDER[talk.slide];
+
+    // the blue bar: slide number and name on the left, the time on the right
+    children.push(new Paragraph({
+      keepNext: true, spacing: { before: 170, after: 60 },
+      shading: { type: ShadingType.CLEAR, fill: LIGHT, color: "auto" },
+      tabStops: [{ type: TabStopType.RIGHT, position: WIDTH - 80 }], indent: { left: 80 },
+      children: [
+        run(`Slide ${talk.slide}`, { bold: true, size: 26, color: NAVY }),
+        run(`   ${talk.name}`, { bold: true, size: 24, color: NAVY }),
+        new TextRun({ children: [new Tab(), `${t.target} seconds  |  finish at ${SCRIPT.clockText(t.clock)}`], font: FONT, size: 20, color: GREY }),
+      ],
+    }));
+    if (hint) children.push(new Paragraph({ keepNext: true, spacing: { after: 50 }, indent: { left: 200 }, children: [run(hint, { size: 19, italics: true, color: GREY })] }));
+    talk.lines.forEach((line, i) => {
+      if (points.has(i)) children.push(new Paragraph({ keepNext: true, spacing: { after: 15 }, indent: { left: 200 }, children: [run(`→ Point to ${points.get(i)}.`, { size: 19, italics: true, color: GREY })] }));
+      children.push(spokenLine(line, stress[i], pauses.has(i), i < talk.lines.length - 1));
+    });
   });
 });
 
 // ---------------------------------------------------------------- memory card
 children.push(h1("Memory card", true));
-children.push(p("Use this page if you lose your place. Each row gives the main words of one slide and the timer value at the end of the slide."));
+children.push(p("Use this page when you learn the speech, and when you lose your place. Each row gives the first words of the slide, its main words and the timer value at the end of the slide."));
 children.push(table(
-  ["Slide", "Remember", "Finish at"],
+  ["Slide", "First words", "Remember", "Finish at"],
   SCRIPT.TALK.map((talk) => {
     if (!MEMORY[talk.slide]) throw new Error(`No memory line for slide ${talk.slide}`);
-    return [`${talk.slide}. ${talk.name}`, MEMORY[talk.slide], SCRIPT.clockText(plan.find((x) => x.slide === talk.slide).clock)];
+    const first = talk.lines[0].split(/\s+/).slice(0, 4).join(" ").replace(/[.,:]$/, "");
+    return [`${talk.slide}. ${talk.name}`, `${first} ...`, MEMORY[talk.slide], SCRIPT.clockText(timeOf(talk.slide).clock)];
   }),
-  [2300, 6060, 1000],
+  [2050, 2350, 4060, 900], [0],
 ));
-children.push(new Paragraph({ spacing: { before: 200, after: 50, line: 264 }, children: [run("If you are late", { bold: true })] }));
+children.push(h2("If you are late"));
 [
   `At the start of slide 7, look at the timer. If it shows more than ${SCRIPT.lateAt(7)}, say only the third sentence of slide 7.`,
   `At the start of slide 12, look at the timer. If it shows more than ${SCRIPT.lateAt(12)}, use the short version of slides 13 and 14.`,
@@ -244,16 +293,20 @@ children.push(new Paragraph({ spacing: { before: 200, after: 50, line: 264 }, ch
   "Slide 14, short version: say only the sentences that start with First, Second and Third.",
   "Do not speak faster. Always say the two sentences of the close and 'Thank you'.",
 ].forEach((t) => children.push(bullet(t)));
-children.push(new Paragraph({ spacing: { before: 200, after: 50, line: 264 }, children: [run("After the speech", { bold: true })] }));
+children.push(h2("After the speech"));
 [
   "After 'Thank you', keep slide 15 on the screen. Wait for the first question.",
-  "The short answers are in the note of slide 15 and in sections 5 and 6 of the presenter guide.",
+  "The short answers are in the note of slide 15 and in sections 5 and 6 of the presenter guide. Learn their meaning, not their words.",
 ].forEach((t) => children.push(bullet(t)));
-children.push(new Paragraph({ spacing: { before: 200, after: 60, line: 264 }, children: [run("How to say the numbers and the hard words", { bold: true })] }));
-// two word pairs in each row, so that the table stays on this page
-const sayRows = [];
-for (let i = 0; i < SAY.length; i += 2) sayRows.push([...SAY[i], ...(SAY[i + 1] || ["", ""])]);
-children.push(sayTable(sayRows));
+
+// ---------------------------------------------------------------- self-test
+children.push(h1("Self-test: say the missing words", true));
+children.push(p(`Each blank replaces the stressed words of the line. Say each line aloud with its missing words. Then compare it with the speech on ${partPages}.`, 40));
+SCRIPT.TALK.forEach((talk) => {
+  const stress = stressOf(talk);
+  children.push(new Paragraph({ keepNext: true, spacing: { before: 80, after: 20 }, children: [run(`Slide ${talk.slide}   ${talk.name}`, { bold: true, size: 19, color: NAVY })] }));
+  talk.lines.forEach((line, i) => children.push(testLine(line, stress[i], i < talk.lines.length - 1)));
+});
 
 const doc = new Document({
   creator: "Saloni Priya",
@@ -261,9 +314,10 @@ const doc = new Document({
   styles: { default: { document: { run: { font: FONT, size: 21 } } } },
   numbering: { config: [
     { reference: "bullets", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } }] },
+    { reference: "steps", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1.", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } }] },
   ] },
   sections: [{
-    properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1150, bottom: 1100, left: 1440, right: 1440 } } },
+    properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1100, bottom: 1050, left: 1440, right: 1440 } } },
     footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER,
       children: [run("Loan Default Prediction - Speech  |  Saloni Priya  |  Page ", { size: 18, color: GREY }),
                  new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 18, color: GREY })] })] }) },
