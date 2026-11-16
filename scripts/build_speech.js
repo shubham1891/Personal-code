@@ -237,7 +237,7 @@ children.push(h2("How to learn the speech"));
 
 children.push(h2("If you forget a line during the session"));
 [
-  "Stop for one breath. Look at the slide: it shows the numbers of your sentences.",
+  "Stop for one breath. Look at the slide: slides 2 to 14 show the numbers of your sentences.",
   "Look at the notes in Presenter View. They show the same lines in the same sequence.",
   "Continue with the next sentence that you know. Do not start the slide again, and do not speak faster.",
 ].forEach((t) => children.push(bullet(t)));

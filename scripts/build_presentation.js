@@ -421,8 +421,7 @@ pres.addSection({ title: "Recommendations" });
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Recommendations" });
   s.addText("Thank you", { placeholder: "title" });
   s.addText([
-    { text: "Questions and discussion", options: { fontSize: 18, color: C.background2, breakLine: true } },
-    { text: "Catch 93% of defaulters. Explain the decisions. Save an indicative $9M a year.", options: { fontSize: 13, color: C.accent4 } },
+    { text: "Questions and discussion", options: { fontSize: 18, color: C.background2 } },
   ], { placeholder: "body" });
   s.addShape(pres.shapes.RECTANGLE, { x: 0.6, y: 1.45, w: 0.9, h: 0.08, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "close marker" });
   notes(s, 15);
