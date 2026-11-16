@@ -29,6 +29,7 @@ pres.layout = "LAYOUT_16x9"; // 10 x 5.625 in
 pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
 pres.author = "Saloni Priya";
 pres.title = "Loan Default Prediction - Capstone Presentation";
+pres.subject = "Loan default prediction for home equity loans: capstone presentation";
 const C = pres.SchemeColor;
 
 // ---------------- layouts ----------------
