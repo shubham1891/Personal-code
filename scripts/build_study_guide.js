@@ -32,8 +32,8 @@ const bullet = (runs) => new Paragraph({ numbering: { reference: "bullets", leve
 const step = (t, ref) => new Paragraph({ numbering: { reference: `steps-${ref}`, level: 0 }, spacing: { after: 55, line: 270 }, children: [run(t)] });
 // One idea: the term in bold, its meaning, and then how it appears in the project
 function idea(term, meaning, project) {
-  const out = [new Paragraph({ keepLines: true, keepNext: Boolean(project), spacing: { after: project ? 30 : 110, line: 276 }, children: [run(`${term}. `, { bold: true, color: NAVY }), run(meaning)] })];
-  if (project) out.push(new Paragraph({ keepLines: true, spacing: { after: 110, line: 270 }, indent: { left: 300 }, children: [run("In this project: ", { bold: true, size: 21 }), run(project, { size: 21 })] }));
+  const out = [new Paragraph({ keepLines: true, keepNext: Boolean(project), spacing: { after: project ? 25 : 95, line: 274 }, children: [run(`${term}. `, { bold: true, color: NAVY }), run(meaning)] })];
+  if (project) out.push(new Paragraph({ keepLines: true, spacing: { after: 95, line: 268 }, indent: { left: 300 }, children: [run("In this project: ", { bold: true, size: 21 }), run(project, { size: 21 })] }));
   return out;
 }
 // A comparison with daily life, in a shaded box
@@ -115,7 +115,7 @@ children.push(...idea("The data", "The Home Equity data set, with the short name
 children.push(h2("2.2 What a model is"));
 children.push(...idea("Model", "A program that learns patterns from past loans. Then it estimates the risk of a new applicant."));
 children.push(think("An experienced loan officer read thousands of old files and knows which signs came before a default. The model does the same work with 4,172 old loans, and it applies the same knowledge to each applicant in the same way."));
-children.push(...idea("Input", "One fact about the applicant that the model uses, for example the loan amount. 'Attribute' and 'feature' are other words for the same thing.", "The final model uses 22 inputs. 10 inputs are numbers, for example the loan amount. 6 inputs are missing-value flags. 6 inputs are yes-or-no inputs for the occupation and the loan purpose."));
+children.push(...idea("Input", "One value about the applicant that the model uses, for example the loan amount. 'Feature' is another word for an input. An attribute is one of the 12 facts in the data. One attribute can give more than one input.", "The final model uses 22 inputs. 10 inputs are numbers, for example the loan amount. 6 inputs are missing-value flags. 6 inputs are yes-or-no inputs for the occupation and the loan purpose."));
 children.push(...idea("Risk score", "The answer of the model for one applicant: a number from 0 to 1. A higher score means a higher risk of default."));
 children.push(...idea("Training applicants and test applicants", "The model learns from the training applicants. The test applicants are the final examination of the model.", "70% of the loans (4,172) are training applicants. 30% (1,788) are test applicants. 357 of the test applicants defaulted."));
 children.push(think("A student who sees the examination questions before the examination gets a result that means nothing. So you reserved the test applicants before the data preparation. You scored the final model on them one time, after all decisions."));
@@ -127,7 +127,7 @@ children.push(...idea("The most important finding", "An empty field is informati
 children.push(...idea("Missing-value flag", "A new yes-or-no input that answers one question: was this field empty? It keeps the warning for the model.", "The final model has 6 of these flags. The flag for the debt-to-income ratio is its strongest input."));
 children.push(...idea("Imputation", "The model cannot calculate with an empty field. So you fill the field with a typical value from the training applicants. For a number, this value is the median. For a word, it is the most frequent value. The median is the middle value when you put all values in order."));
 children.push(...idea("Outlier", "An extreme value, for example a debt-to-income ratio of 203%.", "You limited extreme values only for the logistic regression. Trees do not need this, because a tree only asks which value is larger."));
-children.push(...idea("One-hot encoding", "A model needs numbers. So each occupation becomes its own yes-or-no input, for example 'Sales: yes or no'."));
+children.push(...idea("One-hot encoding", "A model needs numbers. So an occupation becomes a yes-or-no input, for example 'Sales: yes or no'. The first occupation gets no input, because the other inputs already identify it.", "6 occupations give 5 inputs, and 2 loan purposes give 1 input."));
 
 children.push(h2("2.4 From the score to a decision"));
 children.push(...idea("Threshold", "The limit for the score. When the score is above the threshold, the model flags the applicant.", "The threshold is 0.15. Many projects use 0.5, but 0.5 is only a convention."));
@@ -154,16 +154,16 @@ children.push(...idea("The same result for each 1,000 applicants", "200 of 1,000
 
 children.push(h2("2.6 The cost of credit errors"));
 children.push(...idea("Credit error", "A wrong loan decision. There are two types, and their costs are different."));
-children.push(...idea("Missed defaulter", "The bank approves an applicant who defaults.", "You assume a cost of about $9,000. The average defaulted loan is $16,900. The sale of the home recovers about half, and the collection adds costs."));
+children.push(...idea("Missed defaulter", "The bank approves an applicant who defaults.", "You assume a cost of about $9,000. The average defaulted loan is $16,900. You assume that the sale of the home recovers about half and that collection adds costs."));
 children.push(...idea("Wrongly declined good applicant", "The bank declines an applicant who would repay. The bank loses the interest that this loan would earn.", "You assume a cost of about $2,000."));
 children.push(...idea("The cost ratio", "A missed defaulter costs about 4.5 times a wrongly declined applicant ($9,000 divided by $2,000). This is the reason that recall is the primary measure: the expensive error is the missed defaulter."));
-children.push(...idea("Cost of credit errors for each 1,000 applicants", "Missed defaulters multiplied by $9,000, plus wrongly declined applicants multiplied by $2,000. This one number converts recall and precision to dollars.", "At 0.15: about 15 missed and about 90 wrongly declined, so about $310,000. At 0.5: about 64 missed and 28 wrongly declined, so about $635,000. The lower threshold decreases the cost by half."));
+children.push(...idea("Cost of credit errors for each 1,000 applicants", "Missed defaulters multiplied by $9,000, plus wrongly declined applicants multiplied by $2,000. This one number converts recall and precision to dollars.", "For the test applicants at 0.15: 14.5 missed and 89.5 wrongly declined, so about $310,000. At 0.5: 64.3 missed and 28.0 wrongly declined, so about $635,000. The lower threshold decreases the cost by half."));
 children.push(...idea("Indicative", "The dollar values depend on your two assumptions. The finance team of the bank must replace them with real data. So you always say 'indicative' and 'about'."));
 children.push(...idea("Stress test", "A check with other assumptions.", "The threshold of 0.15 stays the cheapest when a missed defaulter costs 4.5 to 8 times a wrongly declined applicant. So the result does not depend on one exact number."));
 
 children.push(h2("2.7 The four techniques"));
 children.push(p("A technique is a method to build a model. You built eleven models with four techniques. The eleven models are the four techniques with different settings."));
-children.push(...idea("Logistic regression", "It gives each input a weight, adds the weighted inputs and converts the sum to a score. It is easy to explain.", "Its limit: each additional point of the ratio changes the risk by the same quantity. So your logistic regression cannot follow the sudden step at 45%."));
+children.push(...idea("Logistic regression", "It gives each input a weight, adds the weighted inputs and converts the sum to a score. It is easy to explain.", "Its limit: the ratio has one weight. Each additional point of the ratio adds the same quantity to the sum, so the score changes gradually. So your logistic regression cannot follow the sudden step at 45%."));
 children.push(...idea("Decision tree", "A list of yes-or-no questions that ends in a decision, for example 'Is the ratio above 44%?'. People can read it easily.", "Its limit: one tree is coarse. The tuned tree catches 82% of defaulters, but it flags almost one good applicant for each defaulter that it catches."));
 children.push(...idea("Bagged trees", "Many trees, each trained on a different random sample of the training applicants. The model uses the average of their answers."));
 children.push(...idea("Random Forest", "Bagged trees with one more rule: at each question, a tree can select from only a few inputs, chosen at random. So the trees are more different, and their average is more stable.", "200 trees. At each question, a tree selects from 4 of the 22 inputs. Each tree is 'fully grown': it asks questions until it cannot divide its applicants more."));
@@ -172,8 +172,8 @@ children.push(...idea("Class weights", "A setting that makes an error on a defau
 children.push(...idea("Tuning", "A search for the best settings of a technique. A grid search tries each combination from a list of settings."));
 
 children.push(h2("2.8 How you selected the final model"));
-children.push(...idea("Cross-validation", "A method to test a model with the training applicants only. You divide them into 5 parts. The model learns from 4 parts, and you score it on the fifth part. Each part is the test part one time.", "You did this 3 times with different divisions. That gives 15 results for each model."));
-children.push(think("Cross-validation is a set of practice examinations before the final examination. You can use the practice results to make decisions. The final examination, the test applicants, stays unused until the end."));
+children.push(...idea("Cross-validation", "A method to test a model with the training applicants only. You divide them into 5 parts. The model learns from 4 parts, and you score it on the fifth part. Each of the 5 parts is the scoring part one time.", "You did this 3 times with different divisions. That gives 15 results for each model."));
+children.push(think("Cross-validation is a set of practice examinations before the final examination. You make each decision with the practice results. No selection uses the final examination, the test applicants. Each model got one report on them, but you selected nothing with these reports."));
 children.push(...idea("Selection rule", "You set the rule before you compared the models: the lowest cost of credit errors wins. When two costs are almost equal, the simplest model wins.", "A rule that you set in advance is fair. You cannot adjust it later to help one model."));
 children.push(...idea("Standard error", "A measure of the random noise in a result. A difference that is smaller than the noise is not a real difference.", "For the cost in cross-validation, one standard error is about $10,500 for each 1,000 applicants."));
 children.push(...idea("The result of the comparison", "Each technique at its own best threshold, in cross-validation, for each 1,000 applicants.", "Random Forest $324,000. Bagged trees $390,000. Logistic regression $550,000. Decision tree $607,000."));
@@ -181,8 +181,8 @@ children.push(...idea("Fewer inputs", "You removed the weakest input, one at a t
 children.push(...idea("The final examination", "After all decisions, you scored the final model on the test applicants one time.", "The cost was $310,000 for each 1,000 applicants. The practice result was $324,000. The two numbers agree, so the model also works on new applicants."));
 
 children.push(h2("2.9 Checks of the quality"));
-children.push(...idea("ROC-AUC", "A number from 0.5 to 1 that measures how well the model puts applicants in order of risk. 0.5 is the result of a coin. 1 is perfect.", "0.96. Take one defaulter and one good applicant at random. In 96 of 100 such pairs, the model gives the defaulter the higher score."));
-children.push(...idea("Over-fitting", "The model memorises the training applicants. It is very good on them and worse on new applicants.", "The forest is not over-fitted. Its ROC-AUC is 0.960 in cross-validation and 0.961 on the test applicants."));
+children.push(...idea("ROC-AUC", "A number that measures how well the model puts applicants in order of risk. 0.5 is the result of a coin. 1 is perfect.", "0.96. Take one defaulter and one good applicant at random. In 96 of 100 such pairs, the model gives the defaulter the higher score."));
+children.push(...idea("Over-fitting", "The model memorises the training applicants. It is very good on them and worse on new applicants.", "The forest is not over-fitted. Each tree memorises its own sample, but the average of 200 trees works on new applicants. The ROC-AUC is 0.960 in cross-validation and 0.961 on the test applicants."));
 children.push(...idea("Calibration", "A calibrated score of 0.15 means a 15% chance of default.", "The scores are not perfectly calibrated. Of the applicants with scores from 0.15 to 0.20, 28% defaulted. This is not a problem for the decision, because you selected the threshold by cost."));
 
 children.push(h2("2.10 How you explain the model"));
@@ -223,7 +223,7 @@ const SLIDES = [
     "'What data did you use?' 5,960 loans that the bank approved, with 12 facts from each application."],
   [4, "Approach", "Five steps. You reserved the final test before the data preparation.",
     "Explore the data. Prepare the data. Build the models. Measure them. Recommend. The important point is the sequence: you reserved the test applicants early, so the final result is honest.",
-    "'How did you prevent leakage?' Each value in the preparation comes from the training applicants only. No decision used the test applicants."],
+    "'How did you prevent leakage?' Each value in the preparation comes from the training applicants only. No model selection used the test applicants."],
   [5, "Insight 1", "A missing ratio or a missing valuation is the strongest warning: 62% and 94% defaulted.",
     "An empty field is information. The red bars on the chart are the applicants with an empty field. So you gave the model a yes-or-no input for each empty field.",
     "'Is this a real signal?' You cannot prove it from the data. You read it as income that the bank could not check. So you also tested the model on applicants with a recorded ratio: 81% caught."],
@@ -235,7 +235,7 @@ const SLIDES = [
     "'Why do small loans default most?' The data does not show the reason. 57% of the 194 loans below $5,000 defaulted. The group is small, so the result is uncertain."],
   [8, "Measure of success", "The two credit errors have different costs, so recall is the primary measure.",
     "You assume that a missed defaulter costs about $9,000 and a wrongly declined good applicant about $2,000. The expensive error is the missed defaulter. So the first question for each model is: how many defaulters does it catch?",
-    "'Where do the costs come from?' They are assumptions. The average defaulted loan is $16,900, and the home recovers about half. The finance team must replace them with real data."],
+    "'Where do the costs come from?' They are assumptions. The average defaulted loan is $16,900. You assume that the home recovers about half and that collection adds costs. The finance team must replace them with real data."],
   [9, "Model comparison", "The Random Forest gives the best risk ranking and the lowest cost: $324,000 for each 1,000 applicants.",
     "Your logistic regression cannot follow the sudden steps. One tree flags too many good applicants. The forest is the average of many trees. You selected by cost, without the test applicants, with a rule that you set in advance.",
     "'Why not a simpler model?' The logistic regression costs $550,000 and the tree $607,000, against $324,000 for the forest. The small tree gives the forest rules that people can read."],
@@ -252,7 +252,7 @@ const SLIDES = [
     "The policy rules do not need the model. One example is a limit of 45% on the debt-to-income ratio. In the shadow run, the model scores each application, but the underwriter decides.",
     "'Why not use the model now?' The data has only approved loans. The shadow run shows how the model behaves on all applications."],
   [14, "Risks", "Three risks: selection bias, a weaker missing-value signal and fair lending.",
-    "First, the data has only approved loans, so the shadow run must score all applications. Second, mandatory checks make the strongest input weaker, but the model still catches 81%. Third, occupation could be a proxy, so compliance tests the model before the start.",
+    "First, the data has only approved loans, so the shadow run must score all applications. Second, mandatory checks make the strongest input weaker. But for applicants with a recorded ratio, the model still catches 81% of defaulters. Third, occupation could be a proxy, so compliance tests the model before the start.",
     "'Is the model fair?' You could not test this, because the data has no protected characteristic. The compliance team tests it. A model without occupation is ready."],
   [15, "Close", "93% of defaulters caught, three simple rules, about $9 million each year.",
     "You repeat the three results and say 'Thank you'. The slide shows only 'Thank you' and 'Questions and discussion', so you must know these two sentences from memory.",
@@ -270,7 +270,7 @@ SLIDES.forEach(([n, name, point, plain, ask]) => {
   children.push(labelled("If they ask.", ask, false));
 });
 children.push(gap(60));
-children.push(p([run("Slides 16 to 21 are backup slides. ", { bold: true }), run("They are not part of the talk. Use them only for a question. Slide 16 shows all eleven models. Slide 17 shows the importance of the inputs. Slide 18 shows the three rules. Slide 19 shows the data preparation. Slide 20 shows the checks of the method. Slide 21 shows the reasons for one applicant.")]));
+children.push(p([run("Slides 16 to 21 are backup slides. ", { bold: true }), run("They are not part of the talk. Use them only for a question. Slide 16 shows all eleven models. Slide 17 shows the importance of the inputs. Slide 18 shows the three rules. Slide 19 shows the data preparation. Slide 20 shows the checks of the method. Slide 21 shows the reasons for three applicants.")]));
 
 // ================================================================= part 4
 children.push(h1("Part 4. The numbers and where they come from"));
@@ -315,23 +315,23 @@ const QA = [
   ["Why is the threshold 0.15 and not 0.5?", "A missed defaulter costs about 4.5 times a wrongly declined applicant. At 0.5 the model misses 64 defaulters in each 1,000 applicants. At 0.15 it misses 15. The cost of credit errors decreases by half."],
   ["Why is recall the primary measure, and not accuracy?", "The expensive error is the missed defaulter, and recall counts the defaulters that the model catches. Accuracy is not useful here: a bank that approves all applicants is 80% accurate."],
   ["How do you know that the model works on new applicants?", "I reserved 30% of the applicants before the data preparation. I scored the final model on them one time. The test cost of $310,000 agrees with the $324,000 from cross-validation."],
-  ["What is cross-validation?", "I divide the training applicants into 5 parts. The model learns from 4 parts, and I score it on the fifth part. I repeat this, so each model gets 15 results. It is a practice examination before the final test."],
+  ["What is cross-validation?", "I divide the training applicants into 5 parts. The model learns from 4 parts, and I score it on the fifth part. I do this 3 times with different divisions, so each model gets 15 results. It is a practice examination before the final test."],
   ["Is the model over-fitted?", "No. The ROC-AUC is 0.960 in cross-validation and 0.961 on the test applicants. The two values are almost equal."],
-  ["Where do the costs of $9,000 and $2,000 come from?", "They are my assumptions. The average defaulted loan is $16,900, and I assume that the home recovers about half. The $2,000 is the interest that the bank loses on one good loan. The finance team must replace the two numbers with real data."],
-  ["How sure is the $9 million?", "It is an indicative number with stated assumptions. The threshold stays the same for cost ratios from 4.5 to 8. With only a quarter of the benefit, the bank still recovers the project cost in the first year."],
+  ["Where do the costs of $9,000 and $2,000 come from?", "They are my assumptions. The average defaulted loan is $16,900. I assume that the home recovers about half and that collection adds costs. The $2,000 is the interest that the bank loses on one good loan. The finance team must replace the two numbers with real data."],
+  ["How sure is the $9 million?", "It is an indicative number with stated assumptions. With a second set of cost assumptions, the benefit is about $7.1 million each year. With only a quarter of the benefit, the bank still recovers the project cost in the first year."],
   ["How do you explain a declined application?", "Three plain rules summarise the model. Rule 1: the ratio is missing. Rule 2: the ratio is above about 44%. Rule 3: the applicant has a delinquent line and a short credit history. Each decline also gets the risk drivers of that applicant."],
   ["Is the model fair?", "I could not test this, because the data has no protected characteristic. No input is a protected characteristic, but occupation could be a proxy. The compliance team tests the model before the start, and a model without occupation is ready."],
   ["Why does the bank not use the model immediately?", "The data has only loans that the bank approved. So the model must first score all applications in a shadow run of one to two months, while the underwriters still decide."],
   ["Your recommendation removes the strongest input. Does the model still work?", "For applicants with a recorded ratio, the model still catches 81% of defaulters. I cannot calculate how much of the $9 million stays. The mandatory checks give a part of the benefit themselves."],
   ["How many good applicants does the bank lose?", "At 0.15, the model flags about 90 good applicants in each 1,000. That is 11% of the good applicants. The referral band sends the uncertain cases to an underwriter, so the bank does not decline all of them."],
-  ["What are the limits of your work?", "The data has only approved loans and no dates. The costs are assumptions. I did not test gradient boosting, and the scores are not perfectly calibrated. These points are the further analysis on slide 14."],
+  ["What are the limits of your work?", "The data has only approved loans and no dates. The costs are assumptions. I did not test gradient boosting, and the scores are not perfectly calibrated. Slide 14 shows the further analysis for the data, gradient boosting and calibration."],
 ];
 QA.forEach(([q, a]) => children.push(new Paragraph({ keepLines: true, spacing: { after: 120, line: 272 }, children: [run(`${q} `, { bold: true, color: NAVY }), run(a)] })));
 children.push(h2("Three sentences for a difficult moment"));
 [
-  "When you do not know the answer: 'I did not test this. I would test it in the shadow run.'",
+  "When you do not know the answer: 'I did not test this. I would add it to the further analysis.'",
   "When the panel doubts a dollar value: 'This number is indicative. It depends on my two cost assumptions, and the finance team must replace them.'",
-  "When you need time: 'That is a good question. Let me show the backup slide.' Then type the slide number and press Enter.",
+  "When you need time: 'That is a good question. Let me think for a moment.' If a backup slide helps the answer, type its slide number and press Enter.",
 ].forEach((t) => children.push(bullet(t)));
 
 // ================================================================= part 6
@@ -350,8 +350,8 @@ const QUIZ = [
   ["What are the two credit errors, and what do they cost?", "A missed defaulter, about $9,000. A wrongly declined good applicant, about $2,000."],
   ["Why is accuracy a bad primary measure here?", "A bank that approves all applicants is 80% accurate and catches no defaulter."],
   ["What is a Random Forest?", "The average of many decision trees. Here it has 200 trees."],
-  ["Why can your logistic regression not follow the data?", "The risk increases in a sudden step at a ratio of 45%. The logistic regression changes the risk by the same quantity for each point."],
-  ["What is cross-validation?", "A test inside the training applicants: 5 parts, and each part is the test part one time."],
+  ["Why can your logistic regression not follow the data?", "The risk stays low and then increases in a sudden step at a ratio of 45%. The logistic regression has one weight for the ratio, so its score can only change gradually."],
+  ["What is cross-validation?", "A check inside the training applicants: 5 parts, and each part is the scoring part one time."],
   ["What does ROC-AUC 0.96 mean?", "In 96 of 100 pairs, the model gives the defaulter a higher score than the good applicant."],
   ["What are the three bands?", "Approve at 0.10 or less. Refer to an underwriter from 0.10 to 0.25. Decline above 0.25."],
   ["What are the three rules of the small tree?", "The ratio is missing. The ratio is above about 44%. A delinquent line with a credit history of about 8 years or less."],
@@ -367,7 +367,7 @@ children.push(h2("Before the day"));
 [
   "Read part 1 and part 2 of this guide until you can explain each idea in your own words.",
   "Learn the speech with the speech sheet: one part on each day, and repeat the parts that you know.",
-  "Say the full talk three times with the slides and a stopwatch. The target is 8 minutes or less.",
+  `Say the full talk three times with the slides and a stopwatch. The plan is ${END}, and the limit is 8 minutes. If the talk is longer than 7:45, use the rules for a late talk.`,
   "Ask a friend to ask you the questions of part 5. Answer aloud, without the page.",
   "Open the deck in Presenter View and make sure that you can read the notes.",
 ].forEach((t) => children.push(step(t, "before")));
@@ -377,7 +377,8 @@ children.push(h2("During the talk"));
   "Point to the chart or the number when you say it.",
   "Look at the timer when you change the slide. Each note starts with the time for that slide.",
   "If you forget a line, look at the slide or at the notes. Then continue with the next sentence.",
-  "Do not speak faster when you are late. Use the short version of slides 13 and 14 that the notes show.",
+  `Do not speak faster when you are late. If the timer shows more than ${SCRIPT.lateAt(7)} at the start of slide 7, say only the third sentence of slide 7.`,
+  `If the timer shows more than ${SCRIPT.lateAt(12)} at the start of slide 12, use the short version of slides 13 and 14. The notes show these rules.`,
 ].forEach((t) => children.push(step(t, "during")));
 children.push(h2("During the questions"));
 [
