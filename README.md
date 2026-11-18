@@ -12,7 +12,7 @@ The program grades one of two tracks. The participant chooses this track on the 
 |---|---|---|
 | Milestone (20 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` (executed full-code notebook, with the `.ipynb` file next to it) | `reports/Loan_Default_Prediction_Milestone_Report.pdf` (business report, supported by the completed template notebook `notebooks/Loan_Default_Prediction_Low_Code.html`) |
 | Final report (40 pts) | `notebooks/Loan_Default_Prediction_Capstone.html` again: the same notebook now ends with the three final-submission sections (executive summary, problem and solution summary, recommendations for implementation) | `reports/Loan_Default_Prediction_Final_Report.pdf` (Word source alongside) |
-| Live presentation (40 pts) | not prepared for this track | `presentation/Loan_Default_Prediction_Presentation.pptx` (21 slides). `presentation/Loan_Default_Prediction_Presentation.pdf` is the PDF copy for submission: all nine charts, embedded fonts, one bookmark for each slide, no speaker notes. The speaker notes hold the script for the 8-minute talk: one sentence on each line, in Simplified Technical English (ASD-STE100), with a time cue on each slide. `presentation/Loan_Default_Prediction_Presenter_Guide.pdf` is a preparation sheet for the presenter (timing plan, rehearsal steps, concepts, likely questions, paper copy of the script) and is not a submission file. `presentation/Loan_Default_Prediction_Speech.pdf` is the same script in large print for rehearsal and delivery: the words to stress, the pauses, where to point, a memory card and the rules for a late talk |
+| Live presentation (40 pts) | not prepared for this track | `presentation/Loan_Default_Prediction_Presentation.pptx` (21 slides). `presentation/Loan_Default_Prediction_Presentation.pdf` is the PDF copy for submission: all nine charts, embedded fonts, one bookmark for each slide, no speaker notes. The speaker notes hold the script for the 8-minute talk: one sentence on each line, in Simplified Technical English (ASD-STE100), with a time cue on each slide. `presentation/Loan_Default_Prediction_Presenter_Guide.pdf` is a preparation sheet for the presenter (timing plan, rehearsal steps, concepts, likely questions, paper copy of the script) and is not a submission file. `presentation/Loan_Default_Prediction_Speech.pdf` is the same script in large print for rehearsal and delivery: the words to stress, the pauses, where to point, a memory card and the rules for a late talk. `presentation/Loan_Default_Prediction_Study_Guide.pdf` explains the whole project in plain words for the presenter: each idea from the start, each slide, the origin of each number, easy answers and a self-test |
 
 Upload exactly one file for each stage. If you upload a notebook and a report together, the graders mark only the report. They do not mark a submission that has more than one file. The program's final-submission guideline asks full-code learners to add the final sections to their notebook and to submit it as HTML, and low-code learners to submit the report as PDF.
 
@@ -28,8 +28,9 @@ scripts/        build_notebook.py / build_lowcode_notebook.py (generate the note
                 build_presentation.js (generate the report figures, reports and slides), presentation_script.js
                 (the spoken script: one source for the speaker notes, the presenter guide and the speech sheet),
                 build_presenter_guide.js (preparation sheet for the live presentation), build_speech.js (the speech
-                in large print with delivery marks), fix_pdf_bookmarks.py (full slide titles in the bookmarks of the
-                presentation PDF), dump_text.py (review dumps)
+                in large print with delivery marks), build_study_guide.js (the project in plain words for the
+                presenter), fix_pdf_bookmarks.py (full slide titles in the bookmarks of the presentation PDF),
+                dump_text.py (review dumps)
 ```
 
 ## Reproducing
